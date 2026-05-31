@@ -1,0 +1,25 @@
+/* media_uploader.wxss - 媒体上传组件样式 */
+
+.uploader-container {
+  padding: 16px;
+  background-color: #ffffff;
+}
+
+.uploader-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.uploader-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.uploader-actions van-button {
+  flex: 1;
+}

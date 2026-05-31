@@ -1,0 +1,99 @@
+/* album_home.wxss - 相册首页样式 */
+
+.container {
+  min-height: 100vh;
+  background-color: #f7f8fa;
+  padding-bottom: 80px;
+}
+
+.baby-selector {
+  margin-bottom: 8px;
+  background-color: #ffffff;
+}
+
+.view-mode-toggle {
+  padding: 8px 16px;
+  background-color: #ffffff;
+  margin-bottom: 8px;
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 48px 0;
+}
+
+.empty-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 0;
+}
+
+.empty-container van-button {
+  margin-top: 16px;
+}
+
+/* 瀑布流视图 */
+.masonry-view {
+  column-count: 2;
+  column-gap: 8px;
+  padding: 8px;
+}
+
+.masonry-item {
+  break-inside: avoid;
+  margin-bottom: 8px;
+  background-color: #ffffff;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+/* 时间线视图 */
+.timeline-view {
+  padding: 8px;
+}
+
+.timeline-item {
+  display: flex;
+  align-items: center;
+  background-color: #ffffff;
+  padding: 12px;
+  margin-bottom: 8px;
+  border-radius: 8px;
+}
+
+.timeline-item-info {
+  margin-left: 12px;
+  flex: 1;
+}
+
+/* 通用媒体项样式 */
+.media-item-info {
+  padding: 8px;
+}
+
+.media-title {
+  display: block;
+  font-size: 14px;
+  color: #323233;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.media-date {
+  display: block;
+  font-size: 12px;
+  color: #969799;
+  margin-top: 4px;
+}
+
+.upload-btn {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 100;
+}

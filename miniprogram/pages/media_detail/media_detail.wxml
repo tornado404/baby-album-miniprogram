@@ -1,0 +1,69 @@
+<!-- media_detail.wxml - 媒体详情页 -->
+
+<!-- 顶部导航栏（透明背景） -->
+<van-nav-bar
+  title=""
+  left-arrow
+  bind:click-left="goBack"
+  custom-class="nav-bar-transparent"
+/>
+
+<!-- 主内容区 -->
+<view class="container">
+
+  <!-- 加载状态 -->
+  <view wx:if="{{isLoading}}" class="loading-container">
+    <van-loading type="spinner" size="36px" color="#ffffff" />
+  </view>
+
+  <!-- 图片预览区域 -->
+  <view wx:else class="preview-container" bindtap="onPreviewTap">
+    <swiper
+      class="media-swiper"
+      current="{{currentIndex}}"
+      bindchange="onSwiperChange"
+      indicator-dots
+      indicator-color="rgba(255,255,255,0.5)"
+      indicator-active-color="#ffffff"
+    >
+      <block wx:for="{{mediaList}}" wx:key="id">
+        <swiper-item>
+          <van-image
+            width="100%"
+            height="100%"
+            src="{{item.url}}"
+            fit="aspectFit"
+            show-menu-by-longpress
+            use-loading-slot
+          >
+            <van-loading slot="loading" type="spinner" size="36px" color="#ffffff" />
+          </van-image>
+        </swiper-item>
+      </block>
+    </swiper>
+  </view>
+
+  <!-- 底部信息展示栏 -->
+  <view wx:if="{{media}}" class="info-bar">
+    <view class="info-content">
+      <text class="media-title">{{media.title || '无标题'}}</text>
+      <text class="media-date">{{media.captureDate}}</text>
+      <text wx:if="{{media.babyAge}}" class="media-age">
+        {{media.babyAge.years}}岁{{media.babyAge.months}}月
+      </text>
+    </view>
+    <view class="info-actions">
+      <van-icon name="ellipsis" bind:click="onActionsTap" />
+    </view>
+  </view>
+
+  <!-- 操作菜单 -->
+  <van-action-sheet
+    show="{{showActions}}"
+    actions="{{actions}}"
+    cancel-text="取消"
+    bind:select="onActionsSelect"
+    bind:cancel="onActionsCancel"
+  />
+
+</view>

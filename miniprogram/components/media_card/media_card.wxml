@@ -1,0 +1,16 @@
+<!-- media_card.wxml - 媒体卡片组件 -->
+
+<view class="media-card" bindtap="onTap">
+  <van-image
+    width="{{width || 160}}"
+    height="{{height || 160}}"
+    src="{{media.thumbnailUrl || media.url}}"
+    fit="cover"
+    lazy-load
+    use-loading-slot
+  />
+  <view class="media-info">
+    <text class="media-title">{{media.title || ''}}</text>
+    <text class="media-age">{{media.babyAge ? formatAge(media.babyAge) : ''}}</text>
+  </view>
+</view>

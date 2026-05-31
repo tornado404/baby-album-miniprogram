@@ -1,0 +1,42 @@
+<!-- age_filter.wxml - 月龄筛选组件 -->
+
+<view class="age-filter-container">
+  <!-- 快捷筛选横向滚动栏 -->
+  <scroll-view scroll-x class="quick-filter">
+    <block wx:for="{{quickOptions}}" wx:key="value">
+      <view
+        class="filter-tag {{value === selectedValue ? 'active' : ''}}"
+        bindtap="onQuickSelect"
+        data-value="{{item.value}}"
+      >
+        {{item.label}}
+      </view>
+    </block>
+    <view class="filter-tag custom-tag" bindtap="onCustomTap">
+      <van-icon name="filter-o" />自定义
+    </view>
+  </scroll-view>
+
+  <!-- 自定义筛选弹窗 - 使用 van-popup + van-picker -->
+  <van-popup show="{{customVisible}}" position="bottom" round>
+    <view class="custom-picker">
+      <view class="picker-header">
+        <text>自定义月龄筛选</text>
+      </view>
+      <view class="picker-content">
+        <view class="picker-row">
+          <text>最小月龄：</text>
+          <van-stepper value="{{customMin}}" min="0" max="36" bind:change="onMinChange" />
+        </view>
+        <view class="picker-row">
+          <text>最大月龄：</text>
+          <van-stepper value="{{customMax}}" min="0" max="36" bind:change="onMaxChange" />
+        </view>
+      </view>
+      <view class="picker-actions">
+        <van-button type="default" size="small" bind:click="onCustomCancel">取消</van-button>
+        <van-button type="primary" size="small" bind:click="onCustomConfirm">确认</van-button>
+      </view>
+    </view>
+  </van-popup>
+</view>
