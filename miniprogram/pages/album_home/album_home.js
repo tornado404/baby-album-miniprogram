@@ -35,6 +35,15 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
+    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
+        if (ar || !(i in from)) {
+            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+            ar[i] = from[i];
+        }
+    }
+    return to.concat(ar || Array.prototype.slice.call(from));
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 // @ts-nocheck
 // album_home.ts - 相册首页
@@ -51,10 +60,15 @@ Page({
         isEmpty: false,
         uploaderVisible: false,
         filterMinAge: null,
-        filterMaxAge: null
+        filterMaxAge: null,
+        isAuthorized: false,
+        page: 1,
+        pageSize: 20,
+        hasMore: true,
+        isLoadingMore: false
     },
     onLoad: function () {
-        this.initPage();
+        this.checkAuthorization();
     },
     onShow: function () {
         // 每次显示时检查数据更新
@@ -63,9 +77,48 @@ Page({
         }
     },
     onPullDownRefresh: function () {
-        // 下拉刷新
         this.loadMediaList().then(function () {
             wx.stopPullDownRefresh();
+        });
+    },
+    // 检查授权状态
+    checkAuthorization: function () {
+        var _this = this;
+        wx.getSetting({
+            success: function (res) {
+                if (res.authSetting['scope.userInfo']) {
+                    // 已授权，获取用户信息
+                    _this.setData({ isAuthorized: true });
+                    _this.initPage();
+                }
+                else {
+                    // 未授权，提示用户授权
+                    _this.setData({ isAuthorized: false });
+                    _this.showAuthTip();
+                }
+            },
+            fail: function () {
+                // 获取设置失败，默认进入
+                _this.setData({ isAuthorized: true });
+                _this.initPage();
+            }
+        });
+    },
+    // 显示授权提示
+    showAuthTip: function () {
+        wx.showModal({
+            title: '授权提示',
+            content: '成长相册需要获取您的头像和昵称信息，请先授权',
+            confirmText: '去授权',
+            cancelText: '暂不授权',
+            success: function (res) {
+                if (res.confirm) {
+                    // 跳转回首页授权
+                    wx.switchTab({
+                        url: '/pages/index/index'
+                    });
+                }
+            }
         });
     },
     initPage: function () {
@@ -88,6 +141,10 @@ Page({
                             currentBabyId: firstBaby.id,
                             currentBaby: firstBaby
                         });
+                        // 设置动态标题
+                        wx.setNavigationBarTitle({
+                            title: "".concat(firstBaby.name, "\u7684\u6210\u957F\u76F8\u518C")
+                        });
                         return [4 /*yield*/, this.loadMediaList()];
                     case 3:
                         _a.sent();
@@ -109,16 +166,18 @@ Page({
         });
     },
     loadMediaList: function () {
-        return __awaiter(this, void 0, void 0, function () {
-            var _a, currentBabyId, filterMinAge, filterMaxAge, currentBaby, babyBirthDate, mediaList, error_2;
+        return __awaiter(this, arguments, void 0, function (isLoadMore) {
+            var _a, currentBabyId, filterMinAge, filterMaxAge, currentBaby, page, pageSize, currentPage, babyBirthDate, result, error_2;
+            if (isLoadMore === void 0) { isLoadMore = false; }
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
-                        _a = this.data, currentBabyId = _a.currentBabyId, filterMinAge = _a.filterMinAge, filterMaxAge = _a.filterMaxAge, currentBaby = _a.currentBaby;
+                        _a = this.data, currentBabyId = _a.currentBabyId, filterMinAge = _a.filterMinAge, filterMaxAge = _a.filterMaxAge, currentBaby = _a.currentBaby, page = _a.page, pageSize = _a.pageSize;
                         if (!currentBabyId) {
                             this.setData({ mediaList: [] });
                             return [2 /*return*/];
                         }
+                        currentPage = isLoadMore ? page + 1 : 1;
                         _b.label = 1;
                     case 1:
                         _b.trys.push([1, 3, , 4]);
@@ -126,11 +185,18 @@ Page({
                         return [4 /*yield*/, media_service_1.mediaService.getMediaListWithAge({
                                 babyId: currentBabyId,
                                 minAge: filterMinAge !== null ? filterMinAge : undefined,
-                                maxAge: filterMaxAge !== null ? filterMaxAge : undefined
+                                maxAge: filterMaxAge !== null ? filterMaxAge : undefined,
+                                page: currentPage,
+                                pageSize: pageSize
                             }, babyBirthDate)];
                     case 2:
-                        mediaList = _b.sent();
-                        this.setData({ mediaList: mediaList, isEmpty: mediaList.length === 0 });
+                        result = _b.sent();
+                        this.setData({
+                            mediaList: isLoadMore ? __spreadArray(__spreadArray([], this.data.mediaList, true), result, true) : result,
+                            hasMore: result.length === pageSize,
+                            page: currentPage,
+                            isLoadingMore: false
+                        });
                         return [3 /*break*/, 4];
                     case 3:
                         error_2 = _b.sent();
@@ -143,7 +209,6 @@ Page({
     },
     onBabySelect: function () {
         var _this = this;
-        // 显示宝宝选择器
         var babies = this.data.babies;
         if (babies.length === 0) {
             return;
@@ -156,6 +221,10 @@ Page({
                 _this.setData({
                     currentBabyId: selectedBaby.id,
                     currentBaby: selectedBaby
+                });
+                // 更新导航栏标题
+                wx.setNavigationBarTitle({
+                    title: "".concat(selectedBaby.name, "\u7684\u6210\u957F\u76F8\u518C")
                 });
                 _this.loadMediaList();
             }
@@ -170,7 +239,6 @@ Page({
         this.loadMediaList();
     },
     switchViewMode: function () {
-        // 切换视图模式
         var newMode = this.data.viewMode === 'masonry' ? 'timeline' : 'masonry';
         this.setData({ viewMode: newMode });
     },
@@ -181,14 +249,12 @@ Page({
         });
     },
     onScrollToLower: function () {
-        // 触底加载更多 - 预留，后续实现分页
-        wx.showToast({
-            title: '正在加载更多...',
-            icon: 'none'
-        });
+        if (!this.data.hasMore || this.data.isLoadingMore)
+            return;
+        this.setData({ isLoadingMore: true });
+        this.loadMediaList(true);
     },
     onUploadTap: function () {
-        // 显示上传组件
         if (!this.data.currentBabyId) {
             wx.showToast({ title: '请先选择宝宝', icon: 'none' });
             return;
@@ -199,7 +265,6 @@ Page({
         this.setData({ uploaderVisible: false });
     },
     onUploaderSuccess: function () {
-        // 上传成功后刷新列表
         this.loadMediaList();
     },
     goHome: function () {

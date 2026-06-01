@@ -33,10 +33,17 @@ Component({
         onInputChange: function (e) {
             var nickName = e.detail.value;
             var avatarUrl = this.data.userInfo.avatarUrl;
+            var hasInfo = nickName && avatarUrl && avatarUrl !== defaultAvatarUrl;
             this.setData({
                 "userInfo.nickName": nickName,
-                hasUserInfo: nickName && avatarUrl && avatarUrl !== defaultAvatarUrl,
+                hasUserInfo: hasInfo,
             });
+            // 授权成功后跳转到相册首页
+            if (hasInfo) {
+                wx.navigateTo({
+                    url: '/pages/album_home/album_home',
+                });
+            }
         },
         getUserProfile: function () {
             var _this = this;
@@ -48,6 +55,10 @@ Component({
                     _this.setData({
                         userInfo: res.userInfo,
                         hasUserInfo: true
+                    });
+                    // 授权成功后跳转到相册首页
+                    wx.navigateTo({
+                        url: '/pages/album_home/album_home',
                     });
                 }
             });

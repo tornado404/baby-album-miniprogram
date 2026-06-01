@@ -79,7 +79,9 @@ Component({
         fileList: [],
         uploadLoading: false,
         captureDate: '',
-        title: ''
+        title: '',
+        fabMenuVisible: false,
+        uploadProgress: 0
     },
     lifetimes: {
         attached: function () {
@@ -127,6 +129,40 @@ Component({
                             console.error('选择图片失败:', error_1);
                             return [3 /*break*/, 3];
                         case 3: return [2 /*return*/];
+                    }
+                });
+            });
+        },
+        toggleFabMenu: function () {
+            this.setData({ fabMenuVisible: !this.data.fabMenuVisible });
+        },
+        onFabMenuClose: function () {
+            this.setData({ fabMenuVisible: false });
+        },
+        onFabCameraTap: function () {
+            return __awaiter(this, void 0, void 0, function () {
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            this.setData({ fabMenuVisible: false });
+                            return [4 /*yield*/, this.onSelectTap('camera')];
+                        case 1:
+                            _a.sent();
+                            return [2 /*return*/];
+                    }
+                });
+            });
+        },
+        onFabAlbumTap: function () {
+            return __awaiter(this, void 0, void 0, function () {
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            this.setData({ fabMenuVisible: false });
+                            return [4 /*yield*/, this.onSelectTap('album')];
+                        case 1:
+                            _a.sent();
+                            return [2 /*return*/];
                     }
                 });
             });

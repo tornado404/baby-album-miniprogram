@@ -46,12 +46,46 @@ Page({
         currentIndex: 0,
         isLoading: false,
         showActions: false,
+        scale: 1,
+        minScale: 1,
+        maxScale: 3,
+        isZooming: false,
+        initialPinchDistance: 0,
         actions: [
             { name: '编辑', icon: 'edit' },
             { name: '下载', icon: 'down' },
             { name: '分享', icon: 'share' },
             { name: '删除', icon: 'delete', color: '#ee0a24' }
         ]
+    },
+    onTouchStart: function (e) {
+        if (e.touches.length === 2) {
+            this.setData({ isZooming: true });
+            var touch1 = e.touches[0];
+            var touch2 = e.touches[1];
+            var initialDistance = Math.sqrt(Math.pow(touch2.clientX - touch1.clientX, 2) +
+                Math.pow(touch2.clientY - touch1.clientY, 2));
+            this.setData({ initialPinchDistance: initialDistance });
+        }
+    },
+    onTouchMove: function (e) {
+        if (!this.data.isZooming || e.touches.length !== 2)
+            return;
+        var touch1 = e.touches[0];
+        var touch2 = e.touches[1];
+        var currentDistance = Math.sqrt(Math.pow(touch2.clientX - touch1.clientX, 2) +
+            Math.pow(touch2.clientY - touch1.clientY, 2));
+        var _a = this.data, initialPinchDistance = _a.initialPinchDistance, scale = _a.scale, minScale = _a.minScale, maxScale = _a.maxScale;
+        var delta = currentDistance / initialPinchDistance;
+        var newScale = scale * delta;
+        newScale = Math.max(minScale, Math.min(maxScale, newScale));
+        this.setData({ scale: newScale });
+    },
+    onTouchEnd: function () {
+        this.setData({ isZooming: false });
+        if (this.data.scale <= this.data.minScale) {
+            this.setData({ scale: 1 });
+        }
     },
     onLoad: function (options) {
         var id = options.id;

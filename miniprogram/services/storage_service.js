@@ -57,18 +57,15 @@ var StorageService = /** @class */ (function () {
     function StorageService() {
         this.PREFIX = 'album_';
         this.VERSION = 'v1';
-        // 内存缓存层 - 减少频繁的 Storage 操作
+        this.CACHE_TTL = 5 * 60 * 1000;
+        this.keys = {
+            babies: this.PREFIX + 'babies',
+            media: this.PREFIX + 'media',
+            settings: this.PREFIX + 'settings',
+            version: this.PREFIX + 'version'
+        };
         this.cache = {
             lastFetchTime: 0
-        };
-        // 缓存有效期（毫秒）- 5分钟
-        this.CACHE_TTL = 5 * 60 * 1000;
-        // 存储键名
-        this.keys = {
-            babies: "".concat(this.PREFIX, "babies"),
-            media: "".concat(this.PREFIX, "media"),
-            settings: "".concat(this.PREFIX, "settings"),
-            version: "".concat(this.PREFIX, "version")
         };
     }
     /**
@@ -88,7 +85,6 @@ var StorageService = /** @class */ (function () {
     };
     /**
      * 检查存储版本并迁移
-     * TODO: 实现完整的迁移逻辑，支持多版本升级
      */
     StorageService.prototype.checkVersion = function () {
         return __awaiter(this, void 0, void 0, function () {
@@ -98,12 +94,8 @@ var StorageService = /** @class */ (function () {
                     case 0:
                         version = wx.getStorageSync(this.keys.version);
                         if (!(version !== this.VERSION)) return [3 /*break*/, 2];
-                        // TODO: 实现迁移逻辑
-                        // 例如: if (version === 'v0') { migrateFromV0ToV1(); }
                         return [4 /*yield*/, wx.setStorageSync(this.keys.version, this.VERSION)];
                     case 1:
-                        // TODO: 实现迁移逻辑
-                        // 例如: if (version === 'v0') { migrateFromV0ToV1(); }
                         _a.sent();
                         _a.label = 2;
                     case 2: return [2 /*return*/];
@@ -127,7 +119,9 @@ var StorageService = /** @class */ (function () {
                         wx.setStorage({
                             key: key,
                             data: data,
-                            success: function () { return resolve(); }
+                            success: function () {
+                                resolve();
+                            }
                         });
                     })];
             });
@@ -142,8 +136,12 @@ var StorageService = /** @class */ (function () {
                 return [2 /*return*/, new Promise(function (resolve) {
                         wx.getStorage({
                             key: key,
-                            success: function (res) { return resolve(res.data); },
-                            fail: function () { return resolve(null); }
+                            success: function (res) {
+                                resolve(res.data);
+                            },
+                            fail: function () {
+                                resolve(null);
+                            }
                         });
                     })];
             });
@@ -177,13 +175,18 @@ var StorageService = /** @class */ (function () {
      */
     StorageService.prototype.getBaby = function (id) {
         return __awaiter(this, void 0, void 0, function () {
-            var babies;
+            var babies, i;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0: return [4 /*yield*/, this.getBabies()];
                     case 1:
                         babies = _a.sent();
-                        return [2 /*return*/, babies.find(function (b) { return b.id === id; }) || null];
+                        for (i = 0; i < babies.length; i++) {
+                            if (babies[i].id === id) {
+                                return [2 /*return*/, babies[i]];
+                            }
+                        }
+                        return [2 /*return*/, null];
                 }
             });
         });
@@ -213,7 +216,6 @@ var StorageService = /** @class */ (function () {
                         return [4 /*yield*/, this.setData(this.keys.babies, babies)];
                     case 2:
                         _a.sent();
-                        // 更新缓存
                         this.cache.babies = babies;
                         return [2 /*return*/, baby];
                 }
@@ -225,13 +227,19 @@ var StorageService = /** @class */ (function () {
      */
     StorageService.prototype.updateBaby = function (id, input) {
         return __awaiter(this, void 0, void 0, function () {
-            var babies, index, updatedBaby;
+            var babies, index, i, updatedBaby;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0: return [4 /*yield*/, this.getData(this.keys.babies)];
                     case 1:
                         babies = (_a.sent()) || [];
-                        index = babies.findIndex(function (b) { return b.id === id; });
+                        index = -1;
+                        for (i = 0; i < babies.length; i++) {
+                            if (babies[i].id === id) {
+                                index = i;
+                                break;
+                            }
+                        }
                         if (index === -1) {
                             throw new Error('宝宝不存在');
                         }
@@ -240,7 +248,6 @@ var StorageService = /** @class */ (function () {
                         return [4 /*yield*/, this.setData(this.keys.babies, babies)];
                     case 2:
                         _a.sent();
-                        // 更新缓存
                         this.cache.babies = babies;
                         return [2 /*return*/, updatedBaby];
                 }
@@ -252,17 +259,21 @@ var StorageService = /** @class */ (function () {
      */
     StorageService.prototype.deleteBaby = function (id) {
         return __awaiter(this, void 0, void 0, function () {
-            var babies, filtered;
+            var babies, filtered, i;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0: return [4 /*yield*/, this.getData(this.keys.babies)];
                     case 1:
                         babies = (_a.sent()) || [];
-                        filtered = babies.filter(function (b) { return b.id !== id; });
+                        filtered = [];
+                        for (i = 0; i < babies.length; i++) {
+                            if (babies[i].id !== id) {
+                                filtered.push(babies[i]);
+                            }
+                        }
                         return [4 /*yield*/, this.setData(this.keys.babies, filtered)];
                     case 2:
                         _a.sent();
-                        // 更新缓存
                         this.cache.babies = filtered;
                         return [2 /*return*/];
                 }
@@ -272,12 +283,10 @@ var StorageService = /** @class */ (function () {
     // ---- 媒体相关操作 ----
     /**
      * 获取媒体列表
-     * @param query 查询参数
-     * @param babyBirthDate 宝宝出生日期（用于计算月龄筛选）
      */
     StorageService.prototype.getMediaList = function (query, babyBirthDate) {
         return __awaiter(this, void 0, void 0, function () {
-            var mediaList, calculateBabyAge_1, start;
+            var mediaList, filtered, i, filtered, i, filtered, i, filtered, i, start;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0: return [4 /*yield*/, this.getData(this.keys.media)];
@@ -285,33 +294,40 @@ var StorageService = /** @class */ (function () {
                         mediaList = (_a.sent()) || [];
                         if (query) {
                             if (query.babyId) {
-                                mediaList = mediaList.filter(function (m) { return m.babyId === query.babyId; });
+                                filtered = [];
+                                for (i = 0; i < mediaList.length; i++) {
+                                    if (mediaList[i].babyId === query.babyId) {
+                                        filtered.push(mediaList[i]);
+                                    }
+                                }
+                                mediaList = filtered;
                             }
                             if (query.type) {
-                                mediaList = mediaList.filter(function (m) { return m.type === query.type; });
+                                filtered = [];
+                                for (i = 0; i < mediaList.length; i++) {
+                                    if (mediaList[i].type === query.type) {
+                                        filtered.push(mediaList[i]);
+                                    }
+                                }
+                                mediaList = filtered;
                             }
                             if (query.startDate) {
-                                mediaList = mediaList.filter(function (m) { return m.captureDate >= query.startDate; });
+                                filtered = [];
+                                for (i = 0; i < mediaList.length; i++) {
+                                    if (mediaList[i].captureDate >= query.startDate) {
+                                        filtered.push(mediaList[i]);
+                                    }
+                                }
+                                mediaList = filtered;
                             }
                             if (query.endDate) {
-                                mediaList = mediaList.filter(function (m) { return m.captureDate <= query.endDate; });
-                            }
-                            // 月龄筛选
-                            if (query.minAge !== undefined || query.maxAge !== undefined) {
-                                calculateBabyAge_1 = require('../utils/age_calculator').calculateBabyAge;
-                                mediaList = mediaList.filter(function (m) {
-                                    if (!babyBirthDate)
-                                        return true;
-                                    var age = calculateBabyAge_1(babyBirthDate, m.captureDate);
-                                    var totalMonths = age.years * 12 + age.months;
-                                    if (query.minAge !== undefined && totalMonths < query.minAge) {
-                                        return false;
+                                filtered = [];
+                                for (i = 0; i < mediaList.length; i++) {
+                                    if (mediaList[i].captureDate <= query.endDate) {
+                                        filtered.push(mediaList[i]);
                                     }
-                                    if (query.maxAge !== undefined && query.maxAge !== -1 && totalMonths > query.maxAge) {
-                                        return false;
-                                    }
-                                    return true;
-                                });
+                                }
+                                mediaList = filtered;
                             }
                             if (query.page && query.pageSize) {
                                 start = (query.page - 1) * query.pageSize;
@@ -324,17 +340,22 @@ var StorageService = /** @class */ (function () {
         });
     };
     /**
-     * 获取单个媒体 - 直接读取存储而非获取整个列表
+     * 获取单个媒体
      */
     StorageService.prototype.getMedia = function (id) {
         return __awaiter(this, void 0, void 0, function () {
-            var allMedia;
+            var allMedia, i;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0: return [4 /*yield*/, this.getData(this.keys.media)];
                     case 1:
                         allMedia = (_a.sent()) || [];
-                        return [2 /*return*/, allMedia.find(function (m) { return m.id === id; }) || null];
+                        for (i = 0; i < allMedia.length; i++) {
+                            if (allMedia[i].id === id) {
+                                return [2 /*return*/, allMedia[i]];
+                            }
+                        }
+                        return [2 /*return*/, null];
                 }
             });
         });
@@ -370,7 +391,6 @@ var StorageService = /** @class */ (function () {
                         return [4 /*yield*/, this.setData(this.keys.media, mediaList)];
                     case 2:
                         _a.sent();
-                        // 更新缓存
                         this.cache.media = mediaList;
                         return [2 /*return*/, media];
                 }
@@ -382,13 +402,19 @@ var StorageService = /** @class */ (function () {
      */
     StorageService.prototype.updateMedia = function (id, input) {
         return __awaiter(this, void 0, void 0, function () {
-            var mediaList, index, updatedMedia;
+            var mediaList, index, i, updatedMedia;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0: return [4 /*yield*/, this.getData(this.keys.media)];
                     case 1:
                         mediaList = (_a.sent()) || [];
-                        index = mediaList.findIndex(function (m) { return m.id === id; });
+                        index = -1;
+                        for (i = 0; i < mediaList.length; i++) {
+                            if (mediaList[i].id === id) {
+                                index = i;
+                                break;
+                            }
+                        }
                         if (index === -1) {
                             throw new Error('媒体不存在');
                         }
@@ -397,7 +423,6 @@ var StorageService = /** @class */ (function () {
                         return [4 /*yield*/, this.setData(this.keys.media, mediaList)];
                     case 2:
                         _a.sent();
-                        // 更新缓存
                         this.cache.media = mediaList;
                         return [2 /*return*/, updatedMedia];
                 }
@@ -409,17 +434,21 @@ var StorageService = /** @class */ (function () {
      */
     StorageService.prototype.deleteMedia = function (id) {
         return __awaiter(this, void 0, void 0, function () {
-            var mediaList, filtered;
+            var mediaList, filtered, i;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0: return [4 /*yield*/, this.getData(this.keys.media)];
                     case 1:
                         mediaList = (_a.sent()) || [];
-                        filtered = mediaList.filter(function (m) { return m.id !== id; });
+                        filtered = [];
+                        for (i = 0; i < mediaList.length; i++) {
+                            if (mediaList[i].id !== id) {
+                                filtered.push(mediaList[i]);
+                            }
+                        }
                         return [4 /*yield*/, this.setData(this.keys.media, filtered)];
                     case 2:
                         _a.sent();
-                        // 更新缓存
                         this.cache.media = filtered;
                         return [2 /*return*/];
                 }
@@ -431,24 +460,88 @@ var StorageService = /** @class */ (function () {
      */
     StorageService.prototype.deleteMediaByBaby = function (babyId) {
         return __awaiter(this, void 0, void 0, function () {
-            var mediaList, filtered;
+            var mediaList, filtered, i;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0: return [4 /*yield*/, this.getData(this.keys.media)];
                     case 1:
                         mediaList = (_a.sent()) || [];
-                        filtered = mediaList.filter(function (m) { return m.babyId !== babyId; });
+                        filtered = [];
+                        for (i = 0; i < mediaList.length; i++) {
+                            if (mediaList[i].babyId !== babyId) {
+                                filtered.push(mediaList[i]);
+                            }
+                        }
                         return [4 /*yield*/, this.setData(this.keys.media, filtered)];
                     case 2:
                         _a.sent();
-                        // 更新缓存
                         this.cache.media = filtered;
                         return [2 /*return*/];
                 }
             });
         });
     };
-    // ---- 缓存管理 ----
+    /**
+     * 按月龄分组获取媒体列表
+     * @param babyId 宝宝ID
+     * @param babyBirthDate 宝宝出生日期，用于计算月龄
+     * @returns 分组后的媒体列表
+     */
+    StorageService.prototype.getMediaGroupedByMonthAge = function (babyId, babyBirthDate) {
+        return __awaiter(this, void 0, void 0, function () {
+            var mediaList, babyMedia, i, groups, j, media, monthAge, result;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.getData(this.keys.media)];
+                    case 1:
+                        mediaList = (_a.sent()) || [];
+                        babyMedia = [];
+                        for (i = 0; i < mediaList.length; i++) {
+                            if (mediaList[i].babyId === babyId) {
+                                babyMedia.push(mediaList[i]);
+                            }
+                        }
+                        groups = new Map();
+                        for (j = 0; j < babyMedia.length; j++) {
+                            media = babyMedia[j];
+                            monthAge = this.calculateMonthAge(babyBirthDate, media.captureDate);
+                            if (!groups.has(monthAge)) {
+                                groups.set(monthAge, []);
+                            }
+                            groups.get(monthAge).push(media);
+                        }
+                        result = [];
+                        groups.forEach(function (list, monthAge) {
+                            result.push({
+                                monthAge: monthAge,
+                                monthLabel: monthAge >= 12 ? '12月+' : monthAge + '月',
+                                mediaList: list.sort(function (a, b) {
+                                    return b.captureDate.localeCompare(a.captureDate);
+                                }),
+                                mediaCount: list.length
+                            });
+                        });
+                        // 按月龄降序排列
+                        return [2 /*return*/, result.sort(function (a, b) {
+                                return b.monthAge - a.monthAge;
+                            })];
+                }
+            });
+        });
+    };
+    /**
+     * 计算月龄
+     * @param birthDate 出生日期 (YYYY-MM-DD)
+     * @param captureDate 拍摄日期 (YYYY-MM-DD)
+     * @returns 月龄
+     */
+    StorageService.prototype.calculateMonthAge = function (birthDate, captureDate) {
+        var birth = new Date(birthDate);
+        var capture = new Date(captureDate);
+        var diffTime = capture.getTime() - birth.getTime();
+        var diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+        return Math.floor(diffDays / 30);
+    };
     /**
      * 清除所有缓存
      */
@@ -477,23 +570,19 @@ var StorageService = /** @class */ (function () {
      */
     StorageService.prototype.getStorageUsage = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var info, _a;
-            return __generator(this, function (_b) {
-                switch (_b.label) {
-                    case 0:
-                        _b.trys.push([0, 2, , 3]);
-                        return [4 /*yield*/, wx.getStorageInfoSync()];
-                    case 1:
-                        info = _b.sent();
-                        return [2 /*return*/, {
-                                used: info.currentSize,
-                                limit: info.limitSize
-                            }];
-                    case 2:
-                        _a = _b.sent();
-                        return [2 /*return*/, { used: 0, limit: 0 }];
-                    case 3: return [2 /*return*/];
+            var info;
+            return __generator(this, function (_a) {
+                try {
+                    info = wx.getStorageInfoSync();
+                    return [2 /*return*/, {
+                            used: info.currentSize,
+                            limit: info.limitSize
+                        }];
                 }
+                catch (e) {
+                    return [2 /*return*/, { used: 0, limit: 0 }];
+                }
+                return [2 /*return*/];
             });
         });
     };

@@ -21,14 +21,7 @@ Component({
     data: {
         currentAge: null,
         selectedValue: null,
-        quickOptions: [
-            { label: '全部', value: null },
-            { label: '0-3月', value: 3, minAge: 0, maxAge: 3 },
-            { label: '3-6月', value: 6, minAge: 3, maxAge: 6 },
-            { label: '6-12月', value: 12, minAge: 6, maxAge: 12 },
-            { label: '1-2岁', value: 24, minAge: 12, maxAge: 24 },
-            { label: '2岁以上', value: -1, minAge: 24, maxAge: -1 }
-        ],
+        quickOptions: [],
         customVisible: false,
         customMin: 0,
         customMax: 36
@@ -36,6 +29,7 @@ Component({
     lifetimes: {
         attached: function () {
             this.calculateCurrentAge();
+            this.generateMonthLabels();
             this.setData({ selectedValue: this.properties.value });
         }
     },
@@ -56,6 +50,37 @@ Component({
             }
             var age = (0, age_calculator_1.calculateBabyAge)(birthDate);
             this.setData({ currentAge: age });
+        },
+        generateMonthLabels: function () {
+            var birthDate = this.properties.birthDate;
+            if (!birthDate) {
+                this.setData({ quickOptions: [{ label: '全部', value: null, minAge: null, maxAge: null }] });
+                return;
+            }
+            var currentAge = (0, age_calculator_1.calculateBabyAge)(birthDate);
+            var maxMonthAge = currentAge.years * 12 + currentAge.months;
+            var options = [
+                { label: '全部', value: null, minAge: null, maxAge: null }
+            ];
+            // 生成从 0 到当前月龄的标签
+            for (var i = 0; i <= maxMonthAge && i <= 12; i++) {
+                options.push({
+                    label: "".concat(i, "\u6708"),
+                    value: i,
+                    minAge: i,
+                    maxAge: i
+                });
+            }
+            // 如果超过12月，显示 "12月+"
+            if (maxMonthAge > 12) {
+                options.push({
+                    label: '12月+',
+                    value: 12,
+                    minAge: 12,
+                    maxAge: -1
+                });
+            }
+            this.setData({ quickOptions: options });
         },
         onQuickSelect: function (event) {
             var value = event.currentTarget.dataset.value;
