@@ -97,3 +97,19 @@
   right: 24px;
   z-index: 100;
 }
+
+.loading-more {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20rpx;
+}
+
+.no-more {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20rpx;
+  color: #999999;
+  font-size: 24rpx;
+}

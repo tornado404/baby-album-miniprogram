@@ -16,7 +16,11 @@ Page({
     uploaderVisible: false,
     filterMinAge: null as number | null,
     filterMaxAge: null as number | null,
-    isAuthorized: false
+    isAuthorized: false,
+    page: 1,
+    pageSize: 20,
+    hasMore: true,
+    isLoadingMore: false
   },
 
   onLoad() {
@@ -88,6 +92,10 @@ Page({
           currentBabyId: firstBaby.id,
           currentBaby: firstBaby
         });
+        // 设置动态标题
+        wx.setNavigationBarTitle({
+          title: `${firstBaby.name}的成长相册`
+        });
         await this.loadMediaList();
       } else {
         this.setData({ isEmpty: true });
@@ -99,24 +107,35 @@ Page({
     }
   },
 
-  async loadMediaList() {
-    const { currentBabyId, filterMinAge, filterMaxAge, currentBaby } = this.data;
+  async loadMediaList(isLoadMore = false) {
+    const { currentBabyId, filterMinAge, filterMaxAge, currentBaby, page, pageSize } = this.data;
+
     if (!currentBabyId) {
       this.setData({ mediaList: [] });
       return;
     }
 
+    const currentPage = isLoadMore ? page + 1 : 1;
+
     try {
       const babyBirthDate = currentBaby ? currentBaby.birthDate : null;
-      const mediaList = await mediaService.getMediaListWithAge(
+      const result = await mediaService.getMediaListWithAge(
         {
           babyId: currentBabyId,
           minAge: filterMinAge !== null ? filterMinAge : undefined,
-          maxAge: filterMaxAge !== null ? filterMaxAge : undefined
+          maxAge: filterMaxAge !== null ? filterMaxAge : undefined,
+          page: currentPage,
+          pageSize: pageSize
         },
         babyBirthDate
       );
-      this.setData({ mediaList, isEmpty: mediaList.length === 0 });
+
+      this.setData({
+        mediaList: isLoadMore ? [...this.data.mediaList, ...result] : result,
+        hasMore: result.length === pageSize,
+        page: currentPage,
+        isLoadingMore: false
+      });
     } catch (error) {
       console.error('加载媒体列表失败:', error);
     }
@@ -136,6 +155,10 @@ Page({
         this.setData({
           currentBabyId: selectedBaby.id,
           currentBaby: selectedBaby
+        });
+        // 更新导航栏标题
+        wx.setNavigationBarTitle({
+          title: `${selectedBaby.name}的成长相册`
         });
         this.loadMediaList();
       }
@@ -164,10 +187,9 @@ Page({
   },
 
   onScrollToLower() {
-    wx.showToast({
-      title: '正在加载更多...',
-      icon: 'none'
-    });
+    if (!this.data.hasMore || this.data.isLoadingMore) return;
+    this.setData({ isLoadingMore: true });
+    this.loadMediaList(true);
   },
 
   onUploadTap() {
