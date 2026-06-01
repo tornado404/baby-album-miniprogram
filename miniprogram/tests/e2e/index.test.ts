@@ -1,84 +1,163 @@
 /**
- * 编排器单元测试
+ * Flow 编排单元测试
  *
  * 覆盖：
- *  - selectorToPagePath 路径解析
- *  - runE2E 错误参数校验
+ *  - runFlow 参数校验
+ *  - 步骤执行顺序（mock automator）
+ *  - 失败时 failFast 行为
+ *  - skipAI 行为
  *
- * 端到端的"真实 client 调用"放在 e2e/*.spec.ts 中，需要 DevTools 端口。
+ * 真实的 runFlow（带 DevTools 连接）放在 album-flow.spec.ts 中跑 E2E project。
  */
 
-import { selectorToPagePath, runE2E } from './index';
+import { join } from 'path';
+import { runFlow } from './run-flow';
+import { MiniProgramAutomator } from './album-flow-types';
 
-describe('orchestrator: selectorToPagePath', () => {
-  it('selector 为空时使用 page 名拼接', () => {
-    expect(selectorToPagePath(undefined, 'album_home')).toBe(
-      '/pages/album_home/index'
-    );
-    expect(selectorToPagePath('', 'logs')).toBe('/pages/logs/index');
-  });
-
-  it('已经是 /pages/... 形式时原样返回', () => {
-    expect(selectorToPagePath('/pages/foo/bar', 'album_home')).toBe(
-      '/pages/foo/bar'
-    );
-  });
-
-  it('pages/ 形式自动补 /', () => {
-    expect(selectorToPagePath('pages/foo/bar', 'album_home')).toBe(
-      '/pages/foo/bar'
-    );
-  });
-
-  it('短 id 形式拼接 page 名', () => {
-    expect(selectorToPagePath('test', 'media_detail')).toBe(
-      '/pages/media_detail/test'
-    );
-  });
-
-  it('含 / 的其他路径原样返回', () => {
-    expect(selectorToPagePath('other/path', 'album_home')).toBe(
-      'other/path'
-    );
-  });
-});
-
-describe('orchestrator: runE2E 参数校验', () => {
-  it('缺少 wsEndpoint 抛错', async () => {
+describe('run-flow: 参数校验', () => {
+  it('缺 automator 抛错', async () => {
     await expect(
-      runE2E({ wsEndpoint: '', steps: [] } as any)
-    ).rejects.toThrow(/wsEndpoint/);
+      runFlow({ automator: null as any, steps: [] })
+    ).rejects.toThrow(/automator/);
   });
 
   it('steps 为空抛错', async () => {
     await expect(
-      runE2E({ wsEndpoint: 'ws://x', steps: [] })
+      runFlow({ automator: {} as any, steps: [] })
     ).rejects.toThrow(/non-empty/);
   });
+});
 
-  it('未安装 miniprogram-automator 或连接失败时给出友好错误', async () => {
-    // 这里不依赖真实安装：如果模块存在，错误信息会包含 connect 相关
-    // 如果不存在，会明确提示安装
-    // 真实 connect 失败可能耗时数秒，单独延长该测试超时
-    let err: Error | null = null;
-    try {
-      await runE2E({
-        wsEndpoint: 'ws://127.0.0.1:1',
-        steps: [
-          {
-            step: 1,
-            page: 'album_home',
-            action: 'reLaunch',
-            name: 's',
-            aiPrompt: 'p'
-          }
-        ]
-      });
-    } catch (e) {
-      err = e as Error;
-    }
-    expect(err).not.toBeNull();
-    // 错误可能来自 connect 失败或模块缺失，两种都视为通过校验
-    expect(err && (err.message.includes('miniprogram-automator') || err.message.includes('connect') || err.message.includes('ECONNREFUSED') || err.message.includes('ws://'))).toBeTruthy();
-  }, 30000);
+describe('run-flow: 步骤执行（mock automator）', () => {
+  // 构造一个最小 automator 替身
+  function makeFakeAutomator(): MiniProgramAutomator & {
+    reLaunchCalls: string[];
+    navigateToCalls: string[];
+    screenshotCalls: number;
+  } {
+    const fake: any = {
+      reLaunchCalls: [],
+      navigateToCalls: [],
+      screenshotCalls: 0,
+      page: {
+        path: '/pages/album_home/index',
+        screenshot: async () => Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 13]),
+        waitFor: async () => undefined,
+        data: async () => ({})
+      },
+      close: async () => undefined,
+      reLaunch: async (opt: { url: string }) => {
+        fake.reLaunchCalls.push(opt.url);
+        return fake.page;
+      },
+      navigateTo: async (opt: { url: string }) => {
+        fake.navigateToCalls.push(opt.url);
+        return fake.page;
+      },
+      navigateBack: async () => fake.page
+    };
+    return fake;
+  }
+
+  it('顺序执行 3 步并写报告', async () => {
+    const automator = makeFakeAutomator();
+    const tmp = (global as any).process
+      ? (await import('os')).tmpdir()
+      : '/tmp';
+
+    // 强制使用临时目录作为 reportsRoot
+    const os = await import('os');
+    const fs = await import('fs');
+    const reportsRoot = fs.mkdtempSync(join(os.tmpdir(), 'rf-'));
+
+    const { report, paths } = await runFlow({
+      automator: automator as any,
+      steps: [
+        {
+          name: 's1',
+          page: 'album_home',
+          step: 1,
+          action: async ctx => {
+            await (ctx.automator as any).reLaunch({ url: '/pages/album_home/index' });
+          },
+          expectations: ['标题为 X']
+        },
+        {
+          name: 's2',
+          page: 'album_home',
+          step: 2,
+          action: async () => undefined,
+          expectations: ['按钮存在'],
+          skipAI: true
+        },
+        {
+          name: 's3',
+          page: 'logs',
+          step: 3,
+          action: async ctx => {
+            await (ctx.automator as any).navigateTo({ url: '/pages/logs/index' });
+          },
+          expectations: ['日志列表存在']
+        }
+      ],
+      reportsRoot: reportsRoot,
+      runId: 'unit-rf',
+      stableMs: 0
+    });
+
+    expect(report.totalSteps).toBe(3);
+    expect(automator.reLaunchCalls).toEqual(['/pages/album_home/index']);
+    expect(automator.navigateToCalls).toEqual(['/pages/logs/index']);
+    expect(fs.existsSync(paths.json)).toBe(true);
+    expect(fs.existsSync(paths.html)).toBe(true);
+
+    // 第二步 skipAI → status=skip
+    expect(report.results[1].status).toBe('skip');
+    expect(report.skippedSteps).toBe(1);
+
+    // 第一步和第三步 AI skipped（无 API Key）→ status=pass
+    expect(report.results[0].status).toBe('pass');
+    expect(report.results[2].status).toBe('pass');
+
+    // 清理
+    fs.rmSync(reportsRoot, { recursive: true, force: true });
+  });
+
+  it('failFast=true：第 1 步 action 抛错后停止', async () => {
+    const automator = makeFakeAutomator();
+    const os = await import('os');
+    const fs = await import('fs');
+    const reportsRoot = fs.mkdtempSync(join(os.tmpdir(), 'rff-'));
+
+    const { report } = await runFlow({
+      automator: automator as any,
+      failFast: true,
+      steps: [
+        {
+          name: 'crash',
+          page: 'album_home',
+          step: 1,
+          action: async () => {
+            throw new Error('boom');
+          },
+          expectations: []
+        },
+        {
+          name: 's2',
+          page: 'album_home',
+          step: 2,
+          action: async () => undefined,
+          expectations: []
+        }
+      ],
+      reportsRoot: reportsRoot,
+      runId: 'unit-rf-ff',
+      stableMs: 0
+    });
+
+    expect(report.totalSteps).toBe(1);
+    expect(report.results[0].status).toBe('error');
+    expect(report.results[0].error).toMatch(/boom/);
+    fs.rmSync(reportsRoot, { recursive: true, force: true });
+  });
 });

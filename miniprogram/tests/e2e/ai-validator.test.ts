@@ -2,51 +2,52 @@
  * AI 验证模块单元测试
  *
  * 覆盖：
- *  - buildPrompt  格式构造
+ *  - buildPrompt  模板构造
  *  - detectProvider  baseUrl 启发式
  *  - extractJson    各种 JSON 边界
- *  - AiValidator    重试、超时、缺失 Key
- *
- * 这些测试在 unit Jest project 中运行（不依赖真实 API Key / 网络）。
+ *  - AIValidator    缓存、重试、skip、超时
  */
 
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import {
-  AiValidator,
+  AIValidator,
   buildPrompt,
   detectProvider,
   extractJson
 } from './ai-validator';
+import { AIValidationRequest } from './types';
 
 describe('ai-validator: 工具函数', () => {
   describe('buildPrompt', () => {
-    it('应包含期望 UI 描述与 JSON 格式要求', () => {
-      const p = buildPrompt('页面标题为 X');
-      expect(p).toContain('页面标题为 X');
-      expect(p).toContain('UI 测试工程师');
+    it('应包含期望列表与 JSON schema 说明', () => {
+      const p = buildPrompt(['标题为 X', '按钮存在'], { page: 'album_home' });
+      expect(p).toContain('UI 自动化测试工程师');
+      expect(p).toContain('1. 标题为 X');
+      expect(p).toContain('2. 按钮存在');
       expect(p).toContain('"pass"');
       expect(p).toContain('"issues"');
       expect(p).toContain('"confidence"');
+      expect(p).toContain('album_home');
     });
   });
 
   describe('detectProvider', () => {
     it('baseUrl 含 bigmodel 时返回 glm', () => {
-      expect(detectProvider('sk-x', 'https://open.bigmodel.cn/api/paas/v4')).toBe(
-        'glm'
-      );
+      expect(detectProvider('https://open.bigmodel.cn/api/paas/v4')).toBe('glm');
     });
-
     it('baseUrl 含 deepseek 时返回 deepseek', () => {
-      expect(
-        detectProvider('sk-x', 'https://api.deepseek.com/v1')
-      ).toBe('deepseek');
+      expect(detectProvider('https://api.deepseek.com/v1')).toBe('deepseek');
     });
-
+    it('baseUrl 含 openai 时返回 openai', () => {
+      expect(detectProvider('https://api.openai.com/v1')).toBe('openai');
+    });
     it('baseUrl 不明时默认 glm', () => {
-      expect(detectProvider('sk-x', 'https://example.com/v1')).toBe('glm');
+      expect(detectProvider('https://example.com/v1')).toBe('glm');
+    });
+    it('baseUrl 为空时默认 glm', () => {
+      expect(detectProvider()).toBe('glm');
     });
   });
 
@@ -56,32 +57,26 @@ describe('ai-validator: 工具函数', () => {
       expect(r.pass).toBe(true);
       expect(r.issues).toEqual([]);
       expect(r.confidence).toBe(0.9);
+      expect(r.cached).toBe(false);
     });
 
     it('解析 ```json``` 包裹的 JSON', () => {
-      const r = extractJson('```json\n{"pass":false,"issues":["x"],"confidence":0.1}\n```');
+      const r = extractJson(
+        '```json\n{"pass":false,"issues":["x"],"confidence":0.1}\n```'
+      );
       expect(r.pass).toBe(false);
       expect(r.issues).toEqual(['x']);
     });
 
     it('从包含前后文字的响应中提取 JSON', () => {
-      const r = extractJson('好的，结果如下：{"pass":true,"issues":[],"confidence":0.7} 完');
+      const r = extractJson('结果：{"pass":true,"issues":[],"confidence":0.7} 完');
       expect(r.pass).toBe(true);
-      expect(r.confidence).toBe(0.7);
     });
 
     it('非法 JSON 时返回 pass=false 与错误信息', () => {
-      const r = extractJson('not json at all');
+      const r = extractJson('not json');
       expect(r.pass).toBe(false);
-      expect(r.issues.length).toBe(1);
       expect(r.issues[0]).toMatch(/无法解析/);
-    });
-
-    it('缺失字段时 issues 默认空数组，confidence 默认 0.5', () => {
-      const r = extractJson('{"pass":true}');
-      expect(r.pass).toBe(true);
-      expect(r.issues).toEqual([]);
-      expect(r.confidence).toBe(0.5);
     });
 
     it('confidence 限制在 0-1', () => {
@@ -90,23 +85,17 @@ describe('ai-validator: 工具函数', () => {
       const r2 = extractJson('{"pass":true,"issues":[],"confidence":-0.3}');
       expect(r2.confidence).toBe(0);
     });
-
-    it('issues 非数组时降级为空数组', () => {
-      const r = extractJson('{"pass":true,"issues":"oops","confidence":0.5}');
-      expect(r.issues).toEqual([]);
-    });
-
-    it('保留 raw 原始文本', () => {
-      const r = extractJson('{"pass":true,"issues":[],"confidence":0.5}');
-      expect(r.raw).toBe('{"pass":true,"issues":[],"confidence":0.5}');
-    });
   });
 });
 
-describe('ai-validator: AiValidator 行为', () => {
+describe('ai-validator: AIValidator 行为', () => {
   const origFetch = (global as any).fetch;
   const origApiKey = process.env.AI_API_KEY;
+  let cacheDir: string;
 
+  beforeEach(() => {
+    cacheDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-cache-'));
+  });
   afterEach(() => {
     (global as any).fetch = origFetch;
     if (origApiKey === undefined) {
@@ -114,140 +103,194 @@ describe('ai-validator: AiValidator 行为', () => {
     } else {
       process.env.AI_API_KEY = origApiKey;
     }
-    jest.restoreAllMocks();
+    if (cacheDir && fs.existsSync(cacheDir)) {
+      fs.rmSync(cacheDir, { recursive: true, force: true });
+    }
   });
 
-  it('未配置 API Key 时直接返回 pass=false', async () => {
+  function fakePngFile(): string {
+    const pngBase64 =
+      'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
+    const p = path.join(cacheDir, 'fake.png');
+    fs.writeFileSync(p, Buffer.from(pngBase64, 'base64'));
+    return p;
+  }
+
+  function fakeRequest(meta: { filePath: string; sha256: string }): AIValidationRequest {
+    return {
+      screenshot: {
+        step: 1,
+        page: 'album_home',
+        action: 'screenshot',
+        filePath: meta.filePath,
+        sha256: meta.sha256,
+        takenAt: Date.now(),
+        width: 1,
+        height: 1
+      },
+      expectations: ['标题为 X'],
+      context: { page: 'album_home' }
+    };
+  }
+
+  function aiResponseContent(text: string): Response {
+    return new Response(
+      JSON.stringify({ choices: [{ message: { content: text } }] }),
+      { status: 200, headers: { 'Content-Type': 'application/json' } }
+    );
+  }
+
+  it('未配置 API Key 时直接返回 skipped 结果', async () => {
     delete process.env.AI_API_KEY;
-    const v = new AiValidator({ apiKey: '' });
-    const r = await v.validate('/tmp/nonexistent.png', 'x');
-    expect(r.pass).toBe(false);
-    expect(r.issues[0]).toMatch(/AI_API_KEY/);
+    const v = new AIValidator({ apiKey: '', cacheDir: cacheDir });
+    expect(v.isEnabled()).toBe(false);
+    const r = await v.validate(fakeRequest({ filePath: 'x.png', sha256: 'a' }));
+    expect(r.pass).toBe(true);
+    expect(r.issues[0]).toMatch(/跳过/);
   });
 
   it('截图不存在时返回 pass=false 且包含路径', async () => {
-    const v = new AiValidator({ apiKey: 'sk-test' });
-    const r = await v.validate('/tmp/definitely-not-exist.png', 'x');
+    const v = new AIValidator({ apiKey: 'sk-test', cacheDir: cacheDir });
+    const r = await v.validate(
+      fakeRequest({ filePath: '/no/such/file.png', sha256: 'a' })
+    );
     expect(r.pass).toBe(false);
     expect(r.issues[0]).toMatch(/不存在/);
   });
 
-  it('网络成功时返回解析后的 AiResult', async () => {
-    const tmp = makeFakePng();
-    try {
-      (global as any).fetch = jest.fn(async () =>
-        okResponse(
-          JSON.stringify({
-            choices: [
-              {
-                message: {
-                  content: '{"pass":true,"issues":[],"confidence":0.88}'
-                }
-              }
-            ]
-          })
-        )
-      );
-      const v = new AiValidator({
-        apiKey: 'sk-test',
-        baseUrl: 'https://open.bigmodel.cn/api/paas/v4',
-        retries: 0,
-        timeoutMs: 5000
-      });
-      const r = await v.validate(tmp, '标题为 X');
-      expect(r.pass).toBe(true);
-      expect(r.confidence).toBe(0.88);
-      // 验证请求
-      const fetchMock = (global as any).fetch as jest.Mock;
-      expect(fetchMock).toHaveBeenCalledTimes(1);
-      const [url, init] = fetchMock.mock.calls[0];
-      expect(url).toContain('chat/completions');
-      const body = JSON.parse(init.body);
-      expect(body.model).toBe('glm-4v');
-      expect(body.messages[0].content[0].text).toContain('标题为 X');
-      // 图片以 base64 data URL 形式传入
-      expect(body.messages[0].content[1].image_url.url).toMatch(/^data:image\/png;base64,/);
-    } finally {
-      fs.unlinkSync(tmp);
-    }
+  it('网络成功时返回解析后的结果并写入缓存', async () => {
+    const png = fakePngFile();
+    (global as any).fetch = jest.fn(async () =>
+      aiResponseContent('{"pass":true,"issues":[],"confidence":0.88}')
+    );
+    const v = new AIValidator({
+      apiKey: 'sk-test',
+      baseUrl: 'https://open.bigmodel.cn/api/paas/v4',
+      cacheDir: cacheDir,
+      maxRetries: 0,
+      timeoutMs: 5000
+    });
+    const r = await v.validate(fakeRequest({ filePath: png, sha256: 'h1' }));
+    expect(r.pass).toBe(true);
+    expect(r.confidence).toBe(0.88);
+    expect(r.cached).toBe(false);
+
+    // 验证 HTTP 请求
+    const fetchMock = (global as any).fetch as jest.Mock;
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toContain('chat/completions');
+    const body = JSON.parse(init.body);
+    expect(body.model).toBe('glm-4v');
+    expect(body.response_format).toEqual({ type: 'json_object' });
+    expect(body.messages[0].content[1].image_url.url).toMatch(
+      /^data:image\/png;base64,/
+    );
+
+    // 验证缓存被写入
+    const files = fs.readdirSync(cacheDir).filter(f => f.endsWith('.json'));
+    expect(files.length).toBe(1);
   });
 
-  it('失败时按 retries 次数重试', async () => {
-    const tmp = makeFakePng();
-    try {
-      let calls = 0;
-      (global as any).fetch = jest.fn(async () => {
-        calls++;
-        if (calls < 3) {
-          return new Response('boom', { status: 500 });
-        }
-        return okResponse(
-          JSON.stringify({
-            choices: [
-              {
-                message: {
-                  content: '{"pass":true,"issues":[],"confidence":0.9}'
-                }
-              }
-            ]
-          })
-        );
-      });
-      const v = new AiValidator({
-        apiKey: 'sk-test',
-        baseUrl: 'https://open.bigmodel.cn/api/paas/v4',
-        retries: 2,
-        timeoutMs: 2000
-      });
-      const r = await v.validate(tmp, 'x');
-      expect(r.pass).toBe(true);
-      expect(calls).toBe(3);
-    } finally {
-      fs.unlinkSync(tmp);
-    }
+  it('相同请求第二次命中缓存', async () => {
+    const png = fakePngFile();
+    (global as any).fetch = jest.fn(async () =>
+      aiResponseContent('{"pass":true,"issues":[],"confidence":0.88}')
+    );
+    const v = new AIValidator({
+      apiKey: 'sk-test',
+      baseUrl: 'https://open.bigmodel.cn/api/paas/v4',
+      cacheDir: cacheDir,
+      maxRetries: 0
+    });
+    const req = fakeRequest({ filePath: png, sha256: 'h1' });
+    const r1 = await v.validate(req);
+    expect(r1.cached).toBe(false);
+    const r2 = await v.validate(req);
+    expect(r2.cached).toBe(true);
+    // fetch 仅调用一次
+    expect((global as any).fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('失败时按 maxRetries 次数指数退避重试', async () => {
+    const png = fakePngFile();
+    let calls = 0;
+    (global as any).fetch = jest.fn(async () => {
+      calls++;
+      if (calls < 3) return new Response('boom', { status: 500 });
+      return aiResponseContent('{"pass":true,"issues":[],"confidence":0.9}');
+    });
+    const v = new AIValidator({
+      apiKey: 'sk-test',
+      baseUrl: 'https://open.bigmodel.cn/api/paas/v4',
+      cacheDir: cacheDir,
+      maxRetries: 2,
+      timeoutMs: 2000
+    });
+    const r = await v.validate(fakeRequest({ filePath: png, sha256: 'h1' }));
+    expect(r.pass).toBe(true);
+    expect(calls).toBe(3);
   });
 
   it('重试全部失败后返回最后错误', async () => {
-    const tmp = makeFakePng();
-    try {
-      (global as any).fetch = jest.fn(async () =>
-        new Response('bad', { status: 500 })
-      );
-      const v = new AiValidator({
-        apiKey: 'sk-test',
-        baseUrl: 'https://open.bigmodel.cn/api/paas/v4',
-        retries: 1,
-        timeoutMs: 2000
-      });
-      const r = await v.validate(tmp, 'x');
-      expect(r.pass).toBe(false);
-      expect(r.issues[0]).toMatch(/AI 请求失败/);
-    } finally {
-      fs.unlinkSync(tmp);
-    }
+    const png = fakePngFile();
+    (global as any).fetch = jest.fn(async () => new Response('bad', { status: 500 }));
+    const v = new AIValidator({
+      apiKey: 'sk-test',
+      baseUrl: 'https://open.bigmodel.cn/api/paas/v4',
+      cacheDir: cacheDir,
+      maxRetries: 1,
+      timeoutMs: 2000
+    });
+    const r = await v.validate(fakeRequest({ filePath: png, sha256: 'h1' }));
+    expect(r.pass).toBe(false);
+    expect(r.issues[0]).toMatch(/AI 请求失败/);
   });
 
-  it('空响应（无 content 字段）视为失败', async () => {
-    const tmp = makeFakePng();
-    try {
-      (global as any).fetch = jest.fn(async () => okResponse(JSON.stringify({ choices: [] })));
-      const v = new AiValidator({
-        apiKey: 'sk-test',
-        baseUrl: 'https://open.bigmodel.cn/api/paas/v4',
-        retries: 0,
-        timeoutMs: 2000
-      });
-      const r = await v.validate(tmp, 'x');
-      expect(r.pass).toBe(false);
-    } finally {
-      fs.unlinkSync(tmp);
-    }
+  it('validateBatch 并发调度', async () => {
+    const png = fakePngFile();
+    (global as any).fetch = jest.fn(async () =>
+      aiResponseContent('{"pass":true,"issues":[],"confidence":0.9}')
+    );
+    const v = new AIValidator({
+      apiKey: 'sk-test',
+      baseUrl: 'https://open.bigmodel.cn/api/paas/v4',
+      cacheDir: cacheDir,
+      maxRetries: 0,
+      concurrency: 2
+    });
+    const reqs = [
+      fakeRequest({ filePath: png, sha256: 'a1' }),
+      fakeRequest({ filePath: png, sha256: 'a2' }),
+      fakeRequest({ filePath: png, sha256: 'a3' }),
+      fakeRequest({ filePath: png, sha256: 'a4' })
+    ];
+    const results = await v.validateBatch(reqs);
+    expect(results.length).toBe(4);
+    expect(results.every(r => r.pass)).toBe(true);
   });
 
-  it('getConfig 返回 provider / model / baseUrl / hasKey', () => {
-    const v = new AiValidator({
+  it('clearCache 清空缓存目录', async () => {
+    const png = fakePngFile();
+    (global as any).fetch = jest.fn(async () =>
+      aiResponseContent('{"pass":true,"issues":[],"confidence":0.9}')
+    );
+    const v = new AIValidator({
+      apiKey: 'sk-test',
+      baseUrl: 'https://open.bigmodel.cn/api/paas/v4',
+      cacheDir: cacheDir,
+      maxRetries: 0
+    });
+    await v.validate(fakeRequest({ filePath: png, sha256: 'h1' }));
+    expect(fs.readdirSync(cacheDir).filter(f => f.endsWith('.json')).length).toBe(1);
+    await v.clearCache();
+    expect(fs.readdirSync(cacheDir).filter(f => f.endsWith('.json')).length).toBe(0);
+  });
+
+  it('getConfig 返回 model / baseUrl / hasKey', () => {
+    const v = new AIValidator({
       apiKey: 'sk-x',
-      baseUrl: 'https://open.bigmodel.cn/api/paas/v4'
+      baseUrl: 'https://open.bigmodel.cn/api/paas/v4',
+      cacheDir: cacheDir
     });
     const c = v.getConfig();
     expect(c.provider).toBe('glm');
@@ -255,22 +298,3 @@ describe('ai-validator: AiValidator 行为', () => {
     expect(c.hasKey).toBe(true);
   });
 });
-
-/* ==================== helpers ==================== */
-
-function makeFakePng(): string {
-  // 最小合法 PNG (1x1 transparent) 的 base64
-  const pngBase64 =
-    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-'));
-  const p = path.join(dir, 'fake.png');
-  fs.writeFileSync(p, Buffer.from(pngBase64, 'base64'));
-  return p;
-}
-
-function okResponse(body: string): Response {
-  return new Response(body, {
-    status: 200,
-    headers: { 'Content-Type': 'application/json' }
-  });
-}

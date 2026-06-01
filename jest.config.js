@@ -41,11 +41,16 @@ module.exports = {
       testMatch: ['**/*.spec.ts'],
       testPathIgnorePatterns: [
         '/node_modules/',
-        '/reports/'
+        '/reports/',
+        '/.ai-cache/'
       ],
       moduleFileExtensions: ['ts', 'js', 'json'],
       // E2E tests need a longer timeout: WeChat DevTools launch + page nav can be slow
       testTimeout: 120000,
+      // globalSetup / globalTeardown：建立并关闭 miniprogram-automator 共享连接
+      // 见 architect §3.1.1
+      globalSetup: '<rootDir>/miniprogram/tests/e2e/global-setup.ts',
+      globalTeardown: '<rootDir>/miniprogram/tests/e2e/global-teardown.ts',
       // Don't try to instrument the miniprogram runtime files; only the e2e helper code
       collectCoverageFrom: [
         'miniprogram/tests/e2e/**/*.ts',
