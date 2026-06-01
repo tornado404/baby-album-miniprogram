@@ -22,14 +22,7 @@ Component({
   data: {
     currentAge: null as BabyAge | null,
     selectedValue: null as number | null,
-    quickOptions: [
-      { label: '全部', value: null },
-      { label: '0-3月', value: 3, minAge: 0, maxAge: 3 },
-      { label: '3-6月', value: 6, minAge: 3, maxAge: 6 },
-      { label: '6-12月', value: 12, minAge: 6, maxAge: 12 },
-      { label: '1-2岁', value: 24, minAge: 12, maxAge: 24 },
-      { label: '2岁以上', value: -1, minAge: 24, maxAge: -1 }
-    ],
+    quickOptions: [] as Array<{label: string; value: number; minAge: number; maxAge: number}>,
     customVisible: false,
     customMin: 0,
     customMax: 36
@@ -38,6 +31,7 @@ Component({
   lifetimes: {
     attached(): void {
       this.calculateCurrentAge();
+      this.generateMonthLabels();
       this.setData({ selectedValue: this.properties.value });
     }
   },
@@ -60,6 +54,43 @@ Component({
       }
       const age = calculateBabyAge(birthDate);
       this.setData({ currentAge: age });
+    },
+
+    generateMonthLabels(): void {
+      const { birthDate } = this.properties;
+      if (!birthDate) {
+        this.setData({ quickOptions: [{ label: '全部', value: null, minAge: null, maxAge: null }] });
+        return;
+      }
+
+      const currentAge = calculateBabyAge(birthDate);
+      const maxMonthAge = currentAge.years * 12 + currentAge.months;
+
+      const options: Array<{label: string; value: number; minAge: number; maxAge: number}> = [
+        { label: '全部', value: null, minAge: null, maxAge: null }
+      ];
+
+      // 生成从 0 到当前月龄的标签
+      for (let i = 0; i <= maxMonthAge && i <= 12; i++) {
+        options.push({
+          label: `${i}月`,
+          value: i,
+          minAge: i,
+          maxAge: i
+        });
+      }
+
+      // 如果超过12月，显示 "12月+"
+      if (maxMonthAge > 12) {
+        options.push({
+          label: '12月+',
+          value: 12,
+          minAge: 12,
+          maxAge: -1
+        });
+      }
+
+      this.setData({ quickOptions: options });
     },
 
     onQuickSelect(event: any): void {
