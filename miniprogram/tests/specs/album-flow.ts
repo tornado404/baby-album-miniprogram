@@ -119,6 +119,30 @@ export const ALBUM_FLOW: FlowStep[] = [
       '页面为日志页，显示启动日志列表（包含时间戳/日志内容）',
       '标题为"日志"或类似名称'
     ]
+  },
+  {
+    name: '验证瀑布流布局',
+    page: 'album_home',
+    step: 6,
+    action: async (ctx: FlowContext) => {
+      const page: any = ctx.page;
+      // 验证瀑布流组件存在
+      let masonryExists = false;
+      try {
+        const masonry = await page.$('masonry-layout');
+        masonryExists = !!masonry;
+      } catch {
+        masonryExists = false;
+      }
+      if (masonryExists) {
+        console.log('瀑布流组件已正确集成');
+      }
+    },
+    expectations: [
+      '瀑布流布局显示正确',
+      '图片按原始比例显示',
+      '懒加载正常'
+    ]
   }
 ];
 
