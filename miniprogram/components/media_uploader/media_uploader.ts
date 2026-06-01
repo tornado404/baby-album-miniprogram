@@ -32,7 +32,9 @@ Component({
     fileList: [] as UploadFile[],
     uploadLoading: false,
     captureDate: '',
-    title: ''
+    title: '',
+    fabMenuVisible: false,
+    uploadProgress: 0
   },
 
   lifetimes: {
@@ -74,6 +76,24 @@ Component({
       } catch (error) {
         console.error('选择图片失败:', error);
       }
+    },
+
+    toggleFabMenu(): void {
+      this.setData({ fabMenuVisible: !this.data.fabMenuVisible });
+    },
+
+    onFabMenuClose(): void {
+      this.setData({ fabMenuVisible: false });
+    },
+
+    async onFabCameraTap(): Promise<void> {
+      this.setData({ fabMenuVisible: false });
+      await this.onSelectTap('camera');
+    },
+
+    async onFabAlbumTap(): Promise<void> {
+      this.setData({ fabMenuVisible: false });
+      await this.onSelectTap('album');
     },
 
     // van-uploader 的 after-read 回调（兼容处理，不影响自有选择逻辑）

@@ -1,49 +1,23 @@
 <!-- media_uploader.wxml - 媒体上传组件 -->
 
-<van-popup show="{{visible}}" position="bottom" round bind:close="onClose">
-  <view class="uploader-container">
-    <!-- 标题 -->
-    <view class="uploader-header">
-      <text>上传媒体</text>
-      <van-icon name="cross" bind:click="onClose" />
+<view class="fab-container">
+  <!-- 遮罩层 -->
+  <view wx:if="{{fabMenuVisible}}" class="fab-mask" bindtap="onFabMenuClose"></view>
+
+  <!-- 菜单选项 -->
+  <view wx:if="{{fabMenuVisible}}" class="fab-menu">
+    <view class="fab-menu-item" bindtap="onFabCameraTap">
+      <van-icon name="photograph" size="20px" />
+      <text>拍照</text>
     </view>
-
-    <!-- 上传区域 -->
-    <van-uploader
-      file-list="{{fileList}}"
-      max-count="{{maxCount}}"
-      multiple
-      bind:after-read="onAfterRead"
-      bind:delete="onDeleteItem"
-    />
-
-    <!-- 日期选择 -->
-    <van-cell-group>
-      <van-cell title="拍摄日期">
-        <van-field
-          value="{{captureDate}}"
-          placeholder="请选择日期"
-          bind:focus="onDateChange"
-          readonly
-        />
-      </van-cell>
-    </van-cell-group>
-
-    <!-- 标题输入 -->
-    <van-cell-group>
-      <van-cell title="描述">
-        <van-field
-          value="{{title}}"
-          placeholder="请输入描述"
-          bind:input="onTitleInput"
-        />
-      </van-cell>
-    </van-cell-group>
-
-    <!-- 操作按钮 -->
-    <view class="uploader-actions">
-      <van-button type="default" bind:click="onCancel">取消</van-button>
-      <van-button type="primary" bind:click="onConfirm" loading="{{uploadLoading}}">确认</van-button>
+    <view class="fab-menu-item" bindtap="onFabAlbumTap">
+      <van-icon name="photo-o" size="20px" />
+      <text>从相册选择</text>
     </view>
   </view>
-</van-popup>
+
+  <!-- 主按钮 -->
+  <view class="fab-button {{fabMenuVisible ? 'active' : ''}}" bindtap="toggleFabMenu">
+    <van-icon name="plus" size="24px" color="#ffffff" />
+  </view>
+</view>
