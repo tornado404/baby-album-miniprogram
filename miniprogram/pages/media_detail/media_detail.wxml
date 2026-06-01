@@ -28,16 +28,24 @@
     >
       <block wx:for="{{mediaList}}" wx:key="id">
         <swiper-item>
-          <van-image
-            width="100%"
-            height="100%"
-            src="{{item.url}}"
-            fit="aspectFit"
-            show-menu-by-longpress
-            use-loading-slot
+          <view
+            class="image-container"
+            style="transform: scale({{index === currentIndex ? scale : 1}}); transition: {{isZooming ? 'none' : 'transform 0.2s'}};"
+            catchtouchstart="onTouchStart"
+            catchtouchmove="onTouchMove"
+            catchtouchend="onTouchEnd"
           >
-            <van-loading slot="loading" type="spinner" size="36px" color="#ffffff" />
-          </van-image>
+            <van-image
+              width="100%"
+              height="100%"
+              src="{{item.url}}"
+              fit="aspectFit"
+              show-menu-by-longpress
+              use-loading-slot
+            >
+              <van-loading slot="loading" type="spinner" size="36px" color="#ffffff" />
+            </van-image>
+          </view>
         </swiper-item>
       </block>
     </swiper>

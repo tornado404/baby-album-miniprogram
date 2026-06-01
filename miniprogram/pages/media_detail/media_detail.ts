@@ -10,12 +10,55 @@ Page({
     currentIndex: 0,
     isLoading: false,
     showActions: false,
+    scale: 1,
+    minScale: 1,
+    maxScale: 3,
+    isZooming: false,
+    initialPinchDistance: 0,
     actions: [
       { name: '编辑', icon: 'edit' },
       { name: '下载', icon: 'down' },
       { name: '分享', icon: 'share' },
       { name: '删除', icon: 'delete', color: '#ee0a24' }
     ]
+  },
+
+  onTouchStart(e: any): void {
+    if (e.touches.length === 2) {
+      this.setData({ isZooming: true });
+      const touch1 = e.touches[0];
+      const touch2 = e.touches[1];
+      const initialDistance = Math.sqrt(
+        Math.pow(touch2.clientX - touch1.clientX, 2) +
+        Math.pow(touch2.clientY - touch1.clientY, 2)
+      );
+      this.setData({ initialPinchDistance: initialDistance });
+    }
+  },
+
+  onTouchMove(e: any): void {
+    if (!this.data.isZooming || e.touches.length !== 2) return;
+
+    const touch1 = e.touches[0];
+    const touch2 = e.touches[1];
+    const currentDistance = Math.sqrt(
+      Math.pow(touch2.clientX - touch1.clientX, 2) +
+      Math.pow(touch2.clientY - touch1.clientY, 2)
+    );
+
+    const { initialPinchDistance, scale, minScale, maxScale } = this.data;
+    const delta = currentDistance / initialPinchDistance;
+    let newScale = scale * delta;
+
+    newScale = Math.max(minScale, Math.min(maxScale, newScale));
+    this.setData({ scale: newScale });
+  },
+
+  onTouchEnd(): void {
+    this.setData({ isZooming: false });
+    if (this.data.scale <= this.data.minScale) {
+      this.setData({ scale: 1 });
+    }
   },
 
   onLoad(options: any) {
