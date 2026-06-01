@@ -20,10 +20,6 @@
   margin-top: 16px;
 }
 
-.uploader-actions van-button {
-  flex: 1;
-}
-
 .fab-container {
   position: fixed;
   right: 32rpx;

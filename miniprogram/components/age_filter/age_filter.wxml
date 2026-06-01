@@ -2,7 +2,7 @@
 
 <view class="age-filter-container">
   <!-- 快捷筛选横向滚动栏 -->
-  <scroll-view scroll-x class="quick-filter">
+  <scroll-view scroll-x enable-flex class="quick-filter">
     <block wx:for="{{quickOptions}}" wx:key="value">
       <view
         class="filter-tag {{value === selectedValue ? 'active' : ''}}"

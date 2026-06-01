@@ -89,11 +89,17 @@ typings/                 # TypeScript type definitions
 - **Skyline Renderer**: Custom rendering engine for better performance
 - **glass-easel**: Component framework (configured in `app.json`)
 - **Custom Navigation Bar**: Uses `navigationStyle: custom` in app.json
-- **Component Isolation**: Uses `tagNameStyleIsolation: "legacy"` for style isolation
+- **Component Isolation**: 默认样式隔离（Skyline 模式）
 
 ## Important Limitations
 
 ### JavaScript Syntax Compatibility
+请使用微信小程序原生语法：
+- 使用 Page / Component
+- 所有数据通过 setData 更新
+- 不使用 Vue/React 语法
+- 使用 Vant Weapp 组件（已全局注册）
+- 给出 .wxml / .js / .json / .wxss 完整结构
 
 微信小程序不支持 ES2020+ 语法，**禁止使用**以下语法：
 

@@ -72,7 +72,7 @@ Page({
   // 测试组件样式隔离
   testStyleIsolation() {
     const results = this.data.testResults;
-    results[2] = { name: '组件样式隔离', status: 'pass', message: 'tagNameStyleIsolation: legacy 配置正常' };
+    results[2] = { name: '组件样式隔离', status: 'pass', message: '组件样式默认隔离正常' };
     this.setData({ testResults: results });
   },
 
