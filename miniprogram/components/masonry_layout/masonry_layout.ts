@@ -38,37 +38,32 @@ Component({
      * 时间复杂度: O(n * columnCount)，但通过记录最短列索引优化
      */
     recalculateColumns(): void {
-      const { list, columnCount } = this.properties;
+      const { list, columnCount, columnGap, itemGap } = this.properties;
       if (!list || list.length === 0) {
         this.setData({ columns: [], columnHeights: [] });
         return;
       }
 
-      // 初始化列数据和列高度
+      // 初始化列
       const columns: any[][] = Array.from({ length: columnCount }, () => []);
       const columnHeights: number[] = Array(columnCount).fill(0);
 
-      // 使用单个变量追踪最短列，避免每次遍历
-      let minColumnIndex = 0;
-
-      // 将每个项分配到最短的列
+      // 贪心算法：将每个项分配到最短的列
       list.forEach((item: any) => {
-        // 找到最短列的索引（已在上一轮更新）
-        const itemHeight = this.getItemHeight(item);
-        const itemGap = this.properties.itemGap;
-
-        // 将项添加到最短列
-        columns[minColumnIndex].push(item);
-        // 更新列高度
-        columnHeights[minColumnIndex] += itemHeight + itemGap;
-
-        // 找到新的最短列索引（简化：线性搜索，因为列数通常<=4）
-        minColumnIndex = 0;
+        // 找到最短列
+        let minCol = 0;
         for (let i = 1; i < columnCount; i++) {
-          if (columnHeights[i] < columnHeights[minColumnIndex]) {
-            minColumnIndex = i;
+          if (columnHeights[i] < columnHeights[minCol]) {
+            minCol = i;
           }
         }
+
+        // 获取项的高度
+        const itemHeight = this.getItemHeight(item);
+
+        // 添加到最短列
+        columns[minCol].push(item);
+        columnHeights[minCol] += itemHeight + itemGap;
       });
 
       this.setData({ columns, columnHeights });

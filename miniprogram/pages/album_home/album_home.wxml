@@ -47,21 +47,29 @@
   <!-- 内容区域 - 根据视图模式显示 -->
   <view wx:else class="media-content">
     <view wx:if="{{viewMode === 'masonry'}}" class="masonry-view">
-      <block wx:for="{{mediaList}}" wx:key="id">
-        <view class="masonry-item" bindtap="onMediaTap" data-id="{{item.id}}">
-          <van-image
-            width="100%"
-            height="{{item.height || 200}}"
-            src="{{item.thumbnailUrl || item.url}}"
-            fit="cover"
-            lazy-load
-          />
-          <view class="media-item-info">
-            <text class="media-title">{{item.title || '无标题'}}</text>
-            <text class="media-date">{{item.captureDate}}</text>
+      <masonry-layout
+        list="{{mediaList}}"
+        column-count="2"
+        column-gap="16"
+        item-gap="16"
+        bind:scrolltolower="onScrollToLower"
+      >
+        <block wx:for="{{mediaList}}" wx:key="id">
+          <view class="masonry-item" bindtap="onMediaTap" data-id="{{item.id}}">
+            <van-image
+              width="100%"
+              height="{{item.height || 200}}"
+              src="{{item.thumbnailUrl || item.url}}"
+              fit="cover"
+              lazy-load
+            />
+            <view class="media-item-info">
+              <text class="media-title">{{item.title || '无标题'}}</text>
+              <text class="media-date">{{item.captureDate}}</text>
+            </view>
           </view>
-        </view>
-      </block>
+        </block>
+      </masonry-layout>
     </view>
 
     <view wx:else class="timeline-view">
