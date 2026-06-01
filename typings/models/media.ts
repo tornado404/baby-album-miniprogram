@@ -62,6 +62,16 @@ export interface MediaQuery {
 }
 
 /**
+ * 媒体分组实体 - 按月龄分组的媒体列表
+ */
+export interface MediaGroup {
+  monthAge: number;              // 月龄（0, 1, 2, ...）
+  monthLabel: string;            // 显示标签，如 "0月"、"1月"、"12月+"
+  mediaList: Media[];            // 该月龄的媒体列表
+  mediaCount: number;            // 该月龄的照片数量
+}
+
+/**
  * 类型守卫函数 - 判断对象是否为Media类型
  */
 export function isMedia(obj: unknown): obj is Media {

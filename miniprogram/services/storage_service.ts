@@ -1,7 +1,7 @@
 // storage_service.ts - 本地存储服务
 
 import type { Baby, CreateBabyInput, UpdateBabyInput } from '../../typings/models/baby';
-import type { Media, CreateMediaInput, MediaQuery } from '../../typings/models/media';
+import type { Media, MediaGroup, CreateMediaInput, MediaQuery } from '../../typings/models/media';
 
 /**
  * 存储服务类
@@ -333,6 +333,65 @@ class StorageService {
     }
     await this.setData(this.keys.media, filtered);
     this.cache.media = filtered;
+  }
+
+  /**
+   * 按月龄分组获取媒体列表
+   * @param babyId 宝宝ID
+   * @param babyBirthDate 宝宝出生日期，用于计算月龄
+   * @returns 分组后的媒体列表
+   */
+  async getMediaGroupedByMonthAge(babyId: string, babyBirthDate: string): Promise<MediaGroup[]> {
+    const mediaList = await this.getData<Media[]>(this.keys.media) || [];
+    const babyMedia: Media[] = [];
+    for (let i = 0; i < mediaList.length; i++) {
+      if (mediaList[i].babyId === babyId) {
+        babyMedia.push(mediaList[i]);
+      }
+    }
+
+    // 按月龄分组
+    const groups: Map<number, Media[]> = new Map();
+    for (let j = 0; j < babyMedia.length; j++) {
+      const media = babyMedia[j];
+      const monthAge = this.calculateMonthAge(babyBirthDate, media.captureDate);
+      if (!groups.has(monthAge)) {
+        groups.set(monthAge, []);
+      }
+      groups.get(monthAge)!.push(media);
+    }
+
+    // 转换为 MediaGroup 数组
+    const result: MediaGroup[] = [];
+    groups.forEach(function(list: Media[], monthAge: number) {
+      result.push({
+        monthAge: monthAge,
+        monthLabel: monthAge >= 12 ? '12月+' : monthAge + '月',
+        mediaList: list.sort(function(a: Media, b: Media) {
+          return b.captureDate.localeCompare(a.captureDate);
+        }),
+        mediaCount: list.length
+      });
+    });
+
+    // 按月龄降序排列
+    return result.sort(function(a: MediaGroup, b: MediaGroup) {
+      return b.monthAge - a.monthAge;
+    });
+  }
+
+  /**
+   * 计算月龄
+   * @param birthDate 出生日期 (YYYY-MM-DD)
+   * @param captureDate 拍摄日期 (YYYY-MM-DD)
+   * @returns 月龄
+   */
+  private calculateMonthAge(birthDate: string, captureDate: string): number {
+    const birth = new Date(birthDate);
+    const capture = new Date(captureDate);
+    const diffTime = capture.getTime() - birth.getTime();
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    return Math.floor(diffDays / 30);
   }
 
   /**
