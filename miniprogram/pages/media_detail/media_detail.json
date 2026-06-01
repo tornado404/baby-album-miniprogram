@@ -1,8 +1,0 @@
-{
-  "navigationBarTitleText": "照片详情",
-  "navigationBarBackgroundColor": "#000000",
-  "navigationBarTextStyle": "white",
-  "usingComponents": {
-    "media-card": "/components/media_card/media_card"
-  }
-}

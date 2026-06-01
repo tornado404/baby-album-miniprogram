@@ -1,9 +1,0 @@
-{
-  "setting": {
-    "minifyWXML": true
-  },
-  "compileType": "miniprogram",
-  "simulatorPluginLibVersion": {},
-  "appid": "wx5d0e66dc0e6fb16d",
-  "libVersion": "2.32.3"
-}

@@ -1,9 +1,0 @@
-{
-  "navigationBarTitleText": "成长相册",
-  "usingComponents": {
-    "media-uploader": "/components/media_uploader/media_uploader",
-    "masonry-layout": "/components/masonry_layout/masonry_layout",
-    "age-filter": "/components/age_filter/age_filter"
-  },
-  "enablePullDownRefresh": true
-}
