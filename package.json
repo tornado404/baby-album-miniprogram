@@ -6,7 +6,16 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "test:unit": "jest --selectProjects unit",
-    "test:e2e": "jest --selectProjects e2e --runInBand"
+    "test:e2e": "jest --selectProjects e2e --runInBand",
+    "test:e2e:auto": "jest --selectProjects e2e --runInBand",
+    "test:first-screen": "jest --selectProjects e2e --runInBand --testPathPattern=first-screen",
+    "test:first-screen:auto": "jest --selectProjects e2e --runInBand --testPathPattern=first-screen",
+    "start:first-screen": "node scripts/first-screen-access.js",
+    "capture:first-screen": "node scripts/capture-first-screen.js",
+    "build:npm": "node scripts/build-npm.js",
+    "ci:build": "node scripts/ci.js build",
+    "ci:preview": "node scripts/ci.js preview",
+    "ci:upload": "node scripts/ci.js upload"
   },
   "keywords": [],
   "author": "",
@@ -16,6 +25,7 @@
     "jest": "^30.4.2",
     "miniprogram-api-typings": "^2.8.3-1",
     "miniprogram-automator": "^0.12.0",
+    "miniprogram-ci": "^2.1.31",
     "ts-jest": "^29.4.11"
   }
 }

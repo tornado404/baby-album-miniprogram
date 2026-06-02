@@ -14,31 +14,58 @@ This is a WeChat Mini Program (微信小程序) for tracking baby growth and dev
 ## Common Commands
 
 ```bash
-# Run tests
+# Run all tests
 npm test
+
+# Run unit tests only
+npm run test:unit
+
+# Run E2E tests only (requires WeChat DevTools already running)
+npm run test:e2e
+
+# Run E2E tests with auto-launch DevTools (Windows native, recommended)
+npm run test:e2e:auto
+
+# Run first-screen access test (requires DevTools running)
+npm run test:first-screen
+
+# Run first-screen access test with auto-launch DevTools (Windows native, recommended)
+npm run test:first-screen:auto
+
+# Standalone first-screen access script (no Jest, auto-launch DevTools)
+npm run start:first-screen
+
+# Capture screenshots only (requires DevTools already running with visible window)
+npm run capture:first-screen
 
 # Run tests in watch mode
 npm run test:watch
 
 # Run tests with coverage
 npm run test:coverage
+
+# Compile TypeScript to JavaScript (after editing .ts files)
+cd miniprogram && npx tsc -p tsconfig.json
 ```
 
-**Note**: After installing or updating npm packages in `miniprogram/`, you must rebuild npm in WeChat DevTools: **工具** -> **构建 npm**
+**Important Notes:**
+- After installing or updating npm packages in `miniprogram/`, you must rebuild npm in WeChat DevTools: **工具** -> **构建 npm**
+- TypeScript source files (`.ts`) must be compiled to JavaScript (`.js`) before running in the simulator. The IDE does not auto-compile on save.
 
 ## Project Structure
 
 ```
 miniprogram/              # Main miniprogram code
 ├── app.ts               # App entry point
-├── app.json            # App configuration (pages, window, Vant components)
+├── app.json            # App configuration (pages, window, TDesign components)
 ├── app.wxss            # App global styles
+├── tsconfig.json       # TypeScript config for compilation
 ├── pages/              # Page components
+│   ├── album_home/     # Album home page (first page in app.json)
 │   ├── index/          # Home page
 │   ├── logs/           # Logs page
-│   ├── album_home/     # Album home page
 │   ├── media_detail/   # Media detail page
-│   └── tech_validate/   # Tech validation page
+│   └── tech_validate/  # Tech validation page
 ├── components/         # Reusable components
 │   ├── age_filter/      # Age filter component
 │   ├── masonry_layout/  # Masonry layout component
@@ -56,9 +83,14 @@ miniprogram/              # Main miniprogram code
 ├── constants/          # Constants
 │   ├── album_constants.ts
 │   └── storage_keys.ts
-├── miniprogram_npm/    # Built Vant Weapp components
+├── tests/              # E2E tests
+│   ├── e2e/            # E2E infrastructure (global setup/teardown)
+│   ├── specs/          # E2E test specs (.spec.ts)
+│   └── reports/        # Test reports (auto-created)
+├── miniprogram_npm/    # Built TDesign components
 └── node_modules/       # Dependencies
 
+tests/                   # Unit tests (.test.ts)
 typings/                 # TypeScript type definitions
 ├── index.d.ts          # Global type declarations, exports models
 └── models/             # Data models
@@ -98,7 +130,7 @@ typings/                 # TypeScript type definitions
 - 使用 Page / Component
 - 所有数据通过 setData 更新
 - 不使用 Vue/React 语法
-- 使用 Vant Weapp 组件（已全局注册）
+- 使用 TDesign 组件（已全局注册）
 - 给出 .wxml / .js / .json / .wxss 完整结构
 
 微信小程序不支持 ES2020+ 语法，**禁止使用**以下语法：
@@ -114,7 +146,7 @@ typings/                 # TypeScript type definitions
 
 ### Component Configuration
 
-- Vant 组件只在 `app.json` 全局注册
+- TDesign 组件只在 `app.json` 全局注册
 - 页面/组件的 `usingComponents` 中**不要**重复配置 `miniprogram_npm/...` 路径
 - 微信小程序解析组件路径时相对于自身目录，会导致路径错误拼接
 
@@ -126,6 +158,79 @@ typings/                 # TypeScript type definitions
 - WeChat API types from `miniprogram-api-typings` package
 - Jest for testing, configured via `jest.config.js`
 
+## E2E Testing
+
+E2E tests use `miniprogram-automator` to control WeChat DevTools programmatically.
+
+### Windows 原生全自动模式（推荐）
+
+在 Windows 原生环境下一键运行，脚本自动启动开发者工具、连接、测试：
+
+```bash
+# 方式 A：通过 Jest 框架（有断言、HTML 报告）
+npm run test:first-screen:auto
+
+# 方式 B：独立脚本（纯探查输出，无 Jest 依赖）
+npm run start:first-screen
+```
+
+脚本会自动完成：
+1. 检测微信开发者工具是否已运行
+2. 如未运行，自动通过 cli.bat 启动（自动化模式）
+3. 等待端口 9420 就绪
+4. 连接 miniprogram-automator
+5. 跳转到首屏，读取页面数据和 DOM 元素
+6. 截图保存
+7. 生成结构化 JSON 报告
+
+### Prerequisites
+
+1. WeChat DevTools must be installed (typically at `E:\ProgramData\Tencent\微信web开发者工具\`)
+2. Enable automation port in DevTools: **设置 → 安全设置 → 服务端口 → 开启**
+
+### Windows 纯环境测试（推荐）
+
+在 Windows 环境下直接运行，无需 WSL：
+
+**方法一：一键运行（批处理）**
+```bash
+# 在 Windows CMD/PowerShell 中执行
+scripts\test-automation.bat
+```
+
+**方法二：手动启动并测试**
+```bash
+# 1. 启动开发者工具（自动化模式）
+"E:\ProgramData\Tencent\微信web开发者工具\cli.bat" auto --port 9421 --auto-port 9420 --project "D:\code\yuanBabyGrowthDiary\miniprogram"
+
+# 2. 运行测试
+node scripts\windows-test.js
+```
+
+**方法三：使用 PowerShell 脚本**
+```powershell
+# 启动开发者工具
+.\scripts\start-automation.ps1 -StartDevTools
+
+# 运行测试
+.\scripts\start-automation.ps1 -RunTest
+
+# 一键启动并测试
+.\scripts\start-automation.ps1 -StartDevTools -RunTest
+```
+
+### Test Organization
+
+- **Unit tests**: `tests/**/*.test.ts` and `miniprogram/tests/**/*.test.ts` (excluding e2e)
+- **E2E tests**: `miniprogram/tests/specs/**/*.spec.ts`
+- E2E timeout: 120 seconds per test
+
+### Known Issues
+
+- `miniprogram-automator` 0.12.1 has a `reLaunch` serialization bug; use `App.callWxMethod` directly
+- `App.captureScreenshot` may hang if DevTools window is not visible; keep window minimized rather than headless
+- WSL 2 users should use `localhost` instead of `127.0.0.1` for WebSocket connections
+
 ## Data Models
 
 The project uses these main models (exported from `typings/models/`):
@@ -133,25 +238,32 @@ The project uses these main models (exported from `typings/models/`):
 - **BabyAge**: Age calculation model
 - **Media**: Media (photo/video) model
 
-## Vant Weapp 组件库
+## TDesign 组件库
 
-使用 `@vant/weapp`（腾讯官方维护版本，兼容微信小程序），配置在 `app.json` 的 `usingComponents`：
+使用 `tdesign-miniprogram`（腾讯官方维护版本，兼容微信小程序），配置在 `app.json` 的 `usingComponents`：
 
 ```json
 {
-  "van-button": "miniprogram_npm/@vant/weapp/button/index",
-  "van-cell": "miniprogram_npm/@vant/weapp/cell/index",
-  "van-field": "miniprogram_npm/@vant/weapp/field/index",
-  "van-icon": "miniprogram_npm/@vant/weapp/icon/index",
-  "van-loading": "miniprogram_npm/@vant/weapp/loading/index",
-  "van-nav-bar": "miniprogram_npm/@vant/weapp/nav-bar/index",
-  "van-popup": "miniprogram_npm/@vant/weapp/popup/index"
+  "t-action-sheet": "tdesign-miniprogram/action-sheet/action-sheet",
+  "t-button": "tdesign-miniprogram/button/button",
+  "t-cell": "tdesign-miniprogram/cell/cell",
+  "t-cell-group": "tdesign-miniprogram/cell-group/cell-group",
+  "t-empty": "tdesign-miniprogram/empty/empty",
+  "t-icon": "tdesign-miniprogram/icon/icon",
+  "t-image": "tdesign-miniprogram/image/image",
+  "t-input": "tdesign-miniprogram/input/input",
+  "t-loading": "tdesign-miniprogram/loading/loading",
+  "t-navbar": "tdesign-miniprogram/navbar/navbar",
+  "t-popup": "tdesign-miniprogram/popup/popup",
+  "t-stepper": "tdesign-miniprogram/stepper/stepper"
 }
 ```
 
-**注意**：`vant-weapp` 0.5.x 版本使用 ES 模块格式（`dist` 目录），微信小程序不支持。必须使用 `@vant/weapp` 版本。
+**安装步骤**：
+1. 在 `miniprogram/` 目录下执行：`npm i tdesign-miniprogram -S --production`
+2. 在微信开发者工具中：**工具** -> **构建 npm**
 
-完整组件列表请参考 [@vant/weapp 官方文档](https://vant-contrib.gitee.io/vant-weapp/)
+完整组件列表请参考 [TDesign 微信小程序组件库官方文档](https://tdesign.tencent.com/miniprogram/overview)
 
 ## Common Tasks
 
@@ -167,3 +279,11 @@ The project uses these main models (exported from `typings/models/`):
 - Custom type declarations go in `typings/`
 - WeChat API types are in `typings/types/wx/`
 - Global types should be exported from `typings/index.d.ts`
+
+## Known Issues & Warnings
+
+These warnings from third-party libraries can be safely ignored:
+
+| Warning | Source | Resolution |
+|---------|--------|------------|
+| `Failed to load font at.alicdn.com` | iconfont CDN | Network issue, temporary |
