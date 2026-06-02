@@ -1,0 +1,16 @@
+<!-- age_filter.wxml - 月龄筛选组件 -->
+
+<view class="age-filter-container">
+  <!-- 快捷筛选横向滚动栏 -->
+  <scroll-view scroll-x enable-flex class="quick-filter">
+    <block wx:for="{{quickOptions}}" wx:key="value">
+      <view
+        class="filter-tag {{value === selectedValue ? 'active' : ''}}"
+        bindtap="onQuickSelect"
+        data-value="{{item.value}}"
+      >
+        {{item.label}}
+      </view>
+    </block>
+  </scroll-view>
+</view>

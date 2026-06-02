@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "技术验证",
+  "usingComponents": {
+    "media-card": "/components/media_card/media_card",
+    "masonry-layout": "/components/masonry_layout/masonry_layout"
+  }
+}

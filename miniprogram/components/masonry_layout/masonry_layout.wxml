@@ -1,0 +1,15 @@
+<!-- masonry_layout.wxml - 瀑布流布局组件
+
+使用 CSS columns 实现瀑布流布局。
+组件接收 list 属性但布局完全由 CSS 处理。
+懒加载由 van-image 组件的 lazy-load 属性负责。
+-->
+
+<view class="masonry-container">
+  <view class="masonry-row">
+    <slot />
+  </view>
+
+  <!-- 触底加载触发区 -->
+  <view class="load-more-trigger" bind:scrolltolower="onScrollToLower" />
+</view>

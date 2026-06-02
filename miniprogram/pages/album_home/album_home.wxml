@@ -1,0 +1,116 @@
+<!-- album_home.wxml - 相册首页 -->
+
+<!-- 顶部导航栏 -->
+<van-nav-bar title="成长相册" left-arrow bind:click-left="goHome" />
+
+<!-- 未授权状态 -->
+<view wx:if="{{!isAuthorized}}" class="container auth-tip">
+  <van-empty description="请先授权获取头像昵称">
+    <van-button type="primary" bind:click="showAuthTip">去授权</van-button>
+  </van-empty>
+</view>
+
+<!-- 已授权状态 -->
+<view wx:else class="container">
+
+  <!-- 宝宝选择器 -->
+  <view class="baby-selector">
+    <van-cell-group>
+      <van-cell
+        title="当前宝宝"
+        value="{{currentBaby ? currentBaby.name : '请选择宝宝'}}"
+        is-link
+        bind:click="onBabySelect"
+      />
+    </van-cell-group>
+  </view>
+
+  <!-- 月龄筛选组件 -->
+  <age-filter
+    baby-id="{{currentBabyId}}"
+    birth-date="{{currentBaby ? currentBaby.birthDate : ''}}"
+    value="{{filterMaxAge}}"
+    bind:change="onAgeFilterChange"
+  />
+
+  <!-- 加载状态 -->
+  <view wx:if="{{isLoading}}" class="loading-container">
+    <van-loading type="spinner" size="24px">加载中...</van-loading>
+  </view>
+
+  <!-- 空状态 -->
+  <view wx:elif="{{isEmpty}}" class="empty-container">
+    <van-empty image="https://img.yzcdn.cn/vant.Empty-1" description="暂无照片，试试上传第一张" />
+    <van-button type="primary" size="small" bind:click="onUploadTap">上传照片</van-button>
+  </view>
+
+  <!-- 内容区域 - 根据视图模式显示 -->
+  <view wx:else class="media-content">
+    <view wx:if="{{viewMode === 'masonry'}}" class="masonry-view">
+      <masonry-layout
+        list="{{mediaList}}"
+        column-count="2"
+        column-gap="16"
+        item-gap="16"
+        bind:scrolltolower="onScrollToLower"
+      >
+        <block wx:for="{{mediaList}}" wx:key="id">
+          <view class="masonry-item" bindtap="onMediaTap" data-id="{{item.id}}">
+            <van-image
+              width="100%"
+              height="{{item.height || 200}}"
+              src="{{item.thumbnailUrl || item.url}}"
+              fit="cover"
+              lazy-load
+            />
+            <view class="media-item-info">
+              <text class="media-title">{{item.title || '无标题'}}</text>
+              <text class="media-date">{{item.captureDate}}</text>
+            </view>
+          </view>
+        </block>
+      </masonry-layout>
+    </view>
+
+    <view wx:else class="timeline-view">
+      <block wx:for="{{mediaList}}" wx:key="id">
+        <view class="timeline-item" bindtap="onMediaTap" data-id="{{item.id}}">
+          <van-image
+            width="80"
+            height="80"
+            src="{{item.thumbnailUrl || item.url}}"
+            fit="cover"
+            lazy-load
+            round
+          />
+          <view class="timeline-item-info">
+            <text class="media-title">{{item.title || '无标题'}}</text>
+            <text class="media-date">{{item.captureDate}}</text>
+          </view>
+        </view>
+      </block>
+    </view>
+  </view>
+
+  <!-- 加载更多状态 -->
+  <view wx:if="{{isLoadingMore}}" class="loading-more">
+    <van-loading type="spinner" size="16px">加载中...</van-loading>
+  </view>
+  <view wx:elif="{{!hasMore && mediaList.length > 0}}" class="no-more">
+    <text>没有更多了~</text>
+  </view>
+
+  <!-- 底部上传按钮 -->
+  <view class="upload-btn">
+    <van-button type="primary" round icon="plus" bind:click="onUploadTap">上传</van-button>
+  </view>
+
+  <!-- 上传组件 -->
+  <media-uploader
+    visible="{{uploaderVisible}}"
+    baby-id="{{currentBabyId}}"
+    max-count="{{9}}"
+    bind:close="onUploaderClose"
+    bind:success="onUploaderSuccess"
+  />
+</view>

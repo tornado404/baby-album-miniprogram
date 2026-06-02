@@ -1,0 +1,76 @@
+/* media_uploader.wxss - 媒体上传组件样式 */
+
+.uploader-container {
+  padding: 16px;
+  background-color: #ffffff;
+}
+
+.uploader-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.uploader-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.fab-container {
+  position: fixed;
+  right: 32rpx;
+  bottom: 32rpx;
+  z-index: 999;
+}
+
+.fab-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: 998;
+}
+
+.fab-button {
+  width: 112rpx;
+  height: 112rpx;
+  border-radius: 56rpx;
+  background: linear-gradient(135deg, #FFB7C5, #FF8FA3);
+  box-shadow: 0 4rpx 16rpx rgba(255, 183, 197, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s;
+}
+
+.fab-button.active {
+  transform: rotate(45deg);
+}
+
+.fab-menu {
+  position: absolute;
+  bottom: 140rpx;
+  right: 0;
+  background: #ffffff;
+  border-radius: 16rpx;
+  box-shadow: 0 4rpx 24rpx rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.fab-menu-item {
+  display: flex;
+  align-items: center;
+  padding: 24rpx 32rpx;
+  gap: 16rpx;
+  border-bottom: 1rpx solid #eeeeee;
+}
+
+.fab-menu-item:last-child {
+  border-bottom: none;
+}

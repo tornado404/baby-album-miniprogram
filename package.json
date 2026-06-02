@@ -1,0 +1,21 @@
+{
+  "name": "miniprogram-ts-less-quickstart",
+  "version": "1.0.0",
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:unit": "jest --selectProjects unit",
+    "test:e2e": "jest --selectProjects e2e --runInBand"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "jest": "^30.4.2",
+    "miniprogram-api-typings": "^2.8.3-1",
+    "miniprogram-automator": "^0.12.0",
+    "ts-jest": "^29.4.11"
+  }
+}
