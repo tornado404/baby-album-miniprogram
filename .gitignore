@@ -1,1 +1,11 @@
 node_modules
+
+# WeChat DevTools private config (contains appid)
+project.private.config.json
+
+# WeChat private keys (DO NOT COMMIT)
+*.key
+
+# OS files
+.DS_Store
+Thumbs.db
