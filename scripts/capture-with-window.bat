@@ -41,7 +41,7 @@ echo       %ACTIVATE_RESULT%.
 
 echo.
 
-REM ===== Step 3: Screenshot via PowerShell =====
+REM ===== Step 3: Screenshot via PowerShell (capture DevTools window only) =====
 echo [3/3] Capturing screenshot...
 
 set OUT_DIR=%CD%\..\miniprogram\tests\reports\first-screen
@@ -49,17 +49,36 @@ for /f %%i in ('powershell -NoProfile -Command "Get-Date -Format 'yyyyMMdd_HHmms
 
 > "%TEMP%\capture_screen.ps1" echo Add-Type -AssemblyName System.Windows.Forms
 >>"%TEMP%\capture_screen.ps1" echo Add-Type -AssemblyName System.Drawing
+>>"%TEMP%\capture_screen.ps1" echo Add-Type @"
+>>"%TEMP%\capture_screen.ps1" echo   using System;
+>>"%TEMP%\capture_screen.ps1" echo   using System.Runtime.InteropServices;
+>>"%TEMP%\capture_screen.ps1" echo   public class Win32 {
+>>"%TEMP%\capture_screen.ps1" echo     [DllImport("user32.dll")] public static extern IntPtr FindWindow(string lpClassName, string lpWindowName^);
+>>"%TEMP%\capture_screen.ps1" echo     [DllImport("user32.dll")] public static extern bool GetWindowRect(IntPtr hWnd, out RECT lpRect^);
+>>"%TEMP%\capture_screen.ps1" echo     [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr hWnd^);
+>>"%TEMP%\capture_screen.ps1" echo     public struct RECT { public int Left; public int Top; public int Right; public int Bottom; }
+>>"%TEMP%\capture_screen.ps1" echo   }
+>>"%TEMP%\capture_screen.ps1" echo "@
 >>"%TEMP%\capture_screen.ps1" echo $out=[IO.Path]::GetFullPath('%OUT_DIR%\%RUN_ID%')
 >>"%TEMP%\capture_screen.ps1" echo [IO.Directory]::CreateDirectory($out^) ^| Out-Null
->>"%TEMP%\capture_screen.ps1" echo $w=[Windows.Forms.Screen]::PrimaryScreen.Bounds.Width
->>"%TEMP%\capture_screen.ps1" echo $h=[Windows.Forms.Screen]::PrimaryScreen.Bounds.Height
->>"%TEMP%\capture_screen.ps1" echo $bmp=New-Object Drawing.Bitmap $w,$h
->>"%TEMP%\capture_screen.ps1" echo $g=[Drawing.Graphics]::FromImage($bmp^)
->>"%TEMP%\capture_screen.ps1" echo $g.CopyFromScreen(0,0,0,0,$bmp.Size^)
->>"%TEMP%\capture_screen.ps1" echo $path=[IO.Path]::Combine($out,'01-album-home.png')
->>"%TEMP%\capture_screen.ps1" echo try{$bmp.Save($path,[Drawing.Imaging.ImageFormat]::Png^);Write-Host ('Saved: '+$path)}catch{Write-Host ('ERROR: '+$_.Exception.Message^)}
->>"%TEMP%\capture_screen.ps1" echo $g.Dispose()
->>"%TEMP%\capture_screen.ps1" echo $bmp.Dispose()
+>>"%TEMP%\capture_screen.ps1" echo $hwnd=[Win32]::FindWindow("","微信web开发者工具")
+>>"%TEMP%\capture_screen.ps1" echo if($hwnd -eq 0^){$p=Get-Process wechatdevtools -ErrorAction SilentlyContinue;if($p^){$hwnd=$p[0].MainWindowHandle}}
+>>"%TEMP%\capture_screen.ps1" echo if($hwnd -ne 0^){
+>>"%TEMP%\capture_screen.ps1" echo   $rect=New-Object Win32+RECT
+>>"%TEMP%\capture_screen.ps1" echo   [Win32]::GetWindowRect($hwnd,[ref]$rect^)
+>>"%TEMP%\capture_screen.ps1" echo   $cw=$rect.Right-$rect.Left
+>>"%TEMP%\capture_screen.ps1" echo   $ch=$rect.Bottom-$rect.Top
+>>"%TEMP%\capture_screen.ps1" echo   if($cw -gt 0 -and $ch -gt 0^){
+>>"%TEMP%\capture_screen.ps1" echo     $bmp=New-Object Drawing.Bitmap $cw,$ch
+>>"%TEMP%\capture_screen.ps1" echo     $g=[Drawing.Graphics]::FromImage($bmp^)
+>>"%TEMP%\capture_screen.ps1" echo     $g.CopyFromScreen($rect.Left,$rect.Top,0,0,$bmp.Size^)
+>>"%TEMP%\capture_screen.ps1" echo     $path=[IO.Path]::Combine($out,'01-album-home.png')
+>>"%TEMP%\capture_screen.ps1" echo     $bmp.Save($path,[Drawing.Imaging.ImageFormat]::Png^)
+>>"%TEMP%\capture_screen.ps1" echo     $g.Dispose()
+>>"%TEMP%\capture_screen.ps1" echo     $bmp.Dispose()
+>>"%TEMP%\capture_screen.ps1" echo     Write-Host ('DevTools window: '+$cw+'x'+$ch+' px - saved')
+>>"%TEMP%\capture_screen.ps1" echo   ^}else{Write-Host 'ERROR: invalid window dimensions'}
+>>"%TEMP%\capture_screen.ps1" echo ^}else{Write-Host 'ERROR: DevTools window not found'}
 
 for /f "tokens=*" %%a in ('powershell -NoProfile -ExecutionPolicy Bypass -File "%TEMP%\capture_screen.ps1"') do set SCREENSHOT_RESULT=%%a
 del "%TEMP%\capture_screen.ps1" 2>nul
