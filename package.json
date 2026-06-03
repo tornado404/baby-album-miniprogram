@@ -12,6 +12,7 @@
     "test:first-screen:auto": "jest --selectProjects e2e --runInBand --testPathPattern=first-screen",
     "start:first-screen": "node scripts/first-screen-access.js",
     "capture:first-screen": "node scripts/capture-first-screen.js",
+    "capture:full": "scripts\\capture-with-window.bat",
     "capture:auto": "node scripts/capture-automated.js",
     "build:npm": "node scripts/build-npm.js",
     "ci:build": "node scripts/ci.js build",
