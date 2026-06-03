@@ -1,41 +1,36 @@
-{
+﻿{
   "pages": [
     "pages/album_home/album_home",
     "pages/index/index",
     "pages/logs/logs",
     "pages/tech_validate/tech_validate",
-    "pages/media_detail/media_detail"
+    "pages/media_detail/media_detail",
+    "pages/upload/upload",
+    "pages/settings/settings",
+    "pages/baby_profile/baby_profile",
+    "pages/3d_viewer/3d_viewer"
   ],
   "window": {
     "navigationBarTextStyle": "black",
     "navigationStyle": "custom"
   },
   "style": "v2",
-  "renderer": "skyline",
-  "rendererOptions": {
-    "skyline": {
-      "defaultDisplayBlock": true,
-      "defaultContentBox": true,
-      "disableABTest": true,
-      "sdkVersionBegin": "3.0.0",
-      "sdkVersionEnd": "15.255.255"
-    }
-  },
   "componentFramework": "glass-easel",
   "sitemapLocation": "sitemap.json",
   "lazyCodeLoading": "requiredComponents",
   "usingComponents": {
-    "van-action-sheet": "miniprogram_npm/@vant/weapp/action-sheet/index",
-    "van-button": "miniprogram_npm/@vant/weapp/button/index",
-    "van-cell": "miniprogram_npm/@vant/weapp/cell/index",
-    "van-cell-group": "miniprogram_npm/@vant/weapp/cell-group/index",
-    "van-empty": "miniprogram_npm/@vant/weapp/empty/index",
-    "van-field": "miniprogram_npm/@vant/weapp/field/index",
-    "van-icon": "miniprogram_npm/@vant/weapp/icon/index",
-    "van-image": "miniprogram_npm/@vant/weapp/image/index",
-    "van-loading": "miniprogram_npm/@vant/weapp/loading/index",
-    "van-nav-bar": "miniprogram_npm/@vant/weapp/nav-bar/index",
-    "van-popup": "miniprogram_npm/@vant/weapp/popup/index",
-    "van-stepper": "miniprogram_npm/@vant/weapp/stepper/index"
+    "t-action-sheet": "tdesign-miniprogram/action-sheet/action-sheet",
+    "t-button": "tdesign-miniprogram/button/button",
+    "t-cell": "tdesign-miniprogram/cell/cell",
+    "t-cell-group": "tdesign-miniprogram/cell-group/cell-group",
+    "t-empty": "tdesign-miniprogram/empty/empty",
+    "t-icon": "tdesign-miniprogram/icon/icon",
+    "t-image": "tdesign-miniprogram/image/image",
+    "t-input": "tdesign-miniprogram/input/input",
+    "t-loading": "tdesign-miniprogram/loading/loading",
+    "t-navbar": "tdesign-miniprogram/navbar/navbar",
+    "t-popup": "tdesign-miniprogram/popup/popup",
+    "t-stepper": "tdesign-miniprogram/stepper/stepper",
+    "bottom-nav": "/components/bottom-nav/bottom-nav"
   }
 }

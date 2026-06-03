@@ -1,6 +1,9 @@
 {
   "setting": {
-    "minifyWXML": true
+    "minifyWXML": true,
+    "useCompilerPlugins": [
+      "typescript"
+    ]
   },
   "compileType": "miniprogram",
   "simulatorPluginLibVersion": {},
