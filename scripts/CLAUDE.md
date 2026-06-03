@@ -233,3 +233,72 @@ node -e "const fs=require('fs');fs.writeFileSync('path/to/file','content','utf-8
 ## 7. 记忆与持久化
 
 重要发现应使用 `Memory` 工具写入 `C:\Users\zzc245\.claude\projects\D--code-yuanBabyGrowthDiary\memory\` 目录，以便跨会话持久化。记忆文件头部包含 metadata（type/description），正文结尾标注 **Why:** 和 **How to apply:**。
+
+---
+
+## 8. Bash 中 node -e 的双层转义陷阱
+
+在 Git Bash 执行 `node -e "..."` 时，字符串经过 **两层转义**：
+
+```bash
+# ❌ 错误 - Bash 吃掉一层 \，Node 吃掉第二层
+node -e "const p = 'D:\\code\\project\\file.txt';"
+# Bash: \\ → \  收到: 'D:\code\project\file.txt'
+# Node: \c → Ctrl-C, \p → p, \f → form-feed
+# 实际结果: 'D:code<ctrl-c>ode<ctrl-f>ile.txt'
+
+# ✅ 方案A: 正斜杠 (推荐)
+node -e "const p = 'D:/code/project/file.txt';"
+
+# ✅ 方案B: 写脚本文件再执行
+node my-test.js
+
+# ✅ 方案C: 4个反斜杠
+node -e "const p = 'D:\\\\code\\\\project\\\\file.txt';"
+```
+
+---
+
+## 9. bat 文件中的 PowerShell 脚本编写
+
+### 9.1 不要用 ^ 续行符
+```bat
+REM ❌ ^ 续行符会传给 PowerShell 导致语法错误
+powershell -Command ^ "$x=1; ^ $y=2"
+
+REM ✅ 写临时 .ps1 文件 (推荐)
+> "%TEMP%\script.ps1" echo $x=1
+>>"%TEMP%\script.ps1" echo $y=2
+powershell -ExecutionPolicy Bypass -File "%TEMP%\script.ps1"
+
+REM ✅ 短脚本一行写完
+powershell -Command "$x=1;$y=2;Write-Host $x"
+```
+
+### 9.2 捕获 PowerShell 输出到 bat 变量
+```bat
+for /f "tokens=*" %%a in ('powershell -Command "Get-Date"') do set RESULT=%%a
+```
+
+### 9.3 GDI+ Save 错误修复
+`Bitmap.Save()` 报 "A generic error occurred in GDI+" 的三种原因：
+- **目录不存在** → `[IO.Directory]::CreateDirectory($path)`
+- **路径含 `..`** → `[IO.Path]::GetFullPath($path)` 解析为绝对路径
+- **文件已被锁定** → Dispose 旧对象再保存
+
+```powershell
+$out = [IO.Path]::GetFullPath($outputDir)
+[IO.Directory]::CreateDirectory($out) | Out-Null
+$path = [IO.Path]::Combine($out, 'screenshot.png')
+try { $bmp.Save($path, [Drawing.Imaging.ImageFormat]::Png) }
+catch { Write-Host ('ERROR: ' + $_.Exception.Message) }
+```
+
+### 9.4 端口检测优于进程检测
+```bat
+REM ❌ 进程存在但端口未就绪
+tasklist | find "wechatdevtools"
+
+REM ✅ 端口可达才是真就绪
+powershell -Command "try{$s=New-Object Net.Sockets.TcpClient;$s.ConnectAsync('127.0.0.1',9420).Wait(2000);exit (0,$s.Connected)[$s.Connected]}catch{exit 1}"
+```
