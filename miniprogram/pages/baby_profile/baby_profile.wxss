@@ -1,16 +1,17 @@
-/* baby_profile.wxss - 宝宝档案页面 Claymorphism 样式 */
+/* baby_profile.wxss - 宝宝档案页面 Claymorphism（精确 Figma 还原） */
 
 .page-profile {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  background: var(--clay-bg, #fffbf8);
 }
 
 .status-bar {
   flex-shrink: 0;
 }
 
-/* Navigation Bar */
+/* ---- Navigation Bar ---- */
 .profile-nav {
   display: flex;
   align-items: center;
@@ -24,78 +25,75 @@
   width: 72rpx;
   height: 72rpx;
   border-radius: 36rpx;
-  background: var(--clay-icon-bg);
+  background: #f9f0e9;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
 }
-
 .profile-nav .nav-btn-circle text {
   font-size: 40rpx;
-  color: var(--clay-text-primary);
+  color: #4a4a4a;
   font-weight: 600;
 }
-
 .profile-nav .nav-title {
-  font-size: var(--clay-font-xxl);
+  font-size: 36rpx;
   font-weight: 700;
-  color: var(--clay-text-primary);
+  color: #4a4a4a;
 }
 
+/* Save button - orange pill with shadow */
 .nav-save-btn {
   height: 64rpx;
-  background: var(--clay-primary);
+  background: #ffa87a;
   border-radius: 32rpx;
-  box-shadow: var(--clay-shadow-save);
+  box-shadow: 0px 3px 6px 0px rgba(255, 168, 122, 0.3);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 8rpx 20rpx;
   flex-shrink: 0;
 }
-
 .nav-save-btn text {
-  font-size: var(--clay-font-md);
+  font-size: 26rpx;
   font-weight: 600;
-  color: #fff;
+  color: #ffffff;
 }
 
-/* Content Area */
+/* ---- Content Area ---- */
 .content-area {
   flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 40rpx;
-  padding: 40rpx 0;
+  padding: 40rpx 0 160rpx;
   box-sizing: border-box;
   overflow-y: auto;
 }
 
-/* Avatar */
+/* Avatar Card - pink circle with shadow */
 .avatar-card {
   display: flex;
   justify-content: center;
   flex-shrink: 0;
 }
-
 .avatar-circle {
   width: 240rpx;
   height: 240rpx;
   border-radius: 120rpx;
-  background: var(--clay-card-pink);
-  box-shadow: var(--clay-shadow-avatar);
+  background: #f1dce2;
+  box-shadow: 0px 8px 20px 0px rgba(241, 220, 226, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
 }
-
 .avatar-circle text {
   font-size: 108rpx;
+  color: #806680;
 }
 
-/* Fields */
+/* ---- Fields Wrapper ---- */
 .fields-wrapper {
   display: flex;
   flex-direction: column;
@@ -106,12 +104,13 @@
   flex-shrink: 0;
 }
 
+/* Field Item - white card with shadow */
 .field-item {
   width: 100%;
   height: 128rpx;
-  background: var(--clay-card-white);
-  border-radius: var(--clay-radius-xxl);
-  box-shadow: var(--clay-shadow-card-light);
+  background: #ffffff;
+  border-radius: 36rpx;
+  box-shadow: 0px 3px 8px 0px rgba(230, 198, 179, 0.18);
   display: flex;
   align-items: center;
   gap: 16rpx;
@@ -120,24 +119,26 @@
   box-sizing: border-box;
 }
 
+/* Field Icon */
 .field-icon {
   width: 72rpx;
   height: 72rpx;
   border-radius: 24rpx;
-  background: var(--clay-icon-bg);
+  background: #f9f0e9;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
 }
-
 .field-icon text {
   font-size: 36rpx;
+  color: #806666;
 }
 
+/* Field Label */
 .field-label {
-  font-size: var(--clay-font-body);
-  color: var(--clay-text-light);
+  font-size: 28rpx;
+  color: #808080;
   flex-shrink: 0;
 }
 
@@ -146,7 +147,7 @@
   min-width: 16rpx;
 }
 
-/* Text Input */
+/* ---- Text Input ---- */
 .field-input {
   height: 72rpx;
   background: #faf9f8;
@@ -157,29 +158,26 @@
   padding: 0 16rpx;
   flex-shrink: 0;
 }
-
 .field-text-input {
-  font-size: var(--clay-font-body);
+  font-size: 28rpx;
   font-weight: 500;
-  color: var(--clay-text-primary);
+  color: #4a4a4a;
   text-align: right;
   min-width: 160rpx;
 }
-
 .field-cursor {
   width: 3rpx;
   height: 32rpx;
-  background: var(--clay-primary);
+  background: #ffa87a;
   border-radius: 2rpx;
   margin-left: 4rpx;
   animation: blink 1s step-end infinite;
 }
-
 @keyframes blink {
   50% { opacity: 0; }
 }
 
-/* Gender Picker */
+/* ---- Gender Picker ---- */
 .gender-picker {
   height: 72rpx;
   background: #faf9f8;
@@ -190,7 +188,6 @@
   padding: 0 8rpx;
   flex-shrink: 0;
 }
-
 .gender-option {
   height: 56rpx;
   border-radius: 20rpx;
@@ -199,23 +196,20 @@
   justify-content: center;
   padding: 8rpx 16rpx;
 }
-
 .gender-option.active {
-  background: var(--clay-primary);
+  background: #ffa87a;
 }
-
 .gender-option text {
-  font-size: var(--clay-font-md);
+  font-size: 26rpx;
   font-weight: 500;
-  color: var(--clay-text-light);
+  color: #808080;
 }
-
 .gender-option.active text {
   font-weight: 600;
-  color: #fff;
+  color: #ffffff;
 }
 
-/* Date Input */
+/* ---- Date Input ---- */
 .field-date-input {
   height: 72rpx;
   background: #faf9f8;
@@ -226,18 +220,16 @@
   padding: 0 24rpx;
   flex-shrink: 0;
 }
-
 .date-text {
-  font-size: var(--clay-font-body);
+  font-size: 28rpx;
   font-weight: 500;
-  color: var(--clay-text-primary);
+  color: #4a4a4a;
 }
-
 .date-icon {
   font-size: 28rpx;
 }
 
-/* Number Input */
+/* ---- Number Input ---- */
 .field-number-input {
   height: 72rpx;
   background: #faf9f8;
@@ -248,7 +240,6 @@
   padding: 0 16rpx;
   flex-shrink: 0;
 }
-
 .num-btn {
   width: 56rpx;
   height: 56rpx;
@@ -258,37 +249,30 @@
   justify-content: center;
   flex-shrink: 0;
 }
-
 .num-minus {
-  background: var(--clay-icon-bg);
+  background: #f9f0e9;
 }
-
 .num-plus {
-  background: var(--clay-primary);
+  background: #ffa87a;
 }
-
 .num-btn text {
   font-size: 32rpx;
   font-weight: 600;
 }
-
 .num-minus text {
-  color: var(--clay-text-pink);
+  color: #806666;
 }
-
 .num-plus text {
-  color: #fff;
+  color: #ffffff;
 }
-
 .num-value {
   font-size: 32rpx;
   font-weight: 600;
-  color: var(--clay-text-primary);
+  color: #4a4a4a;
   min-width: 40rpx;
   text-align: center;
 }
-
 .num-unit {
-  font-size: var(--clay-font-md);
-  color: var(--clay-text-secondary);
+  font-size: 26rpx;
+  color: #999;
 }

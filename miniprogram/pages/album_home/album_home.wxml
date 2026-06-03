@@ -1,15 +1,18 @@
-<!-- album_home.wxml - Claymorphism 首页 -->
+<!-- album_home.wxml - Claymorphism 首页（精确 Figma 还原） -->
 <view class="page-home">
 
+  <!-- Status Bar Spacer -->
   <view class="status-bar" style="height: {{safeTop}}px;"></view>
 
   <!-- Navigation Bar -->
   <view class="home-nav">
     <text class="home-nav-title">宝宝成长日记</text>
     <view class="home-nav-actions">
+      <!-- Orange upload button with shadow -->
       <view class="nav-btn-upload" bindtap="onUploadTap">
         <text class="nav-btn-plus">+</text>
       </view>
+      <!-- Lavender profile avatar -->
       <view class="nav-btn-profile" bindtap="goToSettings">
         <text class="nav-btn-emoji">👤</text>
       </view>
@@ -19,7 +22,7 @@
   <!-- Content -->
   <view class="clay-content">
 
-    <!-- Baby Info Header -->
+    <!-- Baby Info Header Card -->
     <view class="baby-header-card" bindtap="onBabySelect">
       <view class="baby-header-avatar"><text>👶</text></view>
       <view class="baby-header-info">
@@ -31,7 +34,7 @@
       </view>
     </view>
 
-    <!-- Month Filter -->
+    <!-- Month Filter Chips -->
     <view class="month-filter">
       <view wx:for="{{filterOptions}}" wx:key="value"
         class="filter-chip {{item.active ? 'active' : ''}}"
@@ -42,12 +45,12 @@
       </view>
     </view>
 
-    <!-- Loading -->
+    <!-- Loading State -->
     <view wx:if="{{isLoading}}" class="load-state">
       <text>加载中...</text>
     </view>
 
-    <!-- Empty -->
+    <!-- Empty State -->
     <view wx:elif="{{isEmpty}}" class="empty-state">
       <text>暂无照片，上传第一张记录</text>
       <view class="empty-upload-btn" bindtap="onUploadTap">
@@ -57,18 +60,21 @@
 
     <!-- Media Cards -->
     <view wx:else class="media-sections">
+      <!-- Month title with count -->
       <view class="month-section">
         <text class="month-section-title">{{currentMonthLabel}}</text>
         <text class="month-section-count">{{mediaList.length}}张记录</text>
       </view>
 
+      <!-- 2-column card grid -->
       <view class="card-grid">
         <view wx:for="{{mediaList}}" wx:key="id"
           class="media-card clay-card-{{item.cardColor || 'pink'}}"
+          style="min-height: {{item._height || 250}}rpx;"
           data-id="{{item.id}}"
           bindtap="onMediaTap"
         >
-          <view class="media-card-image">
+          <view class="media-card-image" style="height: {{item._imgHeight || 180}}rpx;">
             <image mode="aspectFill" src="{{item.thumbnailUrl || item.url}}" lazy-load></image>
           </view>
           <text class="media-card-title">{{item.title || '无标题'}}</text>
@@ -77,10 +83,10 @@
     </view>
   </view>
 
-  <!-- Bottom Nav -->
+  <!-- Bottom Navigation -->
   <bottom-nav current="home"></bottom-nav>
 
-  <!-- FAB -->
+  <!-- FAB Upload Button -->
   <view class="fab-upload" bindtap="onUploadTap">
     <text>+</text>
   </view>
