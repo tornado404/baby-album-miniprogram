@@ -4,12 +4,25 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a WeChat Mini Program (微信小程序) for tracking baby growth and development. The project uses TypeScript with the Skyline renderer and glass-easel component framework.
+This is a WeChat Mini Program (微信小程序) for tracking baby growth and development — the **宝宝成长相册 (Baby Album)**.
+
+### 设计目标
+- 记录宝宝成长的照片/视频，带有**年龄里程碑**标注
+- **Claymorphism UI** 主题：暖色调（米白底 #fffbf8）、柔和阴影、大圆角
+- 设计稿来源：Figma — [宝宝成长日记 - Claymorphism UI](https://www.figma.com/design/KcqY6GUSvdn24Ur1qKkcim/%E5%AE%9D%E5%AE%9D%E6%88%90%E9%95%BF%E6%97%A5%E8%AE%B0---Claymorphism-UI)
+- 组件库：TDesign（全局注册）
+- 渲染策略：**album_home 使用 Skyline**，其他页面使用默认 WebView
+
+### 当前状态
+- 6个页面的 Figma Claymorphism UI 已实现
+- App 有空白屏幕 + timeout 问题（需在 DevTools 中重新构建 npm、清除缓存）
+- GitHub 仓库：https://github.com/tornado404/baby-album-miniprogram
 
 ## Development Environment
 
 - **WeChat DevTools**: Required for running and debugging the miniprogram
-- AppID: `wx3db22b5d6da5d38a` (configured in `project.config.json`)
+- AppID: `wx3db22b5d6da5d38a` (in `project.config.json`，不可移除)
+- 微信小程序基础库版本：`3.16.1`
 
 ## Common Commands
 
@@ -51,6 +64,7 @@ cd miniprogram && npx tsc -p tsconfig.json
 **Important Notes:**
 - After installing or updating npm packages in `miniprogram/`, you must rebuild npm in WeChat DevTools: **工具** -> **构建 npm**
 - TypeScript source files (`.ts`) must be compiled to JavaScript (`.js`) before running in the simulator. The IDE does not auto-compile on save.
+- 如果修改了 `app.json` 的组件路径，需要重新构建 npm
 
 ## Project Structure
 
@@ -61,12 +75,17 @@ miniprogram/              # Main miniprogram code
 ├── app.wxss            # App global styles
 ├── tsconfig.json       # TypeScript config for compilation
 ├── pages/              # Page components
-│   ├── album_home/     # Album home page (first page in app.json)
-│   ├── index/          # Home page
+│   ├── album_home/     # Album home（首页 - Skyline renderer）
+│   ├── upload/         # Upload（上传页 - WebView）
+│   ├── settings/       # Settings/我的（设置页 - WebView）
+│   ├── baby_profile/   # Baby Profile（宝宝档案 - WebView）
+│   ├── media_detail/   # Media detail（内容详情 - WebView）
+│   ├── 3d_viewer/      # 3D Model viewer（3D查看 - WebView）
+│   ├── index/          # Legacy home page
 │   ├── logs/           # Logs page
-│   ├── media_detail/   # Media detail page
 │   └── tech_validate/  # Tech validation page
 ├── components/         # Reusable components
+│   ├── bottom-nav/      # 底部导航（4个Tab: 首页/相册/上传/我的）
 │   ├── age_filter/      # Age filter component
 │   ├── masonry_layout/  # Masonry layout component
 │   ├── media_card/      # Media card component
@@ -118,10 +137,42 @@ typings/                 # TypeScript type definitions
 
 ## Key Technologies
 
-- **Skyline Renderer**: Custom rendering engine for better performance
-- **glass-easel**: Component framework (configured in `app.json`)
-- **Custom Navigation Bar**: Uses `navigationStyle: custom` in app.json
-- **Component Isolation**: 默认样式隔离（Skyline 模式）
+### 渲染策略
+- **album_home（首页）**: 使用 **Skyline Renderer**（在 `album_home.json` 中按页面配置）
+- **其他所有页面**: 使用默认 **WebView** 渲染器
+- **componentFramework**: `glass-easel`（全局配置）
+- **Custom Navigation Bar**: `navigationStyle: custom` in app.json
+
+### Claymorphism 主题
+位于 `miniprogram/styles/variables.wxss`，所有页面通过 `app.wxss` 导入：
+
+```css
+/* 关键设计 Token */
+--clay-bg: #fffbf8              /* 米白背景 */
+--clay-primary: #ffa87a          /* 橙色主色调 */
+--clay-card-pink: #f1dce2        /* 粉色卡片 */
+--clay-card-blue: #dceaf1        /* 蓝色卡片 */
+--clay-card-beige: #f4e6d6       /* 米色卡片 */
+--clay-card-mint: #e2f1e6        /* 绿色卡片 */
+--clay-icon-bg: #f9f0e9          /* 图标背景 */  */
+
+/* 阴影体系（柔和暖色调） */
+--clay-shadow-card: 0px 6px 16px 0px rgba(230, 198, 179, 0.35)
+```
+
+### 底部导航组件 (`bottom-nav`)
+- 4个Tab: 首页 🏠 / 相册 📖 / 上传 ➕ / 我的 👤
+- 活跃态橙色 `#ffa87a`，非活跃态灰色 `#999`
+- 在 `app.json` 全局注册为 `bottom-nav`
+- 在各页面 wxml 中通过 `<bottom-nav current="home|upload|profile">` 使用
+
+### Figma 设计稿对照
+所有页面 UI 基于 Figma 设计稿精确实现。在设计->代码转换时，应：
+
+1. 使用 Figma MCP 获取设计稿代码（React+Tailwind）
+2. 转换为微信小程序 wxml/wxss
+3. 使用**精确的十六进制颜色值**（而非 CSS 变量引用）以确保像素级还原
+4. 375px 设计稿宽度，按 1rpx = 0.5px 转换
 
 ## Important Limitations
 
@@ -146,9 +197,9 @@ typings/                 # TypeScript type definitions
 
 ### Component Configuration
 
-- TDesign 组件只在 `app.json` 全局注册
+- TDesign 组件只在 `app.json` 全局注册（路径需加 `miniprogram_npm/` 前缀）
 - 页面/组件的 `usingComponents` 中**不要**重复配置 `miniprogram_npm/...` 路径
-- 微信小程序解析组件路径时相对于自身目录，会导致路径错误拼接
+- 自定义组件（如 `bottom-nav`）也在 `app.json` 全局注册，路径用 `/` 开头
 
 ## TypeScript Configuration
 
@@ -244,18 +295,18 @@ The project uses these main models (exported from `typings/models/`):
 
 ```json
 {
-  "t-action-sheet": "tdesign-miniprogram/action-sheet/action-sheet",
-  "t-button": "tdesign-miniprogram/button/button",
-  "t-cell": "tdesign-miniprogram/cell/cell",
-  "t-cell-group": "tdesign-miniprogram/cell-group/cell-group",
-  "t-empty": "tdesign-miniprogram/empty/empty",
-  "t-icon": "tdesign-miniprogram/icon/icon",
-  "t-image": "tdesign-miniprogram/image/image",
-  "t-input": "tdesign-miniprogram/input/input",
-  "t-loading": "tdesign-miniprogram/loading/loading",
-  "t-navbar": "tdesign-miniprogram/navbar/navbar",
-  "t-popup": "tdesign-miniprogram/popup/popup",
-  "t-stepper": "tdesign-miniprogram/stepper/stepper"
+  "t-action-sheet": "miniprogram_npm/tdesign-miniprogram/action-sheet/action-sheet",
+  "t-button": "miniprogram_npm/tdesign-miniprogram/button/button",
+  "t-cell": "miniprogram_npm/tdesign-miniprogram/cell/cell",
+  "t-cell-group": "miniprogram_npm/tdesign-miniprogram/cell-group/cell-group",
+  "t-empty": "miniprogram_npm/tdesign-miniprogram/empty/empty",
+  "t-icon": "miniprogram_npm/tdesign-miniprogram/icon/icon",
+  "t-image": "miniprogram_npm/tdesign-miniprogram/image/image",
+  "t-input": "miniprogram_npm/tdesign-miniprogram/input/input",
+  "t-loading": "miniprogram_npm/tdesign-miniprogram/loading/loading",
+  "t-navbar": "miniprogram_npm/tdesign-miniprogram/navbar/navbar",
+  "t-popup": "miniprogram_npm/tdesign-miniprogram/popup/popup",
+  "t-stepper": "miniprogram_npm/tdesign-miniprogram/stepper/stepper"
 }
 ```
 
@@ -263,22 +314,34 @@ The project uses these main models (exported from `typings/models/`):
 1. 在 `miniprogram/` 目录下执行：`npm i tdesign-miniprogram -S --production`
 2. 在微信开发者工具中：**工具** -> **构建 npm**
 
+**重要：组件路径必须加 `miniprogram_npm/` 前缀**，否则微信小程序无法解析。
+
 完整组件列表请参考 [TDesign 微信小程序组件库官方文档](https://tdesign.tencent.com/miniprogram/overview)
 
 ## Common Tasks
 
 ### Adding a New Page
-1. Create a new folder under `miniprogram/pages/`
+1. Create a new folder under `miniprogram/pages/` with 4 files
 2. Add the page path to `pages` array in `miniprogram/app.json`
+3. 如果是 Skyline 渲染，在页面 `.json` 中配置 `"renderer": "skyline"`
+4. 如果使用底部导航，在 wxml 中添加 `<bottom-nav current="tab-key"></bottom-nav>`
 
 ### Adding a Component
 1. Create a new folder under `miniprogram/components/`
 2. Component requires: `.ts`, `.wxml`, `.json`, `.wxss` files
+3. 组件需在 `.json` 中声明 `"component": true`
+4. 全局使用的组件在 `app.json` 中注册，路径用 `/components/xxx/xxx`
 
 ### Adding Global Types
 - Custom type declarations go in `typings/`
 - WeChat API types are in `typings/types/wx/`
 - Global types should be exported from `typings/index.d.ts`
+
+### 适配 Figma 设计稿
+1. 用 Figma MCP 获取设计信息（`get_design_context` / `get_metadata`）
+2. 输出为 React+Tailwind 代码
+3. 转换为 wxml/wxss，使用精确的颜色/圆角/阴影值
+4. 设计稿宽度 375px，对应 rpx：`1px = 2rpx`
 
 ## Known Issues & Warnings
 
@@ -287,3 +350,9 @@ These warnings from third-party libraries can be safely ignored:
 | Warning | Source | Resolution |
 |---------|--------|------------|
 | `Failed to load font at.alicdn.com` | iconfont CDN | Network issue, temporary |
+
+### 当前已知问题
+1. **App 空白屏幕 + timeout** — 需在 DevTools 中执行"工具 → 构建 npm"和"清除缓存"
+2. **BOM 头** — JSON 文件可能包含 BOM 头，微信开发者工具会报错。用 `sed -i '1s/^\xEF\xBB\xBF//' file.json` 修复
+3. **AppID** — 必须保留在 `project.config.json` 中，迁移到 `project.private.config.json` 会导致开发者工具无法读取
+4. **TypeScript 编译** — 使用 `useCompilerPlugins: ["typescript"]` 自动编译，但手动编译也可用 `npx tsc`
