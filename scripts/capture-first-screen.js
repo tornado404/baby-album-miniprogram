@@ -39,6 +39,36 @@ function withTimeout(promise, ms, label) {
   ]);
 }
 
+/** 轮询 page.data()，等待 isLoading 变为 false 且关键元素渲染完成 */
+async function waitForPageReady(page, timeoutMs = 20000) {
+  const start = Date.now();
+
+  // 阶段1: 等待 isLoading === false（数据加载完成）
+  while (Date.now() - start < timeoutMs) {
+    const data = await page.data();
+    if (data.isLoading === false) {
+      break;
+    }
+    await sleep(300);
+  }
+
+  // 阶段2: 额外等待 Skyline 渲染器完成布局计算
+  // Skyline 在 isLoading=false 后仍需时间处理 setData 队列和重新布局
+  await sleep(2000);
+
+  // 阶段3: 验证关键 DOM 元素已渲染
+  try {
+    const emptyEl = await page.$('.empty-container');
+    const uploadEl = await page.$('.upload-btn');
+    if (emptyEl || uploadEl) {
+      // 确认渲染完成，再等一次布局稳定
+      await sleep(500);
+    }
+  } catch { /* ignore */ }
+
+  return await page.data();
+}
+
 async function main() {
   console.log('');
   console.log('╔══════════════════════════════════════════╗');
@@ -78,12 +108,22 @@ async function main() {
     mp = await m.connect({ wsEndpoint: CONFIG.wsEndpoint });
     console.log('  ✓ 连接成功');
 
-    // 2. 导航
+    // 2. 导航并等待页面渲染完成
     console.log('[2/4] 导航到首屏...');
     const page = await mp.reLaunch(CONFIG.targetPage);
-    await sleep(2000);
-    const path = page ? page.path : (await mp.currentPage()).path;
+    if (!page) { console.log('  reLaunch 未返回 page，调用 currentPage()...'); }
+    const pg = page || await mp.currentPage();
+    if (!pg) { throw new Error('无法获取页面对象'); }
+
+    const path = pg.path || 'unknown';
     console.log('  ✓ 已到达: ' + path);
+
+    // 等待页面数据加载完成（isLoading → false），最长 15s
+    console.log('  等待页面渲染就绪...');
+    const pageData = await waitForPageReady(pg, 15000);
+    console.log('  ✓ 页面已就绪: 视图=' + (pageData.viewMode || '-') +
+      '  宝宝=' + (pageData.currentBaby ? pageData.currentBaby.name : '未选择') +
+      '  媒体=' + (Array.isArray(pageData.mediaList) ? pageData.mediaList.length : 0));
 
     // 3. 截图
     console.log('[3/4] 截图（窗口可见时应正常返回）...');
@@ -100,17 +140,8 @@ async function main() {
     writeFileSync(f2, buf2);
     console.log('  ✓ 截图 2: ' + (buf2.length / 1024).toFixed(1) + ' KB');
 
-    // 4. 页面数据（附带输出）
-    console.log('[4/4] 页面摘要...');
-    try {
-      const data = (page || await mp.currentPage()).data();
-      if (data) {
-        const d = await data;
-        console.log('  视图: ' + (d.viewMode || '-') + '  媒体: ' +
-          (Array.isArray(d.mediaList) ? d.mediaList.length : 0) + ' 条' +
-          '  宝宝: ' + (d.currentBaby ? d.currentBaby.name : '未选择'));
-      }
-    } catch { /* ignore */ }
+    // 4. 页面数据已在上一步输出，此处复用
+    console.log('[4/4] 完成');
 
     console.log('');
     console.log('╔══════════════════════════════════════════╗');

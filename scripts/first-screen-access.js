@@ -31,7 +31,7 @@
  */
 
 const miniProgramAutomator = require('miniprogram-automator');
-const { writeFileSync, mkdirSync, existsSync } = require('fs');
+const { writeFileSync, mkdirSync, existsSync, readFileSync, readdirSync } = require('fs');
 const { join, resolve } = require('path');
 const { spawn, execSync } = require('child_process');
 const { createConnection } = require('net');
@@ -90,6 +90,74 @@ function withTimeout(promise, ms, label) {
       setTimeout(() => reject(new Error((label || '操作') + ' 超时 ' + ms + 'ms')), ms)
     )
   ]);
+}
+
+/** 轮询 page.data()，等待 isLoading 变为 false 且关键元素渲染完成 */
+async function waitForPageReady(page, timeoutMs = 20000) {
+  const start = Date.now();
+
+  // 阶段1: 等待 isLoading === false（数据加载完成）
+  while (Date.now() - start < timeoutMs) {
+    const data = await page.data();
+    if (data.isLoading === false) {
+      break;
+    }
+    await sleep(300);
+  }
+
+  // 阶段2: 额外等待 Skyline 渲染器完成布局计算
+  // Skyline 在 isLoading=false 后仍需时间处理 setData 队列和重新布局
+  await sleep(2000);
+
+  // 阶段3: 验证关键 DOM 元素已渲染
+  try {
+    const emptyEl = await page.$('.empty-container');
+    const uploadEl = await page.$('.upload-btn');
+    if (emptyEl || uploadEl) {
+      // 确认渲染完成，再等一次布局稳定
+      await sleep(500);
+    }
+  } catch { /* ignore */ }
+
+  return await page.data();
+}
+
+/**
+ * npm 构建验证 - 检查 miniprogram_npm 中的 .js 文件是否被正确转换为 CommonJS
+ * 若发现 import 语法，说明 npm 构建未正确执行，可能导致运行时错误
+ */
+function validateNpmBuild() {
+  const npmDir = join(__dirname, '..', 'miniprogram', 'miniprogram_npm');
+  if (!existsSync(npmDir)) {
+    return { passed: true, message: 'miniprogram_npm 目录不存在，跳过验证', filesWithIssues: [] };
+  }
+
+  const issues = [];
+  function scanDir(dir, prefix) {
+    let entries;
+    try { entries = readdirSync(dir, { withFileTypes: true }); } catch { return; }
+    for (const e of entries) {
+      const full = join(dir, e.name);
+      if (e.isDirectory()) scanDir(full, prefix + '/' + e.name);
+      else if (e.name.endsWith('.js')) {
+        try {
+          const content = readFileSync(full, 'utf-8');
+          if (/^\s*import\b/.test(content) || /^\s*export\b/.test(content)) {
+            issues.push(prefix + '/' + e.name);
+          }
+        } catch { /* ignore */ }
+      }
+    }
+  }
+  scanDir(npmDir, '');
+
+  return {
+    passed: issues.length === 0,
+    message: issues.length > 0
+      ? '发现 ' + issues.length + ' 个 .js 文件含 ES module 语法（import/export），npm 构建可能未正确执行'
+      : 'npm 构建验证通过',
+    filesWithIssues: issues
+  };
 }
 
 /** Git Bash 路径转 Windows 路径 */
@@ -242,22 +310,45 @@ async function main() {
       log('INFO', '跳过自动启动');
     }
 
+    /* ===== 0.5 npm 构建验证 ===== */
+    log('INFO', '验证 npm 构建...');
+    const npmValidation = validateNpmBuild();
+    report.npmBuild = npmValidation;
+    if (!npmValidation.passed) {
+      log('WARN', npmValidation.message);
+      console.log('');
+      console.log('  ⚠ npm 构建异常: ' + npmValidation.filesWithIssues.length + ' 个文件含 import/export');
+      console.log('  首屏访问可继续，但运行时可能报错');
+      console.log('');
+      report.errors.push('npmBuild: ' + npmValidation.message +
+        ' (' + npmValidation.filesWithIssues.slice(0, 5).join(', ') +
+        (npmValidation.filesWithIssues.length > 5 ? ', ...' : '') + ')');
+    } else {
+      log('INFO', 'npm 构建验证通过');
+    }
+
     /* ===== 1. 连接 ===== */
     log('INFO', '连接微信开发者工具...');
     mp = await miniProgramAutomator.connect({ wsEndpoint: CONFIG.wsEndpoint });
     log('INFO', '✓ 连接成功');
 
-    /* ===== 2. 导航到首屏 ===== */
+    /* ===== 2. 导航到首屏并等待渲染完成 ===== */
     log('INFO', '导航到: ' + CONFIG.targetPage);
     try {
       page = await mp.reLaunch(CONFIG.targetPage);
-      await sleep(CONFIG.navWaitMs);
       if (!page) page = await mp.currentPage();
       report.pagePath = page ? page.path : 'unknown';
       log('INFO', '当前页面: ' + report.pagePath);
       if (report.pagePath.includes('album_home')) {
         log('INFO', '✓ 已到达目标页面');
       }
+
+      // 等待页面数据加载完成（isLoading → false）
+      log('INFO', '等待页面渲染就绪...');
+      const pageData = await waitForPageReady(page, 15000);
+      log('INFO', '页面就绪: 视图=' + (pageData.viewMode || '-') +
+        '  宝宝=' + (pageData.currentBaby ? pageData.currentBaby.name : '未选择') +
+        '  媒体=' + (Array.isArray(pageData.mediaList) ? pageData.mediaList.length : 0));
     } catch (err) {
       report.errors.push('navigate: ' + err.message);
       log('ERROR', '导航失败: ' + err.message);
