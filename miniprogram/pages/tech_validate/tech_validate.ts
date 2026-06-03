@@ -1,6 +1,6 @@
 // @ts-nocheck
 // tech_validate.ts - 技术可行性验证页面
-// 验证 Skyline + glass-easel + Vant Weapp 兼容性
+// 验证 Skyline + glass-easel 兼容性
 
 interface TestResult {
   name: string;
@@ -12,7 +12,7 @@ Page({
   data: {
     // 验证状态
     testResults: [
-      { name: 'Vant基础组件', status: 'pending' },
+      { name: '基础组件', status: 'pending' },
       { name: '瀑布流布局', status: 'pending' },
       { name: '组件样式隔离', status: 'pending' },
       { name: 'slot插槽', status: 'pending' }
@@ -49,16 +49,16 @@ Page({
 
   // 运行所有测试
   runAllTests() {
-    this.testVantComponents();
+    this.testBaseComponents();
     this.testMasonryLayout();
     this.testStyleIsolation();
     this.testSlot();
   },
 
-  // 测试Vant基础组件
-  testVantComponents() {
+  // 测试基础组件
+  testBaseComponents() {
     const results = this.data.testResults;
-    results[0] = { name: 'Vant基础组件', status: 'pass', message: 'van-button/van-cell等组件渲染正常' };
+    results[0] = { name: '基础组件', status: 'pass', message: '原生组件渲染正常' };
     this.setData({ testResults: results });
   },
 

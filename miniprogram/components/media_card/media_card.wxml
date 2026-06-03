@@ -1,13 +1,12 @@
 <!-- media_card.wxml - 媒体卡片组件 -->
 
 <view class="media-card" bindtap="onTap">
-  <van-image
-    width="{{width || 160}}"
-    height="{{height || 160}}"
+  <image
+    class="media-card-image"
+    mode="aspectFill"
     src="{{media.thumbnailUrl || media.url}}"
-    fit="cover"
     lazy-load
-    use-loading-slot
+    style="width: {{width || 160}}px; height: {{height || 160}}px;"
   />
   <view class="media-info">
     <text class="media-title">{{media.title || ''}}</text>

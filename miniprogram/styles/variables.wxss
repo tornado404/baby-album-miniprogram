@@ -1,68 +1,88 @@
 /**
- * 样式变量表
- * 定义全局 CSS 变量和主题配置
+ * Claymorphism 主题样式变量
+ * 设计来源: Figma - 宝宝成长日记 Claymorphism UI
+ * 暖色调、柔和阴影、大圆角
  */
 
 /* 主题颜色 */
 page {
-  --primary-color: #07c160;
-  --secondary-color: #6467f0;
-  --accent-color: #ff6b6b;
-  --success-color: #52c41a;
-  --warning-color: #faad14;
-  --error-color: #f5222d;
-  --info-color: #1890ff;
+  /* Claymorphism 主色调 */
+  --clay-bg: #fffbf8;
+  --clay-primary: #ffa87a;
+  --clay-primary-shadow: rgba(255, 168, 122, 0.35);
+  --clay-primary-shadow-heavy: rgba(255, 168, 122, 0.4);
 
   /* 文字颜色 */
-  --text-primary: #333333;
-  --text-secondary: #666666;
-  --text-tertiary: #999999;
-  --text-disabled: #cccccc;
+  --clay-text-primary: #4a4a4a;
+  --clay-text-secondary: #999999;
+  --clay-text-light: #808080;
+  --clay-text-muted: #b3b3b3;
+  --clay-text-accent: #806680;
+  --clay-text-warm: #998066;
+  --clay-text-pink: #806666;
+  --clay-text-dark-warm: #665959;
 
-  /* 背景颜色 */
-  --bg-color: #f7f7f7;
-  --bg-white: #ffffff;
-  --bg-mask: rgba(0, 0, 0, 0.5);
+  /* 卡片背景色 */
+  --clay-card-pink: #f1dce2;
+  --clay-card-blue: #dceaf1;
+  --clay-card-beige: #f4e6d6;
+  --clay-card-mint: #e2f1e6;
+  --clay-card-white: #ffffff;
 
-  /* 边框颜色 */
-  --border-color: #eeeeee;
-  --border-light: #f5f5f5;
-  --border-dark: #dddddd;
+  /* UI 元素色 */
+  --clay-icon-bg: #f9f0e9;
+  --clay-avatar-lavender: #ddd6ea;
+  --clay-white-overlay: rgba(255, 255, 255, 0.5);
+  --clay-stat-dot-pink: #f1dce2;
+  --clay-stat-dot-blue: #dceaf1;
+  --clay-stat-dot-lavender: #ddd6ea;
 
-  /* 间距 */
-  --spacing-xs: 8rpx;
-  --spacing-sm: 16rpx;
-  --spacing-md: 24rpx;
-  --spacing-lg: 32rpx;
-  --spacing-xl: 48rpx;
+  /* 阴影 - 通用 */
+  --clay-shadow-card: 0px 6px 16px 0px rgba(230, 198, 179, 0.35);
+  --clay-shadow-card-light: 0px 3px 8px 0px rgba(230, 198, 179, 0.18);
+  --clay-shadow-card-lighter: 0px 2px 4px 0px rgba(230, 198, 179, 0.2);
+  --clay-shadow-card-soft: 0px 6px 20px 0px rgba(230, 198, 179, 0.25);
+  --clay-shadow-nav: 0px -3px 10px 0px rgba(230, 198, 179, 0.15);
+
+  /* 阴影 - 彩色卡片 */
+  --clay-shadow-pink: 0px 5px 12px 0px rgba(241, 220, 226, 0.3);
+  --clay-shadow-blue: 0px 5px 12px 0px rgba(220, 234, 241, 0.3);
+  --clay-shadow-beige: 0px 5px 12px 0px rgba(244, 230, 214, 0.3);
+  --clay-shadow-mint: 0px 5px 12px 0px rgba(226, 241, 230, 0.3);
+  --clay-shadow-lavender: 0px 4px 10px 0px rgba(221, 214, 234, 0.35);
+  --clay-shadow-beige-heavy: 0px 4px 8px 0px rgba(244, 230, 214, 0.35);
+  --clay-shadow-upload-icon: 0px 6px 14px 0px rgba(241, 220, 226, 0.4);
+  --clay-shadow-avatar: 0px 8px 20px 0px rgba(241, 220, 226, 0.4);
+  --clay-shadow-save: 0px 3px 6px 0px rgba(255, 168, 122, 0.3);
+
+  /* 阴影 - 3D 页面 */
+  --clay-shadow-3d-viewer: 0px 8px 24px 0px rgba(221, 214, 234, 0.35);
+  --clay-shadow-3d-control: 0px 3px 6px 0px rgba(230, 198, 179, 0.2);
+  --clay-shadow-3d-info: 0px 4px 10px 0px rgba(230, 198, 179, 0.2);
 
   /* 圆角 */
-  --radius-sm: 8rpx;
-  --radius-md: 12rpx;
-  --radius-lg: 16rpx;
-  --radius-xl: 24rpx;
-  --radius-full: 9999rpx;
+  --clay-radius-sm: 12rpx;
+  --clay-radius-md: 16rpx;
+  --clay-radius-lg: 18rpx;
+  --clay-radius-xl: 20rpx;
+  --clay-radius-xxl: 24rpx;
+  --clay-radius-round: 9999rpx;
 
-  /* 字体大小 */
-  --font-size-xs: 22rpx;
-  --font-size-sm: 24rpx;
-  --font-size-md: 28rpx;
-  --font-size-lg: 32rpx;
-  --font-size-xl: 36rpx;
-  --font-size-xxl: 44rpx;
+  /* 字体大小 (rpx, 设计稿375px = 750rpx) */
+  --clay-font-xs: 20rpx;
+  --clay-font-sm: 24rpx;
+  --clay-font-md: 26rpx;
+  --clay-font-body: 28rpx;
+  --clay-font-lg: 30rpx;
+  --clay-font-xl: 34rpx;
+  --clay-font-xxl: 36rpx;
+  --clay-font-title: 40rpx;
 
-  /* 行高 */
-  --line-height-tight: 1.2;
-  --line-height-normal: 1.5;
-  --line-height-loose: 1.8;
-
-  /* 阴影 */
-  --shadow-sm: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
-  --shadow-md: 0 4rpx 16rpx rgba(0, 0, 0, 0.08);
-  --shadow-lg: 0 8rpx 32rpx rgba(0, 0, 0, 0.12);
-
-  /* 动画时长 */
-  --transition-fast: 0.15s;
-  --transition-normal: 0.3s;
-  --transition-slow: 0.5s;
+  /* 间距 */
+  --clay-spacing-xs: 8rpx;
+  --clay-spacing-sm: 16rpx;
+  --clay-spacing-md: 20rpx;
+  --clay-spacing-lg: 28rpx;
+  --clay-spacing-xl: 32rpx;
+  --clay-spacing-xxl: 40rpx;
 }

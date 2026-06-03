@@ -1,10 +1,11 @@
 // @ts-nocheck
-// media_detail.ts - 媒体详情页
+// media_detail.ts - Claymorphism 风格媒体详情页
 import { mediaService } from '../../services/media_service';
 import type { Media } from '../../../typings/models';
 
 Page({
   data: {
+    safeTop: 44,
     media: null as Media | null,
     mediaList: [] as Media[],
     currentIndex: 0,
@@ -15,15 +16,26 @@ Page({
     maxScale: 3,
     isZooming: false,
     initialPinchDistance: 0,
+    babyAgeText: '',
     actions: [
-      { name: '编辑', icon: 'edit' },
-      { name: '下载', icon: 'down' },
-      { name: '分享', icon: 'share' },
-      { name: '删除', icon: 'delete', color: '#ee0a24' }
+      { name: '编辑描述', icon: '✏️', danger: false },
+      { name: '保存到相册', icon: '💾', danger: false },
+      { name: '分享', icon: '🔗', danger: false },
+      { name: '删除', icon: '🗑️', danger: true }
     ]
   },
 
-  onTouchStart(e: any): void {
+  onLoad(options: any) {
+    const sysInfo = wx.getSystemInfoSync();
+    this.setData({ safeTop: sysInfo.statusBarHeight || 44 });
+
+    const { id } = options;
+    if (id) {
+      this.loadMediaDetail(id);
+    }
+  },
+
+  onTouchStart(e: any) {
     if (e.touches.length === 2) {
       this.setData({ isZooming: true });
       const touch1 = e.touches[0];
@@ -36,7 +48,7 @@ Page({
     }
   },
 
-  onTouchMove(e: any): void {
+  onTouchMove(e: any) {
     if (!this.data.isZooming || e.touches.length !== 2) return;
 
     const touch1 = e.touches[0];
@@ -54,17 +66,10 @@ Page({
     this.setData({ scale: newScale });
   },
 
-  onTouchEnd(): void {
+  onTouchEnd() {
     this.setData({ isZooming: false });
     if (this.data.scale <= this.data.minScale) {
       this.setData({ scale: 1 });
-    }
-  },
-
-  onLoad(options: any) {
-    const { id } = options;
-    if (id) {
-      this.loadMediaDetail(id);
     }
   },
 
@@ -73,9 +78,11 @@ Page({
     try {
       const media = await mediaService.getMediaDetail(id);
       if (media) {
+        const ageText = this.formatBabyAge(media);
         this.setData({
           media,
-          mediaList: [media]
+          mediaList: [media],
+          babyAgeText: ageText
         });
       }
     } catch (error) {
@@ -86,11 +93,25 @@ Page({
     }
   },
 
+  formatBabyAge(media: any): string {
+    if (media && media.babyAge) {
+      const age = media.babyAge;
+      let text = '';
+      if (age.years > 0) text += age.years + '岁';
+      if (age.months > 0) text += age.months + '个月';
+      if (age.days > 0 && age.years === 0) text += age.days + '天';
+      return text;
+    }
+    return '';
+  },
+
   onSwiperChange(e: any) {
     const { current } = e.detail;
+    const media = this.data.mediaList[current];
     this.setData({
       currentIndex: current,
-      media: this.data.mediaList[current]
+      media: media,
+      babyAgeText: this.formatBabyAge(media)
     });
   },
 
@@ -99,20 +120,12 @@ Page({
   },
 
   onActionsSelect(e: any) {
-    const { index } = e.detail;
+    const { index } = e.currentTarget.dataset;
     switch (index) {
-      case 0:
-        this.onEditTap();
-        break;
-      case 1:
-        this.onDownloadTap();
-        break;
-      case 2:
-        this.onShareTap();
-        break;
-      case 3:
-        this.onDeleteTap();
-        break;
+      case 0: this.onEditTap(); break;
+      case 1: this.onDownloadTap(); break;
+      case 2: this.onShareTap(); break;
+      case 3: this.onDeleteTap(); break;
     }
     this.setData({ showActions: false });
   },
@@ -134,9 +147,7 @@ Page({
         if (res.confirm && res.content !== media.title) {
           try {
             await mediaService.updateMedia(media.id, { title: res.content });
-            this.setData({
-              'media.title': res.content
-            });
+            this.setData({ 'media.title': res.content });
             wx.showToast({ title: '更新成功', icon: 'success' });
           } catch (error) {
             wx.showToast({ title: '更新失败', icon: 'none' });
@@ -159,9 +170,7 @@ Page({
           try {
             await mediaService.deleteMedia(media.id);
             wx.showToast({ title: '删除成功', icon: 'success' });
-            setTimeout(() => {
-              wx.navigateBack();
-            }, 1000);
+            setTimeout(() => wx.navigateBack(), 1000);
           } catch (error) {
             wx.showToast({ title: '删除失败', icon: 'none' });
           }
@@ -176,33 +185,15 @@ Page({
 
     wx.saveImageToPhotosAlbum({
       filePath: media.url,
-      success: () => {
-        wx.showToast({ title: '保存成功', icon: 'success' });
-      },
-      fail: (err) => {
-        console.error('保存失败:', err);
-        wx.showToast({ title: '保存失败', icon: 'none' });
-      }
+      success: () => wx.showToast({ title: '保存成功', icon: 'success' }),
+      fail: () => wx.showToast({ title: '保存失败', icon: 'none' })
     });
   },
 
   onShareTap() {
-    const { media } = this.data;
-    if (!media) return;
-
     wx.showShareMenu({
       withShareTicket: true,
       menus: ['shareAppMessage', 'shareTimeline']
-    });
-  },
-
-  onPreviewTap() {
-    const { media } = this.data;
-    if (!media) return;
-
-    wx.previewImage({
-      urls: [media.url],
-      current: media.url
     });
   },
 

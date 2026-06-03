@@ -37,10 +37,11 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 // @ts-nocheck
-// media_detail.ts - 媒体详情页
+// media_detail.ts - Claymorphism 风格媒体详情页
 var media_service_1 = require("../../services/media_service");
 Page({
     data: {
+        safeTop: 44,
         media: null,
         mediaList: [],
         currentIndex: 0,
@@ -51,12 +52,21 @@ Page({
         maxScale: 3,
         isZooming: false,
         initialPinchDistance: 0,
+        babyAgeText: '',
         actions: [
-            { name: '编辑', icon: 'edit' },
-            { name: '下载', icon: 'down' },
-            { name: '分享', icon: 'share' },
-            { name: '删除', icon: 'delete', color: '#ee0a24' }
+            { name: '编辑描述', icon: '✏️', danger: false },
+            { name: '保存到相册', icon: '💾', danger: false },
+            { name: '分享', icon: '🔗', danger: false },
+            { name: '删除', icon: '🗑️', danger: true }
         ]
+    },
+    onLoad: function (options) {
+        var sysInfo = wx.getSystemInfoSync();
+        this.setData({ safeTop: sysInfo.statusBarHeight || 44 });
+        var id = options.id;
+        if (id) {
+            this.loadMediaDetail(id);
+        }
     },
     onTouchStart: function (e) {
         if (e.touches.length === 2) {
@@ -87,15 +97,9 @@ Page({
             this.setData({ scale: 1 });
         }
     },
-    onLoad: function (options) {
-        var id = options.id;
-        if (id) {
-            this.loadMediaDetail(id);
-        }
-    },
     loadMediaDetail: function (id) {
         return __awaiter(this, void 0, void 0, function () {
-            var media, error_1;
+            var media, ageText, error_1;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -107,9 +111,11 @@ Page({
                     case 2:
                         media = _a.sent();
                         if (media) {
+                            ageText = this.formatBabyAge(media);
                             this.setData({
                                 media: media,
-                                mediaList: [media]
+                                mediaList: [media],
+                                babyAgeText: ageText
                             });
                         }
                         return [3 /*break*/, 5];
@@ -126,18 +132,34 @@ Page({
             });
         });
     },
+    formatBabyAge: function (media) {
+        if (media && media.babyAge) {
+            var age = media.babyAge;
+            var text = '';
+            if (age.years > 0)
+                text += age.years + '岁';
+            if (age.months > 0)
+                text += age.months + '个月';
+            if (age.days > 0 && age.years === 0)
+                text += age.days + '天';
+            return text;
+        }
+        return '';
+    },
     onSwiperChange: function (e) {
         var current = e.detail.current;
+        var media = this.data.mediaList[current];
         this.setData({
             currentIndex: current,
-            media: this.data.mediaList[current]
+            media: media,
+            babyAgeText: this.formatBabyAge(media)
         });
     },
     onActionsTap: function () {
         this.setData({ showActions: true });
     },
     onActionsSelect: function (e) {
-        var index = e.detail.index;
+        var index = e.currentTarget.dataset.index;
         switch (index) {
             case 0:
                 this.onEditTap();
@@ -179,9 +201,7 @@ Page({
                             return [4 /*yield*/, media_service_1.mediaService.updateMedia(media.id, { title: res.content })];
                         case 2:
                             _a.sent();
-                            this.setData({
-                                'media.title': res.content
-                            });
+                            this.setData({ 'media.title': res.content });
                             wx.showToast({ title: '更新成功', icon: 'success' });
                             return [3 /*break*/, 4];
                         case 3:
@@ -219,9 +239,7 @@ Page({
                                 case 2:
                                     _a.sent();
                                     wx.showToast({ title: '删除成功', icon: 'success' });
-                                    setTimeout(function () {
-                                        wx.navigateBack();
-                                    }, 1000);
+                                    setTimeout(function () { return wx.navigateBack(); }, 1000);
                                     return [3 /*break*/, 4];
                                 case 3:
                                     error_3 = _a.sent();
@@ -242,31 +260,14 @@ Page({
             return;
         wx.saveImageToPhotosAlbum({
             filePath: media.url,
-            success: function () {
-                wx.showToast({ title: '保存成功', icon: 'success' });
-            },
-            fail: function (err) {
-                console.error('保存失败:', err);
-                wx.showToast({ title: '保存失败', icon: 'none' });
-            }
+            success: function () { return wx.showToast({ title: '保存成功', icon: 'success' }); },
+            fail: function () { return wx.showToast({ title: '保存失败', icon: 'none' }); }
         });
     },
     onShareTap: function () {
-        var media = this.data.media;
-        if (!media)
-            return;
         wx.showShareMenu({
             withShareTicket: true,
             menus: ['shareAppMessage', 'shareTimeline']
-        });
-    },
-    onPreviewTap: function () {
-        var media = this.data.media;
-        if (!media)
-            return;
-        wx.previewImage({
-            urls: [media.url],
-            current: media.url
         });
     },
     goBack: function () {

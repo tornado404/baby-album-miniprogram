@@ -182,12 +182,12 @@ describe('T-03B 瀑布流集成测试', () => {
   // ==================== 懒加载测试 ====================
 
   describe('懒加载集成', () => {
-    test('van-image 应支持 lazy-load 属性', () => {
+    test('t-image 应支持 lazy 属性', () => {
       const imageConfig = {
-        lazyLoad: true
+        lazy: true
       };
 
-      expect(imageConfig.lazyLoad).toBe(true);
+      expect(imageConfig.lazy).toBe(true);
     });
 
     test('媒体项应配置正确的 fit 属性', () => {

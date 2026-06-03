@@ -96,10 +96,10 @@ Component({
       await this.onSelectTap('album');
     },
 
-    // van-uploader 的 after-read 回调（兼容处理，不影响自有选择逻辑）
+    // 上传回调（兼容处理，不影响自有选择逻辑）
     onAfterRead(event: any): void {
-      // 由 van-uploader 自行处理，此处仅为兼容绑定
-      console.log('van-uploader after-read:', event.detail);
+      // 由上传组件自行处理，此处仅为兼容绑定
+      console.log('uploader after-read:', event.detail);
     },
 
     onDeleteItem(event: any): void {

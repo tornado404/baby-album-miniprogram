@@ -348,10 +348,10 @@ describe('T-04 媒体上传组件测试', () => {
     });
   });
 
-  // ==================== Vant 组件集成测试 ====================
+  // ==================== TDesign 组件集成测试 ====================
 
-  describe('Vant 组件配置', () => {
-    test('van-popup 应正确配置', () => {
+  describe('TDesign 组件配置', () => {
+    test('t-popup 应正确配置', () => {
       const popupConfig = {
         visible: false
       };
@@ -359,23 +359,23 @@ describe('T-04 媒体上传组件测试', () => {
       expect(popupConfig).toHaveProperty('visible');
     });
 
-    test('van-uploader 应正确配置', () => {
+    test('t-upload 应正确配置', () => {
       const uploaderConfig = {
-        maxCount: 9,
+        max: 9,
         disabled: false
       };
 
-      expect(uploaderConfig.maxCount).toBe(9);
+      expect(uploaderConfig.max).toBe(9);
       expect(uploaderConfig.disabled).toBe(false);
     });
 
-    test('van-button 配置应正确', () => {
+    test('t-button 配置应正确', () => {
       const buttonConfig = {
-        type: 'primary',
-        size: 'normal'
+        theme: 'primary',
+        size: 'medium'
       };
 
-      expect(buttonConfig.type).toBe('primary');
+      expect(buttonConfig.theme).toBe('primary');
     });
   });
 });

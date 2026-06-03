@@ -378,21 +378,21 @@ describe('T-03A 相册首页框架测试', () => {
       expect(config.enablePullDownRefresh).toBe(true);
     });
 
-    test('Vant 组件应正确声明', () => {
+    test('TDesign 组件应正确声明', () => {
       const config = {
         usingComponents: {
-          'van-nav-bar': 'vant-weapp/nav-bar/index',
-          'van-button': 'vant-weapp/button/index',
-          'van-loading': 'vant-weapp/loading/index',
-          'van-empty': 'vant-weapp/empty/index',
+          't-navbar': 'tdesign-miniprogram/navbar/navbar',
+          't-button': 'tdesign-miniprogram/button/button',
+          't-loading': 'tdesign-miniprogram/loading/loading',
+          't-empty': 'tdesign-miniprogram/empty/empty',
           'masonry-layout': '/components/masonry_layout/masonry_layout'
         }
       };
 
-      expect(config.usingComponents['van-nav-bar']).toBeDefined();
-      expect(config.usingComponents['van-button']).toBeDefined();
-      expect(config.usingComponents['van-loading']).toBeDefined();
-      expect(config.usingComponents['van-empty']).toBeDefined();
+      expect(config.usingComponents['t-navbar']).toBeDefined();
+      expect(config.usingComponents['t-button']).toBeDefined();
+      expect(config.usingComponents['t-loading']).toBeDefined();
+      expect(config.usingComponents['t-empty']).toBeDefined();
       expect(config.usingComponents['masonry-layout']).toBeDefined();
     });
   });
@@ -456,7 +456,6 @@ describe('T-03A 相册首页框架测试', () => {
 
     test('空状态应正确配置', () => {
       const emptyConfig = {
-        image: 'https://img.yzcdn.cn/vant.Empty-1',
         description: '暂无照片，试试上传第一张',
         showUploadButton: true
       };

@@ -13,26 +13,26 @@ describe('T-00 技术验证页面测试', () => {
       expect(config.navigationBarTitleText).toBe(expectedTitle);
     });
 
-    test('Vant 组件应该在 usingComponents 中声明', () => {
+    test('TDesign 组件应该在 usingComponents 中声明', () => {
       const expectedComponents = [
-        'van-button',
-        'van-cell',
-        'van-cell-group',
-        'van-image',
-        'van-icon',
-        'van-loading',
-        'van-nav-bar'
+        't-button',
+        't-cell',
+        't-cell-group',
+        't-image',
+        't-icon',
+        't-loading',
+        't-navbar'
       ];
 
       const config = {
         usingComponents: {
-          'van-button': 'vant-weapp/button/index',
-          'van-cell': 'vant-weapp/cell/index',
-          'van-cell-group': 'vant-weapp/cell-group/index',
-          'van-image': 'vant-weapp/image/index',
-          'van-icon': 'vant-weapp/icon/index',
-          'van-loading': 'vant-weapp/loading/index',
-          'van-nav-bar': 'vant-weapp/nav-bar/index'
+          't-button': 'tdesign-miniprogram/button/button',
+          't-cell': 'tdesign-miniprogram/cell/cell',
+          't-cell-group': 'tdesign-miniprogram/cell-group/cell-group',
+          't-image': 'tdesign-miniprogram/image/image',
+          't-icon': 'tdesign-miniprogram/icon/icon',
+          't-loading': 'tdesign-miniprogram/loading/loading',
+          't-navbar': 'tdesign-miniprogram/navbar/navbar'
         }
       };
 
@@ -41,16 +41,16 @@ describe('T-00 技术验证页面测试', () => {
       });
     });
 
-    test('组件路径应该指向正确的 Vant Weapp 路径', () => {
+    test('组件路径应该指向正确的 TDesign 路径', () => {
       const config = {
         usingComponents: {
-          'van-button': 'vant-weapp/button/index',
-          'van-nav-bar': 'vant-weapp/nav-bar/index'
+          't-button': 'tdesign-miniprogram/button/button',
+          't-navbar': 'tdesign-miniprogram/navbar/navbar'
         }
       };
 
-      expect(config.usingComponents['van-button']).toBe('vant-weapp/button/index');
-      expect(config.usingComponents['van-nav-bar']).toBe('vant-weapp/nav-bar/index');
+      expect(config.usingComponents['t-button']).toBe('tdesign-miniprogram/button/button');
+      expect(config.usingComponents['t-navbar']).toBe('tdesign-miniprogram/navbar/navbar');
     });
   });
 
@@ -59,7 +59,7 @@ describe('T-00 技术验证页面测试', () => {
   describe('页面数据状态 (tech_validate.ts)', () => {
     test('测试结果数组应该包含4项验证', () => {
       const testResults = [
-        { name: 'Vant基础组件', status: 'pending' },
+        { name: 'TDesign基础组件', status: 'pending' },
         { name: '瀑布流布局', status: 'pending' },
         { name: '组件样式隔离', status: 'pending' },
         { name: 'slot插槽', status: 'pending' }
@@ -71,7 +71,7 @@ describe('T-00 技术验证页面测试', () => {
     test('每个测试项应该有正确的状态类型', () => {
       const validStatuses = ['pass', 'fail', 'pending'];
       const testResults = [
-        { name: 'Vant基础组件', status: 'pass', message: 'ok' },
+        { name: 'TDesign基础组件', status: 'pass', message: 'ok' },
         { name: '瀑布流布局', status: 'pass', message: 'ok' },
         { name: '组件样式隔离', status: 'pass', message: 'ok' },
         { name: 'slot插槽', status: 'pass', message: 'ok' }
@@ -256,43 +256,43 @@ describe('T-00 技术验证页面测试', () => {
     });
   });
 
-  // ==================== Vant 组件兼容性测试 ====================
+  // ==================== TDesign 组件兼容性测试 ====================
 
-  describe('Vant 组件兼容性', () => {
-    test('van-image 应该支持 lazy-load 属性', () => {
+  describe('TDesign 组件兼容性', () => {
+    test('t-image 应该支持 lazy 属性', () => {
       const componentProps = {
-        'van-image': {
+        't-image': {
           width: '100%',
           height: '200',
-          fit: 'cover',
-          'lazy-load': true
+          mode: 'aspectFill',
+          lazy: true
         }
       };
 
-      expect(componentProps['van-image']['lazy-load']).toBe(true);
+      expect(componentProps['t-image'].lazy).toBe(true);
     });
 
-    test('van-image fit 属性应该支持 cover', () => {
-      const validFits = ['contain', 'cover', 'fill', 'none', 'widthFix', 'heightFix'];
+    test('t-image mode 属性应该支持 aspectFill', () => {
+      const validModes = ['scaleToFill', 'aspectFit', 'aspectFill', 'widthFix', 'heightFix'];
       const componentProps = {
-        'van-image': {
-          fit: 'cover'
+        't-image': {
+          mode: 'aspectFill'
         }
       };
 
-      expect(validFits).toContain(componentProps['van-image'].fit);
+      expect(validModes).toContain(componentProps['t-image'].mode);
     });
 
-    test('van-nav-bar 应该支持 left-arrow 事件绑定', () => {
+    test('t-navbar 应该支持 left-arrow 事件绑定', () => {
       const componentConfig = {
-        'van-nav-bar': {
+        't-navbar': {
           'left-arrow': true,
-          'bind:click-left': 'goHome'
+          'bind:go-back': 'goHome'
         }
       };
 
-      expect(componentConfig['van-nav-bar']['left-arrow']).toBe(true);
-      expect(componentConfig['van-nav-bar']['bind:click-left']).toBe('goHome');
+      expect(componentConfig['t-navbar']['left-arrow']).toBe(true);
+      expect(componentConfig['t-navbar']['bind:go-back']).toBe('goHome');
     });
   });
 
@@ -319,26 +319,26 @@ describe('T-00 技术验证页面测试', () => {
 
     test('验证报告应该包含所有必要的结论', () => {
       const report = {
-        vantCompatible: true,
+        tdesignCompatible: true,
         masonryLayoutFeasible: true,
         styleIsolationWorks: true,
         slotWorks: true,
         overallFeasible: true
       };
 
-      expect(report.vantCompatible).toBe(true);
+      expect(report.tdesignCompatible).toBe(true);
       expect(report.masonryLayoutFeasible).toBe(true);
       expect(report.overallFeasible).toBe(true);
     });
 
     test('风险评估等级应该正确设置', () => {
       const riskAssessment = {
-        vantIncompatibility: '低',
+        tdesignIncompatibility: '低',
         masonryPerformance: '中',
         styleConflict: '低'
       };
 
-      expect(riskAssessment.vantIncompatibility).toBe('低');
+      expect(riskAssessment.tdesignIncompatibility).toBe('低');
       expect(riskAssessment.styleConflict).toBe('低');
     });
   });
@@ -386,7 +386,7 @@ describe('T-00 技术验证页面测试', () => {
 
     test('所有测试项状态更新后应该正确反映', () => {
       const testResults = [
-        { name: 'Vant基础组件', status: 'pass', message: 'ok' },
+        { name: 'TDesign基础组件', status: 'pass', message: 'ok' },
         { name: '瀑布流布局', status: 'pass', message: 'ok' },
         { name: '组件样式隔离', status: 'pass', message: 'ok' },
         { name: 'slot插槽', status: 'pass', message: 'ok' }

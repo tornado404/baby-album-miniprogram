@@ -1,7 +1,14 @@
 <!-- tech_validate.wxml - 技术可行性验证页面 -->
 
 <!-- 顶部导航栏 -->
-<van-nav-bar title="技术验证" left-arrow bind:click-left="goHome" />
+<view class="nav-bar">
+  <view class="nav-bar-inner">
+    <view class="nav-bar-left" bindtap="goHome">
+      <text class="nav-bar-arrow">←</text>
+    </view>
+    <view class="nav-bar-title">技术验证</view>
+  </view>
+</view>
 
 <!-- 主内容区 -->
 <view class="container">
@@ -9,22 +16,19 @@
   <!-- 页面说明 -->
   <view class="section">
     <view class="section-title">技术栈兼容性验证</view>
-    <view class="section-desc">验证 Skyline + glass-easel + Vant Weapp 组合是否正常工作</view>
+    <view class="section-desc">验证 Skyline + glass-easel 组合是否正常工作</view>
   </view>
 
   <!-- 测试结果列表 -->
   <view class="section">
     <view class="section-title">验证结果</view>
-    <van-cell-group>
-      <block wx:for="{{testResults}}" wx:key="name">
-        <van-cell
-          title="{{item.name}}"
-          value="{{item.status}}"
-          icon="{{item.status === 'pass' ? 'success' : item.status === 'fail' ? 'cross' : 'clock-o'}}"
-          label="{{item.message}}"
-        />
-      </block>
-    </van-cell-group>
+    <block wx:for="{{testResults}}" wx:key="name">
+      <view class="test-result-item">
+        <text class="test-result-name">{{item.name}}</text>
+        <text class="test-result-status {{item.status}}">{{item.status}}</text>
+        <text wx:if="{{item.message}}" class="test-result-message">{{item.message}}</text>
+      </view>
+    </block>
   </view>
 
   <!-- 瀑布流布局测试 -->
@@ -34,11 +38,11 @@
       <view class="masonry-row">
         <block wx:for="{{masonryList}}" wx:key="id">
           <view class="masonry-item" style="margin-bottom: {{itemGap}}px;">
-            <van-image
+            <image
               width="100%"
               height="{{item.height}}"
               src="{{item.url}}"
-              fit="cover"
+              mode="cover"
               lazy-load
             />
           </view>
@@ -47,19 +51,12 @@
     </view>
   </view>
 
-  <!-- slot插槽测试 -->
-  <view class="section">
-    <view class="section-title">slot插槽测试</view>
-    <view class="slot-test-container">
-      <van-button type="primary" size="small">测试按钮</van-button>
-    </view>
-  </view>
-
   <!-- 操作按钮 -->
   <view class="section">
-    <van-button type="default" block bind:click="revalidate">
-      <van-loading wx:if="{{isLoading}}" /> 重新验证
-    </van-button>
+    <view class="btn-primary btn-block" bindtap="revalidate">
+      <text wx:if="{{isLoading}}">验证中...</text>
+      <text wx:else>重新验证</text>
+    </view>
   </view>
 
 </view>

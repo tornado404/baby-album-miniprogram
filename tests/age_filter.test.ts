@@ -375,29 +375,29 @@ describe('T-07 月龄筛选功能测试', () => {
   // ==================== 组件配置测试 ====================
 
   describe('组件配置', () => {
-    test('van-tabs 组件应正确配置', () => {
+    test('t-tabs 组件应正确配置', () => {
       const config = {
-        active: 0,
-        type: 'card'
+        value: 0,
+        theme: 'card'
       };
 
-      expect(config.active).toBe(0);
+      expect(config.value).toBe(0);
     });
 
-    test('van-picker 组件配置应正确', () => {
+    test('t-picker 组件配置应正确', () => {
       const pickerConfig = {
-        showToolbar: true,
+        visible: true,
         title: '选择月龄范围'
       };
 
-      expect(pickerConfig.showToolbar).toBe(true);
+      expect(pickerConfig.visible).toBe(true);
       expect(pickerConfig.title).toBe('选择月龄范围');
     });
   });
 
-  // ==================== Vant Weapp 兼容性测试 ====================
+  // ==================== TDesign 兼容性测试 ====================
 
-  describe('Vant Weapp 兼容性', () => {
+  describe('TDesign 兼容性', () => {
     test('tabs 组件应支持 bind:change 事件', () => {
       const eventBinding = 'bind:change';
       expect(eventBinding).toBe('bind:change');

@@ -1,0 +1,173 @@
+/* 3d_viewer.wxss - 3D模型查看页面 Claymorphism 样式 */
+
+.page-3d-viewer {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.status-bar {
+  flex-shrink: 0;
+}
+
+/* Navigation */
+.nav-3d {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 104rpx;
+  padding: 0 24rpx;
+  flex-shrink: 0;
+}
+
+.nav-circle-white {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 36rpx;
+  background: var(--clay-card-white);
+  box-shadow: var(--clay-shadow-card-lighter);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.nav-circle-white text {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: var(--clay-text-primary);
+}
+
+.nav-3d .nav-title {
+  font-size: var(--clay-font-xxl);
+  font-weight: 700;
+  color: var(--clay-text-primary);
+}
+
+/* Content Area */
+.content-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32rpx;
+  padding: 40rpx 0;
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+
+/* Viewer */
+.viewer-container {
+  width: 670rpx;
+  height: 760rpx;
+  background: var(--clay-card-white);
+  border-radius: 56rpx;
+  box-shadow: var(--clay-shadow-3d-viewer);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.viewer-bg {
+  width: 560rpx;
+  height: 600rpx;
+  background: #faf5fc;
+  border-radius: 48rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16rpx;
+}
+
+.model-emoji {
+  font-size: 160rpx;
+}
+
+.model-preview-label {
+  font-size: var(--clay-font-body);
+  color: var(--clay-text-accent);
+  font-weight: 500;
+}
+
+/* Controls */
+.controls-row {
+  display: flex;
+  gap: 24rpx;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.control-btn {
+  width: 144rpx;
+  background: var(--clay-card-white);
+  border-radius: 32rpx;
+  box-shadow: var(--clay-shadow-3d-control);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  padding: 16rpx 0;
+  flex-shrink: 0;
+}
+
+.control-icon {
+  font-size: 40rpx;
+}
+
+.control-label {
+  font-size: 22rpx;
+  font-weight: 500;
+  color: var(--clay-text-light);
+}
+
+/* Model Info */
+.model-info-card {
+  width: 670rpx;
+  height: 160rpx;
+  background: var(--clay-card-white);
+  border-radius: var(--clay-radius-xxl);
+  box-shadow: var(--clay-shadow-3d-info);
+  display: flex;
+  align-items: center;
+  gap: 32rpx;
+  padding: 0 40rpx;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+.model-info-icon {
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: 32rpx;
+  background: var(--clay-avatar-lavender);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.model-info-icon text {
+  font-size: 48rpx;
+}
+
+.model-info-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.model-title {
+  font-size: var(--clay-font-lg);
+  font-weight: 600;
+  color: var(--clay-text-primary);
+}
+
+.model-desc {
+  font-size: var(--clay-font-sm);
+  color: var(--clay-text-secondary);
+}

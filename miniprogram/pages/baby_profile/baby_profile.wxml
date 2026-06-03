@@ -1,0 +1,132 @@
+<view class="page page-profile">
+
+  <!-- Status Bar -->
+  <view class="status-bar" style="height: {{safeTop}}px;"></view>
+
+  <!-- Navigation Bar -->
+  <view class="profile-nav">
+    <view class="nav-btn-circle" bindtap="onBack">
+      <text>←</text>
+    </view>
+    <text class="nav-title">宝宝档案</text>
+    <view class="nav-save-btn" bindtap="onSave">
+      <text>保存</text>
+    </view>
+  </view>
+
+  <!-- Content Area -->
+  <scroll-view class="content-area" scroll-y>
+
+    <!-- Avatar Card -->
+    <view class="avatar-card">
+      <view class="avatar-circle">
+        <text>👶</text>
+      </view>
+    </view>
+
+    <!-- Fields -->
+    <view class="fields-wrapper">
+
+      <!-- 宝宝昵称 -->
+      <view class="field-item">
+        <view class="field-icon">
+          <text>✨</text>
+        </view>
+        <text class="field-label">宝宝昵称</text>
+        <view class="field-spacer"></view>
+        <view class="field-input">
+          <input class="field-text-input" value="{{nickname}}" placeholder="请输入昵称" bindinput="onNicknameInput" />
+          <view class="field-cursor"></view>
+        </view>
+      </view>
+
+      <!-- 性别 -->
+      <view class="field-item">
+        <view class="field-icon">
+          <text>🎀</text>
+        </view>
+        <text class="field-label">性别</text>
+        <view class="field-spacer"></view>
+        <view class="gender-picker">
+          <view class="gender-option {{gender === 'female' ? 'active' : ''}}" bindtap="onGenderSelect" data-gender="female">
+            <text>女宝</text>
+          </view>
+          <view class="gender-option {{gender === 'male' ? 'active' : ''}}" bindtap="onGenderSelect" data-gender="male">
+            <text>男宝</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 出生日期 -->
+      <view class="field-item">
+        <view class="field-icon">
+          <text>🎂</text>
+        </view>
+        <text class="field-label">出生日期</text>
+        <view class="field-spacer"></view>
+        <picker mode="date" value="{{birthDate}}" start="2020-01-01" end="2027-12-31" bindchange="onBirthDateChange">
+          <view class="field-date-input">
+            <text class="date-text">{{birthDate || '选择日期'}}</text>
+            <text class="date-icon">📅</text>
+          </view>
+        </picker>
+      </view>
+
+      <!-- 预产期 -->
+      <view class="field-item">
+        <view class="field-icon">
+          <text>📅</text>
+        </view>
+        <text class="field-label">预产期</text>
+        <view class="field-spacer"></view>
+        <picker mode="date" value="{{dueDate}}" start="2020-01-01" end="2027-12-31" bindchange="onDueDateChange">
+          <view class="field-date-input">
+            <text class="date-text">{{dueDate || '选择日期'}}</text>
+            <text class="date-icon">📅</text>
+          </view>
+        </picker>
+      </view>
+
+      <!-- 体重 -->
+      <view class="field-item">
+        <view class="field-icon">
+          <text>⚖️</text>
+        </view>
+        <text class="field-label">体重</text>
+        <view class="field-spacer"></view>
+        <view class="field-number-input">
+          <view class="num-btn num-minus" bindtap="onWeightMinus">
+            <text>−</text>
+          </view>
+          <text class="num-value">{{weight}}</text>
+          <text class="num-unit">kg</text>
+          <view class="field-spacer"></view>
+          <view class="num-btn num-plus" bindtap="onWeightPlus">
+            <text>+</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 身高 -->
+      <view class="field-item">
+        <view class="field-icon">
+          <text>📏</text>
+        </view>
+        <text class="field-label">身高</text>
+        <view class="field-spacer"></view>
+        <view class="field-number-input">
+          <view class="num-btn num-minus" bindtap="onHeightMinus">
+            <text>−</text>
+          </view>
+          <text class="num-value">{{height}}</text>
+          <text class="num-unit">cm</text>
+          <view class="field-spacer"></view>
+          <view class="num-btn num-plus" bindtap="onHeightPlus">
+            <text>+</text>
+          </view>
+        </view>
+      </view>
+
+    </view>
+  </scroll-view>
+</view>

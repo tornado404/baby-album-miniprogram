@@ -1,0 +1,120 @@
+<view class="page page-settings">
+
+  <!-- Status Bar -->
+  <view class="status-bar" style="height: {{safeTop}}px;"></view>
+
+  <!-- Navigation Bar -->
+  <view class="settings-nav">
+    <text class="nav-title-centered">我的</text>
+  </view>
+
+  <!-- Content Area -->
+  <scroll-view class="content-area" scroll-y>
+
+    <!-- User Card -->
+    <view class="user-card">
+      <view class="user-avatar">
+        <text>👩</text>
+      </view>
+      <view class="user-info">
+        <text class="user-name">{{userName}}</text>
+        <text class="user-record">记录天数：{{recordDays}}天</text>
+      </view>
+      <view class="achievement-badge">
+        <text class="badge-icon">🏆</text>
+        <text class="badge-count">{{achievementCount}}</text>
+      </view>
+    </view>
+
+    <!-- Stats Container -->
+    <view class="stats-container">
+      <view class="stat-item">
+        <view class="stat-dot stat-dot-pink"></view>
+        <text class="stat-value">{{photoCount}}</text>
+        <text class="stat-label">照片</text>
+      </view>
+      <view class="stat-item">
+        <view class="stat-dot stat-dot-blue"></view>
+        <text class="stat-value">{{videoCount}}</text>
+        <text class="stat-label">视频</text>
+      </view>
+      <view class="stat-item">
+        <view class="stat-dot stat-dot-lavender"></view>
+        <text class="stat-value">{{modelCount}}</text>
+        <text class="stat-label">3D模型</text>
+      </view>
+    </view>
+
+    <!-- Menu Items -->
+    <view class="menu-container">
+      <view class="menu-item" bindtap="onMenuTap" data-key="baby_manage">
+        <view class="menu-icon">
+          <text>👶</text>
+        </view>
+        <view class="menu-text-area">
+          <text class="menu-title">宝宝管理</text>
+          <text class="menu-desc">管理宝宝档案</text>
+        </view>
+        <text class="menu-arrow">›</text>
+      </view>
+
+      <view class="menu-item" bindtap="onMenuTap" data-key="growth_compare">
+        <view class="menu-icon">
+          <text>📊</text>
+        </view>
+        <view class="menu-text-area">
+          <text class="menu-title">成长对比</text>
+          <text class="menu-desc">照片前后对比</text>
+        </view>
+        <text class="menu-arrow">›</text>
+      </view>
+
+      <view class="menu-item" bindtap="onMenuTap" data-key="achievements">
+        <view class="menu-icon">
+          <text>🏆</text>
+        </view>
+        <view class="menu-text-area">
+          <text class="menu-title">成就徽章</text>
+          <text class="menu-desc">查看已获得的徽章</text>
+        </view>
+        <text class="menu-arrow">›</text>
+      </view>
+
+      <view class="menu-item" bindtap="onMenuTap" data-key="storage">
+        <view class="menu-icon">
+          <text>💾</text>
+        </view>
+        <view class="menu-text-area">
+          <text class="menu-title">存储管理</text>
+          <text class="menu-desc">管理本地和云端存储</text>
+        </view>
+        <text class="menu-arrow">›</text>
+      </view>
+
+      <view class="menu-item" bindtap="onMenuTap" data-key="share">
+        <view class="menu-icon">
+          <text>🔗</text>
+        </view>
+        <view class="menu-text-area">
+          <text class="menu-title">分享设置</text>
+          <text class="menu-desc">家人共享设置</text>
+        </view>
+        <text class="menu-arrow">›</text>
+      </view>
+
+      <view class="menu-item" bindtap="onMenuTap" data-key="about">
+        <view class="menu-icon">
+          <text>ℹ️</text>
+        </view>
+        <view class="menu-text-area">
+          <text class="menu-title">关于</text>
+          <text class="menu-desc">版本 1.0.0</text>
+        </view>
+        <text class="menu-arrow">›</text>
+      </view>
+    </view>
+  </scroll-view>
+
+  <!-- Bottom Navigation -->
+  <bottom-nav current="profile"></bottom-nav>
+</view>

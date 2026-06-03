@@ -83,7 +83,7 @@ Component({
         },
         /**
          * 触底加载更多事件
-         * 懒加载功能由 van-image 组件的 lazy-load 属性负责
+         * 懒加载功能由 image 组件的 lazy-load 属性负责
          */
         onScrollToLower: function () {
             this.triggerEvent('scrolltolower');

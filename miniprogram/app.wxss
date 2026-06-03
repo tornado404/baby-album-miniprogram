@@ -2,6 +2,11 @@
 @import "/styles/variables.wxss";
 @import "/styles/common.wxss";
 
+/* Claymorphism 全局背景 */
+page {
+  background-color: var(--clay-bg);
+}
+
 .container {
   height: 100%;
   display: flex;

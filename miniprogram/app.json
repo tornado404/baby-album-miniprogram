@@ -1,4 +1,4 @@
-﻿{
+{
   "pages": [
     "pages/album_home/album_home",
     "pages/index/index",
@@ -19,18 +19,18 @@
   "sitemapLocation": "sitemap.json",
   "lazyCodeLoading": "requiredComponents",
   "usingComponents": {
-    "t-action-sheet": "tdesign-miniprogram/action-sheet/action-sheet",
-    "t-button": "tdesign-miniprogram/button/button",
-    "t-cell": "tdesign-miniprogram/cell/cell",
-    "t-cell-group": "tdesign-miniprogram/cell-group/cell-group",
-    "t-empty": "tdesign-miniprogram/empty/empty",
-    "t-icon": "tdesign-miniprogram/icon/icon",
-    "t-image": "tdesign-miniprogram/image/image",
-    "t-input": "tdesign-miniprogram/input/input",
-    "t-loading": "tdesign-miniprogram/loading/loading",
-    "t-navbar": "tdesign-miniprogram/navbar/navbar",
-    "t-popup": "tdesign-miniprogram/popup/popup",
-    "t-stepper": "tdesign-miniprogram/stepper/stepper",
+    "t-action-sheet": "miniprogram_npm/tdesign-miniprogram/action-sheet/action-sheet",
+    "t-button": "miniprogram_npm/tdesign-miniprogram/button/button",
+    "t-cell": "miniprogram_npm/tdesign-miniprogram/cell/cell",
+    "t-cell-group": "miniprogram_npm/tdesign-miniprogram/cell-group/cell-group",
+    "t-empty": "miniprogram_npm/tdesign-miniprogram/empty/empty",
+    "t-icon": "miniprogram_npm/tdesign-miniprogram/icon/icon",
+    "t-image": "miniprogram_npm/tdesign-miniprogram/image/image",
+    "t-input": "miniprogram_npm/tdesign-miniprogram/input/input",
+    "t-loading": "miniprogram_npm/tdesign-miniprogram/loading/loading",
+    "t-navbar": "miniprogram_npm/tdesign-miniprogram/navbar/navbar",
+    "t-popup": "miniprogram_npm/tdesign-miniprogram/popup/popup",
+    "t-stepper": "miniprogram_npm/tdesign-miniprogram/stepper/stepper",
     "bottom-nav": "/components/bottom-nav/bottom-nav"
   }
 }

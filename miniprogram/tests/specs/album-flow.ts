@@ -63,7 +63,7 @@ export const ALBUM_FLOW: FlowStep[] = [
         await el.tap();
       } else {
         // 兜底：等待弹窗出现（也许已经显示）
-        await page.waitFor('van-popup', 3000).catch(() => undefined);
+        await page.waitFor('t-popup', 3000).catch(() => undefined);
       }
     },
     expectations: [

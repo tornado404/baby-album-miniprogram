@@ -4,52 +4,32 @@
  */
 
 describe('T-00 问题验证测试', () => {
-  // ==================== 问题1: van-icon 属性名验证 ====================
+  // ==================== 问题1: t-icon 属性名验证 ====================
 
-  describe('问题1: van-icon 组件属性名', () => {
-    test('van-icon 应该使用 name 属性而非 icon', () => {
-      // 错误用法: icon="success"
-      // 正确用法: name="success"
-      const wrongUsage = {
-        'van-icon': {
-          icon: 'success'  // 错误的属性名
-        }
-      };
-
+  describe('问题1: t-icon 组件属性名', () => {
+    test('t-icon 应该使用 name 属性', () => {
+      // TDesign icon 组件使用 name 属性
       const correctUsage = {
-        'van-icon': {
+        't-icon': {
           name: 'success'  // 正确的属性名
         }
       };
 
-      // 验证正确的属性名应该是 'name'
-      expect(correctUsage['van-icon'].name).toBe('success');
-      expect(correctUsage['van-icon']).not.toHaveProperty('icon');
+      expect(correctUsage['t-icon'].name).toBe('success');
     });
 
-    test('当前代码中 van-icon 使用了错误的 icon 属性', () => {
-      // 这是当前代码中的用法 (tech_validate.wxml 第23行)
-      const currentUsage = {
-        icon: '{{item.status === \'pass\' ? \'success\' : item.status === \'fail\' ? \'cross\' : \'clock-o\'}}'
-      };
-
-      // icon 属性是无效的，van-icon 组件不识别此属性
-      expect(currentUsage).toHaveProperty('icon');
-      expect(currentUsage).not.toHaveProperty('name');
-    });
-
-    test('Vant Weapp van-icon 组件文档规定的属性', () => {
-      // 根据 Vant Weapp 文档，van-icon 支持的属性
-      const validVanIconProps = {
+    test('TDesign t-icon 组件文档规定的属性', () => {
+      // 根据 TDesign 文档，t-icon 支持的属性
+      const validTIconProps = {
         name: 'string',       // 图标名称，必填
         size: 'string',       // 图标大小
         color: 'string',      // 图标颜色
-        classPrefix: 'string' // 类名前缀
+        prefix: 'string'      // 类名前缀
       };
 
       // 验证 name 是必需属性
-      expect(validVanIconProps).toHaveProperty('name');
-      expect(validVanIconProps.name).toBe('string');
+      expect(validTIconProps).toHaveProperty('name');
+      expect(validTIconProps.name).toBe('string');
     });
   });
 
@@ -140,18 +120,18 @@ describe('T-00 问题验证测试', () => {
   describe('问题3: 测试函数伪实现', () => {
     test('当前测试函数直接设置 pass 状态', () => {
       // 这是当前代码中的实现 (tech_validate.ts 第58-82行)
-      function testVantComponents() {
+      function testTDesignComponents() {
         const results = [
-          { name: 'Vant基础组件', status: 'pass', message: 'van-button/van-cell等组件渲染正常' }
+          { name: 'TDesign基础组件', status: 'pass', message: 't-button/t-cell等组件渲染正常' }
         ];
         return results;
       }
 
-      const result = testVantComponents();
+      const result = testTDesignComponents();
 
       // 测试函数直接返回 pass，没有真正的验证逻辑
       expect(result[0].status).toBe('pass');
-      expect(result[0].message).toBe('van-button/van-cell等组件渲染正常');
+      expect(result[0].message).toBe('t-button/t-cell等组件渲染正常');
     });
 
     test('伪实现示例: 没有真正检查组件是否渲染', () => {
@@ -159,7 +139,7 @@ describe('T-00 问题验证测试', () => {
 
       // 伪实现 - 直接返回 pass
       const mockImplementation = () => {
-        return { name: 'Vant基础组件', status: 'pass', message: 'ok' };
+        return { name: 'TDesign基础组件', status: 'pass', message: 'ok' };
       };
 
       // 真实现 - 应该检查组件实际渲染情况
@@ -178,18 +158,18 @@ describe('T-00 问题验证测试', () => {
 
       // 模拟检查函数
       function checkComponentRender(name: string): boolean {
-        return name === 'van-button' || name === 'van-cell';
+        return name === 't-button' || name === 't-cell';
       }
 
       // 验证真实现会根据实际情况返回
-      expect(realImplementation('van-button').status).toBe('pass');
+      expect(realImplementation('t-button').status).toBe('pass');
       expect(realImplementation('unknown').status).toBe('fail');
     });
 
     test('手动验证建议: 需要在微信开发者工具中验证', () => {
       // 这些测试函数需要手动验证的项目
       const manualVerifyItems = [
-        { name: 'Vant基础组件', method: 'testVantComponents' },
+        { name: 'TDesign基础组件', method: 'testBaseComponents' },
         { name: '瀑布流布局', method: 'testMasonryLayout' },
         { name: '组件样式隔离', method: 'testStyleIsolation' },
         { name: 'slot插槽', method: 'testSlot' }
@@ -197,20 +177,13 @@ describe('T-00 问题验证测试', () => {
 
       // 验证所有项目都已列出
       expect(manualVerifyItems.length).toBe(4);
-      expect(manualVerifyItems[0].name).toBe('Vant基础组件');
+      expect(manualVerifyItems[0].name).toBe('TDesign基础组件');
     });
   });
 
   // ==================== 问题汇总 ====================
 
   describe('T-00 问题汇总验证', () => {
-    test('问题1确认: van-icon 使用了 icon 而非 name', () => {
-      const wxmlIconUsage = "icon=\"{{item.status === 'pass' ? 'success' : item.status === 'fail' ? 'cross' : 'clock-o'}}\"";
-      // 当前代码中确实使用了 icon 属性
-      expect(wxmlIconUsage).toContain('icon=');
-      expect(wxmlIconUsage).not.toContain('name=');
-    });
-
     test('问题2确认: setTimeout 清理存在但不完整', () => {
       // onUnload 中有清理，但 revalidate 函数中可能创建多个 timer
       const hasOnUnloadClear = true;
@@ -223,7 +196,7 @@ describe('T-00 问题验证测试', () => {
     test('问题3确认: 测试函数为伪实现', () => {
       // 所有测试函数都直接返回 pass 状态
       const mockFunctions = [
-        { name: 'testVantComponents', status: 'pass' },
+        { name: 'testBaseComponents', status: 'pass' },
         { name: 'testMasonryLayout', status: 'pass' },
         { name: 'testStyleIsolation', status: 'pass' },
         { name: 'testSlot', status: 'pass' }

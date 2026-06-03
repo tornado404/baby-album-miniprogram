@@ -1,0 +1,233 @@
+/* settings.wxss - 我的/设置页面 Claymorphism 样式 */
+
+.page-settings {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.status-bar {
+  flex-shrink: 0;
+}
+
+/* Navigation Bar */
+.settings-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 104rpx;
+  flex-shrink: 0;
+}
+
+.nav-title-centered {
+  font-size: var(--clay-font-xxl);
+  font-weight: 700;
+  color: var(--clay-text-primary);
+}
+
+/* Content Area */
+.content-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 40rpx;
+  padding: 40rpx 0 160rpx;
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+
+/* User Card */
+.user-card {
+  width: 670rpx;
+  height: 200rpx;
+  background: var(--clay-card-white);
+  border-radius: var(--clay-radius-xxl);
+  box-shadow: var(--clay-shadow-card);
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+  padding: 0 40rpx 0 32rpx;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+.user-avatar {
+  width: 112rpx;
+  height: 112rpx;
+  border-radius: 56rpx;
+  background: var(--clay-avatar-lavender);
+  box-shadow: var(--clay-shadow-lavender);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.user-avatar text {
+  font-size: 56rpx;
+}
+
+.user-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.user-name {
+  font-size: var(--clay-font-xxl);
+  font-weight: 700;
+  color: var(--clay-text-primary);
+}
+
+.user-record {
+  font-size: var(--clay-font-md);
+  color: var(--clay-text-secondary);
+  font-weight: 500;
+}
+
+.achievement-badge {
+  width: 112rpx;
+  height: 112rpx;
+  background: var(--clay-card-beige);
+  border-radius: 32rpx;
+  box-shadow: var(--clay-shadow-beige-heavy);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4rpx;
+  flex-shrink: 0;
+}
+
+.badge-icon {
+  font-size: 44rpx;
+}
+
+.badge-count {
+  font-size: var(--clay-font-sm);
+  font-weight: 600;
+  color: var(--clay-text-dark-warm);
+  text-align: center;
+}
+
+/* Stats Container */
+.stats-container {
+  display: flex;
+  gap: 28rpx;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.stat-item {
+  width: 204rpx;
+  background: var(--clay-card-white);
+  border-radius: var(--clay-radius-lg);
+  box-shadow: 0px 3px 6px 0px rgba(230, 198, 179, 0.15);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8rpx;
+  padding: 16rpx 0;
+  flex-shrink: 0;
+}
+
+.stat-dot {
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 8rpx;
+}
+
+.stat-dot-pink {
+  background: var(--clay-stat-dot-pink);
+}
+
+.stat-dot-blue {
+  background: var(--clay-stat-dot-blue);
+}
+
+.stat-dot-lavender {
+  background: var(--clay-stat-dot-lavender);
+}
+
+.stat-value {
+  font-size: 44rpx;
+  font-weight: 700;
+  color: var(--clay-text-primary);
+}
+
+.stat-label {
+  font-size: var(--clay-font-sm);
+  color: var(--clay-text-secondary);
+}
+
+/* Menu Container */
+.menu-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20rpx;
+  padding: 8rpx 40rpx;
+  width: 750rpx;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+.menu-item {
+  width: 670rpx;
+  height: 136rpx;
+  background: var(--clay-card-white);
+  border-radius: var(--clay-radius-xxl);
+  box-shadow: var(--clay-shadow-card-light);
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+  padding: 0 32rpx;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+.menu-icon {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 28rpx;
+  background: var(--clay-icon-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.menu-icon text {
+  font-size: 40rpx;
+}
+
+.menu-text-area {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.menu-title {
+  font-size: var(--clay-font-body);
+  font-weight: 500;
+  color: var(--clay-text-primary);
+}
+
+.menu-desc {
+  font-size: var(--clay-font-sm);
+  color: var(--clay-text-secondary);
+}
+
+.menu-arrow {
+  font-size: 44rpx;
+  color: var(--clay-text-muted);
+  text-align: center;
+  flex-shrink: 0;
+  width: 44rpx;
+}

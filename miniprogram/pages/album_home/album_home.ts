@@ -1,214 +1,86 @@
 // @ts-nocheck
-// album_home.ts - 相册首页
-import { storageService } from '../../services/storage_service';
-import { mediaService } from '../../services/media_service';
-import type { Baby, Media } from '../../../typings/models';
-
 Page({
   data: {
+    safeTop: 44,
+    currentMonthLabel: '全部',
     currentBabyId: '',
-    currentBaby: null as Baby | null,
-    babies: [] as Baby[],
-    mediaList: [] as Media[],
-    viewMode: 'masonry' as 'timeline' | 'masonry',
-    isLoading: false,
+    currentBaby: null,
+    babies: [],
+    mediaList: [],
     isEmpty: false,
     uploaderVisible: false,
-    filterMinAge: null as number | null,
-    filterMaxAge: null as number | null,
-    isAuthorized: false,
+    isLoading: false,
+    hasMore: true,
+    isLoadingMore: false,
     page: 1,
     pageSize: 20,
-    hasMore: true,
-    isLoadingMore: false
+    filterMinAge: null,
+    filterMaxAge: null,
+    filterOptions: [
+      { label: '全部', value: null, minAge: null, maxAge: null, active: true }
+    ],
+    babyAgeText: ''
   },
 
-  onLoad() {
-    this.checkAuthorization();
-  },
-
-  onShow() {
-    // 每次显示时检查数据更新
-    if (this.data.currentBabyId) {
-      this.loadMediaList();
-    }
-  },
-
-  onPullDownRefresh() {
-    this.loadMediaList().then(() => {
-      wx.stopPullDownRefresh();
-    });
-  },
-
-  // 检查授权状态
-  checkAuthorization() {
-    wx.getSetting({
-      success: (res) => {
-        if (res.authSetting['scope.userInfo']) {
-          // 已授权，获取用户信息
-          this.setData({ isAuthorized: true });
-          this.initPage();
-        } else {
-          // 未授权，提示用户授权
-          this.setData({ isAuthorized: false });
-          this.showAuthTip();
-        }
-      },
-      fail: () => {
-        // 获取设置失败，默认进入
-        this.setData({ isAuthorized: true });
-        this.initPage();
-      }
-    });
-  },
-
-  // 显示授权提示
-  showAuthTip() {
-    wx.showModal({
-      title: '授权提示',
-      content: '成长相册需要获取您的头像和昵称信息，请先授权',
-      confirmText: '去授权',
-      cancelText: '暂不授权',
-      success: (res) => {
-        if (res.confirm) {
-          // 跳转回首页授权
-          wx.switchTab({
-            url: '/pages/index/index'
-          });
-        }
-      }
-    });
-  },
-
-  async initPage() {
-    this.setData({ isLoading: true });
+  onLoad: function () {
     try {
-      const babies = await storageService.getBabies();
-      this.setData({ babies });
-
-      if (babies.length > 0) {
-        const firstBaby = babies[0];
-        this.setData({
-          currentBabyId: firstBaby.id,
-          currentBaby: firstBaby
-        });
-        // 设置动态标题
-        wx.setNavigationBarTitle({
-          title: `${firstBaby.name}的成长相册`
-        });
-        await this.loadMediaList();
-      } else {
-        this.setData({ isEmpty: true });
-      }
-    } catch (error) {
-      console.error('初始化失败:', error);
-    } finally {
-      this.setData({ isLoading: false });
-    }
+      var info = wx.getSystemInfoSync();
+      this.setData({ safeTop: info.statusBarHeight || 44 });
+    } catch (e) {}
+    this.initPage();
   },
 
-  async loadMediaList(isLoadMore = false) {
-    const { currentBabyId, filterMinAge, filterMaxAge, currentBaby, page, pageSize } = this.data;
-
-    if (!currentBabyId) {
-      this.setData({ mediaList: [] });
-      return;
-    }
-
-    const currentPage = isLoadMore ? page + 1 : 1;
-
-    try {
-      const babyBirthDate = currentBaby ? currentBaby.birthDate : null;
-      const result = await mediaService.getMediaListWithAge(
-        {
-          babyId: currentBabyId,
-          minAge: filterMinAge !== null ? filterMinAge : undefined,
-          maxAge: filterMaxAge !== null ? filterMaxAge : undefined,
-          page: currentPage,
-          pageSize: pageSize
-        },
-        babyBirthDate
-      );
-
-      this.setData({
-        mediaList: isLoadMore ? [...this.data.mediaList, ...result] : result,
-        hasMore: result.length === pageSize,
-        page: currentPage,
-        isLoadingMore: false
-      });
-    } catch (error) {
-      console.error('加载媒体列表失败:', error);
-    }
-  },
-
-  onBabySelect() {
-    const { babies } = this.data;
-    if (babies.length === 0) {
-      return;
-    }
-
-    const babyNames = babies.map(b => b.name);
-    wx.showActionSheet({
-      itemList: babyNames,
-      success: (res) => {
-        const selectedBaby = babies[res.tapIndex];
-        this.setData({
-          currentBabyId: selectedBaby.id,
-          currentBaby: selectedBaby
-        });
-        // 更新导航栏标题
-        wx.setNavigationBarTitle({
-          title: `${selectedBaby.name}的成长相册`
-        });
-        this.loadMediaList();
-      }
-    });
-  },
-
-  onAgeFilterChange(event: any) {
-    const { value, minAge, maxAge } = event.detail;
+  initPage: function () {
+    // Static demo data for UI testing
     this.setData({
-      filterMinAge: minAge,
-      filterMaxAge: maxAge
+      currentBabyId: 'demo-1',
+      currentBaby: { id: 'demo-1', name: '小星星', birthDate: '2025-12-01', gender: 'female' },
+      babyAgeText: '6个月3天 · 女宝',
+      mediaList: [
+        { id: 'm1', title: '第一次翻身', url: '', thumbnailUrl: '', cardColor: 'pink', captureDate: '2026-05-01' },
+        { id: 'm2', title: '学坐啦', url: '', thumbnailUrl: '', cardColor: 'blue', captureDate: '2026-05-10' },
+        { id: 'm3', title: '今天会笑了', url: '', thumbnailUrl: '', cardColor: 'beige', captureDate: '2026-05-15' },
+        { id: 'm4', title: '新玩具', url: '', thumbnailUrl: '', cardColor: 'mint', captureDate: '2026-05-20' }
+      ],
+      filterOptions: [
+        { label: '全部', value: null, active: true },
+        { label: '7个月', value: 7, active: false },
+        { label: '6个月', value: 6, active: false },
+        { label: '5个月', value: 5, active: false },
+        { label: '4个月', value: 4, active: false },
+        { label: '3个月', value: 3, active: false }
+      ],
+      isLoading: false
     });
-    this.loadMediaList();
   },
 
-  switchViewMode() {
-    const newMode = this.data.viewMode === 'masonry' ? 'timeline' : 'masonry';
-    this.setData({ viewMode: newMode });
-  },
-
-  onMediaTap(e: any) {
-    const { id } = e.currentTarget.dataset;
-    wx.navigateTo({
-      url: '/pages/media_detail/media_detail?id=' + id
+  onFilterSelect: function (e) {
+    var value = e.currentTarget.dataset.value;
+    var opts = this.data.filterOptions.map(function (o) {
+      o.active = o.value === value;
+      return o;
     });
+    this.setData({ filterOptions: opts });
   },
 
-  onScrollToLower() {
-    if (!this.data.hasMore || this.data.isLoadingMore) return;
-    this.setData({ isLoadingMore: true });
-    this.loadMediaList(true);
+  onBabySelect: function () {
+    wx.navigateTo({ url: '/pages/baby_profile/baby_profile' });
   },
 
-  onUploadTap() {
-    if (!this.data.currentBabyId) {
-      wx.showToast({ title: '请先选择宝宝', icon: 'none' });
-      return;
-    }
-    this.setData({ uploaderVisible: true });
+  onMediaTap: function (e) {
+    var id = e.currentTarget.dataset.id;
+    wx.navigateTo({ url: '/pages/media_detail/media_detail?id=' + id });
   },
 
-  onUploaderClose() {
-    this.setData({ uploaderVisible: false });
+  onUploadTap: function () {
+    wx.showToast({ title: '功能开发中', icon: 'none' });
   },
 
-  onUploaderSuccess() {
-    this.loadMediaList();
+  goToSettings: function () {
+    wx.redirectTo({ url: '/pages/settings/settings' });
   },
 
-  goHome() {
-    wx.navigateBack();
+  goToBabyProfile: function () {
+    wx.navigateTo({ url: '/pages/baby_profile/baby_profile' });
   }
 });
