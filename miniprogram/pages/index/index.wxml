@@ -45,11 +45,6 @@
 
       <!-- Error message -->
       <text wx:if="{{authState === 'error'}}" class="error-text">{{errorMsg}}</text>
-
-      <view style="height: 48rpx;"></view>
-
-      <!-- Privacy policy -->
-      <text class="privacy-text">登录即表示同意 用户协议 和 隐私政策</text>
     </view>
   </view>
 </view>

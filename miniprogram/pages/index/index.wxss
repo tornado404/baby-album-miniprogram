@@ -128,9 +128,3 @@
   text-align: center;
 }
 
-/* ---- Privacy Text ---- */
-.privacy-text {
-  font-size: 24rpx;
-  color: #b2a699;
-  text-align: center;
-}
