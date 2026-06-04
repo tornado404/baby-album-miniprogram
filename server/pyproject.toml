@@ -1,0 +1,52 @@
+[tool.poetry]
+name = "baby-album-api"
+version = "1.0.0"
+description = "宝宝成长相册 - 后端 API 服务"
+authors = ["Baby Album Team"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.110.0"
+uvicorn = {extras = ["standard"], version = "^0.29.0"}
+sqlalchemy = "^2.0.30"
+asyncpg = "^0.29.0"
+alembic = "^1.13.0"
+pydantic = "^2.7.0"
+pydantic-settings = "^2.2.0"
+pyjwt = "^2.8.0"
+redis = "^5.0.0"
+celery = "^5.4.0"
+httpx = "^0.27.0"
+pillow = "^10.3.0"
+python-multipart = "^0.0.9"
+email-validator = "^2.1.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.2.0"
+pytest-asyncio = "^0.23.0"
+httpx = "^0.27.0"
+ruff = "^0.4.0"
+mypy = "^1.10.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+select = ["E", "F", "W", "I", "N", "UP", "B", "SIM"]
+
+[tool.ruff.per-file-ignores]
+"__init__.py" = ["F401"]
+
+[tool.mypy]
+python_version = "3.11"
+warn_unused_configs = true
+strict = false
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
