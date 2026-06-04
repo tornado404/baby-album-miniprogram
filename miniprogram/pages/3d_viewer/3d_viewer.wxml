@@ -1,4 +1,5 @@
-<view class="page page-3d-viewer">
+<!-- 3d_viewer.wxml - Claymorphism 3D模型查看页（精确 Figma 还原） -->
+<view class="page-3d-viewer">
 
   <!-- Status Bar -->
   <view class="status-bar" style="height: {{safeTop}}px;"></view>
@@ -15,9 +16,9 @@
   </view>
 
   <!-- Content Area -->
-  <scroll-view class="content-area" scroll-y>
+  <view class="content-area">
 
-    <!-- 3D Viewer -->
+    <!-- 3D Viewer Container -->
     <view class="viewer-container">
       <view class="viewer-bg">
         <text class="model-emoji">🧸</text>
@@ -25,7 +26,7 @@
       </view>
     </view>
 
-    <!-- Controls -->
+    <!-- Controls Row -->
     <view class="controls-row">
       <view class="control-btn">
         <text class="control-icon">🔄</text>
@@ -55,5 +56,5 @@
         <text class="model-desc">2026年1月1日 · 立体模型</text>
       </view>
     </view>
-  </scroll-view>
+  </view>
 </view>

@@ -71,7 +71,7 @@
 
 /* ---- Login Button (orange pill with shadow) ---- */
 .login-btn {
-  width: 560rpx;
+  padding: 0 56rpx;
   height: 112rpx;
   background: #ffa87a;
   border-radius: 56rpx;

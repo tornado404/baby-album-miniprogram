@@ -1,16 +1,17 @@
-/* 3d_viewer.wxss - 3D模型查看页面 Claymorphism 样式 */
+/* 3d_viewer.wxss - 3D模型查看页（精确 Figma 还原） */
 
 .page-3d-viewer {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  background: #f5edfa;
 }
 
 .status-bar {
   flex-shrink: 0;
 }
 
-/* Navigation */
+/* ---- Navigation ---- */
 .nav-3d {
   display: flex;
   align-items: center;
@@ -24,8 +25,8 @@
   width: 72rpx;
   height: 72rpx;
   border-radius: 36rpx;
-  background: var(--clay-card-white);
-  box-shadow: var(--clay-shadow-card-lighter);
+  background: #ffffff;
+  box-shadow: 0px 2px 4px 0px rgba(230, 198, 179, 0.2);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -35,34 +36,35 @@
 .nav-circle-white text {
   font-size: 36rpx;
   font-weight: 700;
-  color: var(--clay-text-primary);
+  color: #4a4a4a;
+  line-height: 1;
 }
 
 .nav-3d .nav-title {
-  font-size: var(--clay-font-xxl);
+  font-size: 36rpx;
   font-weight: 700;
-  color: var(--clay-text-primary);
+  color: #4a4a4a;
 }
 
-/* Content Area */
+/* ---- Content Area ---- */
 .content-area {
   flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 32rpx;
-  padding: 40rpx 0;
+  padding: 40rpx 0 64rpx;
   box-sizing: border-box;
   overflow-y: auto;
 }
 
-/* Viewer */
+/* ---- Viewer Container ---- */
 .viewer-container {
   width: 670rpx;
   height: 760rpx;
-  background: var(--clay-card-white);
+  background: #ffffff;
   border-radius: 56rpx;
-  box-shadow: var(--clay-shadow-3d-viewer);
+  box-shadow: 0px 8px 24px 0px rgba(221, 214, 234, 0.35);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -71,7 +73,6 @@
 
 .viewer-bg {
   width: 560rpx;
-  height: 600rpx;
   background: #faf5fc;
   border-radius: 48rpx;
   display: flex;
@@ -79,19 +80,21 @@
   align-items: center;
   justify-content: center;
   gap: 16rpx;
+  padding: 60rpx 0;
 }
 
 .model-emoji {
   font-size: 160rpx;
+  color: #806680;
 }
 
 .model-preview-label {
-  font-size: var(--clay-font-body);
-  color: var(--clay-text-accent);
+  font-size: 28rpx;
   font-weight: 500;
+  color: #998c99;
 }
 
-/* Controls */
+/* ---- Controls Row ---- */
 .controls-row {
   display: flex;
   gap: 24rpx;
@@ -101,35 +104,36 @@
 
 .control-btn {
   width: 144rpx;
-  background: var(--clay-card-white);
+  background: #ffffff;
   border-radius: 32rpx;
-  box-shadow: var(--clay-shadow-3d-control);
+  box-shadow: 0px 3px 6px 0px rgba(230, 198, 179, 0.2);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 8rpx;
-  padding: 16rpx 0;
+  padding: 20rpx 0;
   flex-shrink: 0;
 }
 
 .control-icon {
   font-size: 40rpx;
+  color: #665973;
 }
 
 .control-label {
   font-size: 22rpx;
   font-weight: 500;
-  color: var(--clay-text-light);
+  color: #808080;
 }
 
-/* Model Info */
+/* ---- Model Info Card ---- */
 .model-info-card {
   width: 670rpx;
   height: 160rpx;
-  background: var(--clay-card-white);
-  border-radius: var(--clay-radius-xxl);
-  box-shadow: var(--clay-shadow-3d-info);
+  background: #ffffff;
+  border-radius: 40rpx;
+  box-shadow: 0px 4px 10px 0px rgba(230, 198, 179, 0.2);
   display: flex;
   align-items: center;
   gap: 32rpx;
@@ -142,7 +146,7 @@
   width: 96rpx;
   height: 96rpx;
   border-radius: 32rpx;
-  background: var(--clay-avatar-lavender);
+  background: #ddd6ea;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -162,12 +166,12 @@
 }
 
 .model-title {
-  font-size: var(--clay-font-lg);
+  font-size: 32rpx;
   font-weight: 600;
-  color: var(--clay-text-primary);
+  color: #4a4a4a;
 }
 
 .model-desc {
-  font-size: var(--clay-font-sm);
-  color: var(--clay-text-secondary);
+  font-size: 24rpx;
+  color: #999;
 }
