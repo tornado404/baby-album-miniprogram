@@ -1,67 +1,76 @@
 "use strict";
 // @ts-nocheck
-// index.ts
-// 获取应用实例
-var app = getApp();
-var defaultAvatarUrl = 'https://mmbiz.qpic.cn/mmbiz/icTdbqWNOwNRna42FI242Lcia07jQodd2FJGIYQfG0LAJGFxM4FbnQP6yfMxBgJ0F3YRqJCJ1aPAK2dQagdusBZg/0';
-Component({
+// index.ts - 登录引导页
+// 状态: idle → loading → error / success
+var AUTH_KEY = 'baby_diary_authed';
+var BABY_KEY = 'baby_diary_baby_profile';
+Page({
     data: {
-        motto: 'Hello World',
-        userInfo: {
-            avatarUrl: defaultAvatarUrl,
-            nickName: '',
-        },
-        hasUserInfo: false,
-        canIUseGetUserProfile: wx.canIUse('getUserProfile'),
-        canIUseNicknameComp: wx.canIUse('input.type.nickname'),
+        safeTop: 44,
+        authState: 'idle', // idle | loading | error | success
+        errorMsg: ''
     },
-    methods: {
-        // 事件处理函数
-        bindViewTap: function () {
-            wx.navigateTo({
-                url: '../logs/logs',
-            });
-        },
-        onChooseAvatar: function (e) {
-            var avatarUrl = e.detail.avatarUrl;
-            var nickName = this.data.userInfo.nickName;
-            this.setData({
-                "userInfo.avatarUrl": avatarUrl,
-                hasUserInfo: nickName && avatarUrl && avatarUrl !== defaultAvatarUrl,
-            });
-        },
-        onInputChange: function (e) {
-            var nickName = e.detail.value;
-            var avatarUrl = this.data.userInfo.avatarUrl;
-            var hasInfo = nickName && avatarUrl && avatarUrl !== defaultAvatarUrl;
-            this.setData({
-                "userInfo.nickName": nickName,
-                hasUserInfo: hasInfo,
-            });
-            // 授权成功后跳转到相册首页
-            if (hasInfo) {
-                wx.navigateTo({
-                    url: '/pages/album_home/album_home',
-                });
-            }
-        },
-        getUserProfile: function () {
-            var _this = this;
-            // 推荐使用wx.getUserProfile获取用户信息，开发者每次通过该接口获取用户个人信息均需用户确认，开发者妥善保管用户快速填写的头像昵称，避免重复弹窗
-            wx.getUserProfile({
-                desc: '展示用户信息', // 声明获取用户个人信息后的用途，后续会展示在弹窗中，请谨慎填写
-                success: function (res) {
-                    console.log(res);
-                    _this.setData({
-                        userInfo: res.userInfo,
-                        hasUserInfo: true
-                    });
-                    // 授权成功后跳转到相册首页
-                    wx.navigateTo({
-                        url: '/pages/album_home/album_home',
-                    });
+    onLoad: function () {
+        // Get safe area
+        try {
+            var info = wx.getSystemInfoSync();
+            this.setData({ safeTop: info.statusBarHeight || 44 });
+        }
+        catch (e) { }
+        // Check if already authenticated
+        var authed = wx.getStorageSync(AUTH_KEY);
+        var babyProfile = wx.getStorageSync(BABY_KEY);
+        if (authed && babyProfile) {
+            // Already has account → go directly to home
+            this.redirectToHome();
+        }
+    },
+    onLoginTap: function () {
+        var _this = this;
+        this.setData({ authState: 'loading', errorMsg: '' });
+        // Step 1: WeChat login (get code)
+        wx.login({
+            success: function (loginRes) {
+                if (loginRes.code) {
+                    console.log('微信登录 code:', loginRes.code);
+                    // In production: send loginRes.code to backend
+                    // For MVP: simulate success
+                    _this.handleAuthSuccess();
                 }
-            });
-        },
+                else {
+                    _this.handleAuthError('登录失败，请重试');
+                }
+            },
+            fail: function () {
+                _this.handleAuthError('网络错误，请检查网络后重试');
+            }
+        });
     },
+    handleAuthSuccess: function () {
+        // Mark as authenticated
+        wx.setStorageSync(AUTH_KEY, true);
+        this.setData({ authState: 'success' });
+        // Check if baby profile exists
+        var babyProfile = wx.getStorageSync(BABY_KEY);
+        if (babyProfile) {
+            // Has profile → go to home
+            this.redirectToHome();
+        }
+        else {
+            // No profile → guide to create
+            wx.showToast({ title: '欢迎！请先创建宝宝档案', icon: 'none', duration: 2000 });
+            setTimeout(function () {
+                wx.redirectTo({ url: '/pages/baby_profile/baby_profile' });
+            }, 1500);
+        }
+    },
+    handleAuthError: function (msg) {
+        this.setData({
+            authState: 'error',
+            errorMsg: msg || '授权失败，请重试'
+        });
+    },
+    redirectToHome: function () {
+        wx.redirectTo({ url: '/pages/album_home/album_home' });
+    }
 });

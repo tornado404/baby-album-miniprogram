@@ -1,63 +1,136 @@
-/**index.wxss**/
-page {
-  height: 100vh;
+/* index.wxss - 登录引导页 Claymorphism 风格 */
+
+.page-onboarding {
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
+  background: #fffbf8;
 }
 
-.scrollarea {
+.status-bar {
+  flex-shrink: 0;
+}
+
+/* ---- Main Content ---- */
+.onboarding-content {
   flex: 1;
-  overflow-y: hidden;
-}
-
-.userinfo {
   display: flex;
   flex-direction: column;
   align-items: center;
-  color: #aaa;
-  width: 80%;
-}
-
-.userinfo-avatar {
-  overflow: hidden;
-  width: 128rpx;
-  height: 128rpx;
-  margin: 20rpx;
-  border-radius: 50%;
-}
-
-.usermotto {
-  margin-top: 200px;
-}
-
-.avatar-wrapper {
-  padding: 0;
-  width: 56px !important;
-  border-radius: 8px;
-  margin-top: 40px;
-  margin-bottom: 40px;
-}
-
-.avatar {
-  display: block;
-  width: 56px;
-  height: 56px;
-}
-
-.nickname-wrapper {
-  display: flex;
-  width: 100%;
-  padding: 16px;
+  padding: 0 40rpx;
   box-sizing: border-box;
-  border-top: .5px solid rgba(0, 0, 0, 0.1);
-  border-bottom: .5px solid rgba(0, 0, 0, 0.1);
-  color: black;
 }
 
-.nickname-label {
-  width: 105px;
+/* ---- Logo Circle ---- */
+.onboarding-logo {
+  width: 320rpx;
+  height: 320rpx;
+  border-radius: 160rpx;
+  background: #f1dce2;
+  box-shadow: 0px 8px 20px 0px rgba(241, 220, 226, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.onboarding-logo text {
+  font-size: 128rpx;
+  color: #806680;
 }
 
-.nickname-input {
-  flex: 1;
+/* ---- Titles ---- */
+.onboarding-title {
+  font-size: 56rpx;
+  font-weight: 700;
+  color: #4a4a4a;
+  text-align: center;
+}
+
+.onboarding-subtitle {
+  font-size: 32rpx;
+  font-weight: 500;
+  color: #999;
+  text-align: center;
+}
+
+.onboarding-tags {
+  font-size: 26rpx;
+  color: #b2a699;
+  text-align: center;
+}
+
+/* ---- Bottom Section ---- */
+.onboarding-bottom {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+  padding-bottom: 80rpx;
+}
+
+/* ---- Login Button (orange pill with shadow) ---- */
+.login-btn {
+  width: 560rpx;
+  height: 112rpx;
+  background: #ffa87a;
+  border-radius: 56rpx;
+  box-shadow: 0px 4px 10px 0px rgba(255, 168, 122, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.login-btn:active {
+  opacity: 0.9;
+  transform: scale(0.98);
+}
+
+.login-btn-text {
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+/* ---- Loading State ---- */
+.loading-container {
+  width: 560rpx;
+  height: 112rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24rpx;
+}
+
+.loading-spinner {
+  width: 48rpx;
+  height: 48rpx;
+  border: 4rpx solid rgba(255, 168, 122, 0.2);
+  border-top-color: #ffa87a;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-text {
+  font-size: 30rpx;
+  color: #999;
+  font-weight: 500;
+}
+
+/* ---- Error State ---- */
+.error-text {
+  font-size: 24rpx;
+  color: #ee0a24;
+  margin-top: 16rpx;
+  text-align: center;
+}
+
+/* ---- Privacy Text ---- */
+.privacy-text {
+  font-size: 24rpx;
+  color: #b2a699;
+  text-align: center;
 }

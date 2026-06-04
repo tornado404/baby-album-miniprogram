@@ -1,7 +1,7 @@
 {
   "pages": [
-    "pages/album_home/album_home",
     "pages/index/index",
+    "pages/album_home/album_home",
     "pages/logs/logs",
     "pages/tech_validate/tech_validate",
     "pages/media_detail/media_detail",
