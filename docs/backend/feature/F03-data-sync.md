@@ -1,6 +1,6 @@
 # F03 - 数据同步服务
 
-> Feature ID: F03 | 优先级: P0 | 版本: v2.0 | 状态: 📝 设计阶段
+> Feature ID: F03 | 优先级: P0 | 版本: v3.0 | 状态: 📝 设计阶段
 
 ---
 
@@ -47,7 +47,7 @@
 
 ### 2.2 数据模型
 
-**Baby 表（Prisma Schema）**
+**Baby 表（SQLAlchemy 2.0）**
 
 ```prisma
 model Baby {
@@ -72,7 +72,7 @@ model Baby {
 }
 ```
 
-**SyncLog 表（Prisma Schema）**
+**SyncLog 表（SQLAlchemy 2.0）**
 
 ```prisma
 model SyncLog {

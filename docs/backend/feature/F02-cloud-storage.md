@@ -1,6 +1,6 @@
 # F02 - 云存储与媒体管理
 
-> Feature ID: F02 | 优先级: P0 | 版本: v2.0 | 状态: 📝 设计阶段
+> Feature ID: F02 | 优先级: P0 | 版本: v3.0 | 状态: 📝 设计阶段
 
 ---
 
@@ -48,7 +48,7 @@
 
 ### 2.2 数据模型
 
-**Media 表（Prisma Schema）**
+**Media 表（SQLAlchemy 2.0）**
 
 ```prisma
 model Media {

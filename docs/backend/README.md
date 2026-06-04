@@ -1,7 +1,7 @@
 # 宝宝成长相册 - 后端设计文档总览
 
-> 版本：v2.0 | 最后更新：2026-06-04 | 状态：📝 设计阶段
-> 技术方案：自建服务器（Node.js + PostgreSQL + MinIO）
+> 版本：v3.0 | 最后更新：2026-06-04 | 状态：📝 设计阶段
+> 技术方案：**自建服务器（Python + FastAPI + PostgreSQL）**
 
 ---
 
@@ -43,24 +43,38 @@ docs/backend/
 
 ## 2. 技术选型
 
+### 2.1 最终方案
+
 | 维度 | 选型 | 版本 | 理由 |
 |------|------|------|------|
-| **API 框架** | Node.js + Express | 4.x | 与前端 TypeScript 栈一致，降低上下文切换 |
-| **语言** | TypeScript | 5.x | 类型安全，编译到 ES2020 |
-| **数据库** | PostgreSQL | 15+ | 强事务支持，数组/jsonb 类型适配 tags 字段 |
-| **ORM** | Prisma | 5.x | 类型安全的 TS ORM，自动 migration |
-| **缓存** | Redis | 7.x | Token 黑名单、热点缓存、任务状态 |
-| **对象存储** | 腾讯云 COS / 阿里云 OSS | — | 成熟稳定，自带 CDN，STS 临时密钥支持前端直传 |
-| **鉴权** | JWT (HS256) | — | 无状态，适合小程序场景 |
-| **部署** | Docker Compose | — | 开发/测试/生产环境一致 |
-| **反向代理** | Nginx | — | TLS 终止 + 静态资源 |
+| **API 框架** | **FastAPI** | 0.110+ | 异步原生、自动 OpenAPI 文档、Pydantic 校验 |
+| **语言** | Python | 3.11+ | 类型注解完善、生态成熟、团队通用性强 |
+| **ORM** | **SQLAlchemy 2.0** | 2.0+ | 最成熟的 Python ORM，Asyncio 支持 |
+| **数据库迁移** | Alembic | 1.13+ | SQLAlchemy 官方迁移工具 |
+| **数据库** | PostgreSQL | 15+ | 强事务、数组/jsonb 类型 |
+| **缓存** | Redis | 7.x | Token 黑名单、热点缓存 |
+| **对象存储** | 腾讯云 COS / 阿里云 OSS | — | STS 临时密钥前端直传 |
+| **图片处理** | **Pillow** + pyav | — | 原生 Python 库，无需调用外部进程 |
+| **异步任务** | **Celery** / ARQ | — | 缩略图生成、导出任务异步处理 |
+| **鉴权** | PyJWT | 2.x | 无状态 JWT |
+| **部署** | Docker Compose | — | 容器化编排 |
+| **依赖管理** | **Poetry** / uv | — | 现代 Python 包管理 |
+| **代码质量** | ruff + mypy | — | Lint + 类型检查 |
 
-### 2.1 不选微信云开发的原因
+### 2.2 为什么选 Python + FastAPI 而非 Node.js/Go
 
-- 已有自建服务器资源，无需额外付费
-- 云函数 60s 执行限制不适用于大文件处理（视频转码等）
-- 自建方案数据库灵活性更高（复杂查询、事务支持）
-- 便于后续扩展为多端共用后端（H5 / App）
+| 对比项 | Python + FastAPI | Node.js + Prisma | Go + Gin |
+|--------|-----------------|------------------|----------|
+| **图片/视频处理** | ⭐ Pillow/pyav 原生 | 需子进程调用 Sharp | 需 cgo 调用 libvips |
+| **API 开发效率** | ⭐ 自动生成 OpenAPI 文档 | 手动维护 | 手动维护 |
+| **数据校验** | ⭐ Pydantic 声明式 | Zod 需额外配置 | 无内置，手写校验 |
+| **并发模型** | asyncio 协程 | 事件循环 | goroutine |
+| **前端团队学习** | 中等（新语言） | ⭐ 零成本（同 TypeScript） | 高（指针/接口） |
+| **长期维护成本** | ⭐ 服务端人才多 | 全栈人才多但非后端专精 | 稳定但人才少 |
+| **部署体积** | ~300MB | ~200MB | ⭐ <20MB |
+
+**关键决策因素**：后端服务核心职责是 **CRUD + 文件处理 + 微信 API 代理**，Python 的
+FastAPI + Pydantic 写这类业务效率最高，且 Pillow 原生处理图片无需额外进程调用。
 
 ---
 
@@ -96,11 +110,12 @@ docs/backend/
                        │ HTTPS
 ┌──────────────────────▼────────────────────────┐
 │              Nginx (反向代理 + TLS)             │
-│        api.baby-album.example.com              │
 └──────────────────────┬────────────────────────┘
                        │
 ┌──────────────────────▼────────────────────────┐
-│            API 服务 (Node.js + Express)         │
+│     API 服务 (Python + FastAPI + Uvicorn)      │
+│                                                │
+│  中间件: CORSMiddleware │ JWTAuth │ RateLimit  │
 │                                                │
 │  ┌──────────┐ ┌──────────┐ ┌────────────────┐ │
 │  │ Auth     │ │ Media    │ │ Sync           │ │
@@ -113,7 +128,9 @@ docs/backend/
 │  │ /share/* │ │ /export/*│ │ (缩略图回调)    │ │
 │  └──────────┘ └──────────┘ └────────────────┘ │
 │                                                │
-│  全局中间件: AuthGuard │ CORS │ RateLimit │ Log │
+│  异步工作器 (Celery/ARQ)                       │
+│  ├─ thumbnail_worker — 缩略图生成              │
+│  └─ export_worker — 数据导出打包               │
 └──────┬─────────────────────┬──────────────────-┘
        │                     │
 ┌──────▼────────┐   ┌───────▼──────────────────┐
@@ -122,12 +139,13 @@ docs/backend/
 │  ├─ babies    │   │  ├─ videos/{userId}/.mp4 │
 │  ├─ media     │   │  ├─ thumbnails/          │
 │  ├─ share_*   │   │  └─ avatars/             │
-│  └─ sync_log  │   └─────────────────────────-┘
+│  ├─ sync_log  │   └─────────────────────────-┘
+│  └─ tasks     │
 │               │
 │  Redis        │
 │  ├─ token 黑名单│
-│  ├─ 缓存      │
-│  └─ 任务状态  │
+│  ├─ 缓存       │
+│  └─ Celery broker│
 └──────────────-┘
 ```
 
@@ -137,8 +155,9 @@ docs/backend/
 User ──── 1:N ──── Baby ──── 1:N ──── Media
   │                    │
   │                    └─── 1:N ──── ShareRelation
-  │                                    (ownerId/viewerId)
+  │                                    (owner_id/viewer_id)
   └─── 1:N ──── Achievement
+  └─── 1:N ──── SyncLog
 ```
 
 ---
@@ -161,17 +180,15 @@ User ──── 1:N ──── Baby ──── 1:N ──── Media
   │                                │                             │
   │── 3. POST /media ───────────► │                             │
   │     { babyId, cosKey, title } │── INSERT INTO media         │
-  │◄── 返回 media记录 ────────── │── 异步生成缩略图             │
+  │◄── 返回 media记录 ────────── │── Celery 异步生成缩略图      │
 ```
-
-**优点**：大文件不经过后端服务器，减轻压力 + 利用 COS 分片上传能力。
 
 ### 5.2 数据同步策略：云端优先
 
 | 场景 | 策略 |
 |------|------|
 | **首次登录** | 读取本地数据 → `POST /sync/full` 全量上传 → 返回云端 ID 映射 |
-| **日常操作** | 调用业务 API → 写入 MySQL + `sync_log` → 更新本地缓存 |
+| **日常操作** | 调用业务 API → 写入 PostgreSQL + `sync_log` → 更新本地缓存 |
 | **启动检查** | `GET /sync/delta?since=lastSyncTime` 拉取增量 |
 | **冲突处理** | Last-Write-Wins，以 `updated_at` 较新者为准 |
 | **离线操作** | 标记 `pendingSync=true` → 网络恢复后批量同步 |
@@ -200,7 +217,7 @@ User ──── 1:N ──── Baby ──── 1:N ──── Media
 
 ## 6. API 总览
 
-| 模块 | 前缀 | 鉴权 | 说明 |
+| 模块 | 路径 | 鉴权 | 说明 |
 |------|------|------|------|
 | Auth | `POST /api/v1/auth/login` | 无需 | 微信 code → JWT |
 | Auth | `POST /api/v1/auth/refresh` | JWT | 刷新 accessToken |
@@ -223,12 +240,13 @@ User ──── 1:N ──── Baby ──── 1:N ──── Media
 
 | 维度 | 指标 | 实现方式 |
 |------|------|----------|
-| 性能 | API P95 < 500ms | Redis 缓存热点数据，DB 索引优化 |
-| 性能 | 缩略图生成 < 3s | Sharp 流式处理 + 异步队列 |
-| 安全 | JWT 2h + refreshToken 30d | 短有效期 + Redis 黑名单 |
-| 安全 | openId 不暴露前端 | 服务端 code2Session，前端仅用 userId |
-| 可用性 | 离线可浏览已缓存内容 | 本地 storage 作为缓存层 |
-| 可用性 | 服务端 PM2/Docker 守护 | 自动重启 + 健康检查 |
+| 性能 | API P95 < 500ms | Redis 缓存 + PostgreSQL 索引优化 + async DB 连接 |
+| 性能 | 缩略图生成 < 3s | Celery 异步任务 + Pillow 流式处理 |
+| 安全 | JWT 2h + refreshToken 30d | PyJWT + Redis 黑名单 |
+| 安全 | openId 不暴露前端 | 服务端 code2Session，前端仅用 user_id |
+| 可用性 | 离线可浏览已缓存内容 | 前端 local_storage 作为缓存层 |
+| 可用性 | 服务异常自动恢复 | Docker 健康检查 + restart=always |
+| API 文档 | 自动生成 | FastAPI 内嵌 Swagger UI (`/docs`) |
 
 ---
 
@@ -236,14 +254,14 @@ User ──── 1:N ──── Baby ──── 1:N ──── Media
 
 | 阶段 | 内容 | 工时 | 前置 |
 |------|------|------|------|
-| **基建** | Docker + PostgreSQL + MinIO + Nginx | 3d | 服务器 |
-| **F01** | 用户认证（login + JWT + users 表） | 2d | 基建 |
+| **基建** | Docker + PostgreSQL + Redis + Nginx | 2d | 服务器 |
+| **项目骨架** | FastAPI 项目初始化 + SQLAlchemy + Alembic | 1d | 基建 |
+| **F01** | 用户认证（login + JWT + users 表） | 2d | 骨架 |
 | **F02** | 云存储（上传签名 + 媒体 CRUD + 缩略图） | 3d | F01 |
 | **F03** | 数据同步（全量/增量 + 前端适配） | 2d | F01+F02 |
-| **F03 前端** | Service 层重写 + 登录流程改造 | 2d | F03 |
 | **F04** | 家人共享 + 权限 | 3d | F01+F03 |
 | **F05** | 分析/成就/导出 | 2d | F03 |
-| **合计** | | **~17d** | — |
+| **合计** | | **~15d** | — |
 
 ---
 

@@ -56,7 +56,7 @@
 **描述**: 开发可复用的成就检查模块，在关键 API 后触发
 
 **涉及文件**:
-- `server/src/services/achievementChecker.ts`（新增）
+- `app/services/achievementChecker.ts`（新增）
 
 **实现要点**:
 - 每个成就定义: badgeKey, name, description, checkFn(userId)
@@ -71,7 +71,7 @@
 **描述**: 实现 GET /api/v1/analytics/report
 
 **涉及文件**:
-- `server/src/routes/analytics.ts`
+- `app/routers/analytics.ts`
 
 **实现要点**:
 - 查询参数: babyId, startDate, endDate
@@ -87,8 +87,8 @@
 **描述**: 实现 POST /api/v1/export/data
 
 **涉及文件**:
-- `server/src/routes/export.ts`
-- `server/src/services/exportService.ts`
+- `app/routers/export.ts`
+- `app/services/exportService.ts`
 
 **实现要点**:
 - JSON 导出: SELECT babies + media → JSON.stringify → 上传 COS
@@ -103,7 +103,7 @@
 **描述**: 实现 POST /api/v1/export/import
 
 **涉及文件**:
-- `server/src/routes/export.ts`
+- `app/routers/export.ts`
 
 **实现要点**:
 - 解析 JSON 内容
@@ -118,7 +118,7 @@
 **描述**: 实现 GET /api/v1/analytics/stats
 
 **涉及文件**:
-- `server/src/routes/analytics.ts`
+- `app/routers/analytics.ts`
 
 **实现要点**:
 - 查询 users 表基础统计

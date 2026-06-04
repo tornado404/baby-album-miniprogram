@@ -45,17 +45,17 @@
 
 ## 技术故事 (Technical Stories)
 
-### TS-AUTH-01: 项目初始化与 Express 骨架
+### TS-AUTH-01: 项目初始化与 FastAPI 骨架
 
-**描述**: 搭建 Node.js + Express + TypeScript 项目骨架
+**描述**: 搭建 Python + FastAPI 项目骨架
 
 **涉及文件**:
-- `server/package.json`
-- `server/src/index.ts`
-- `server/src/middleware/auth.ts`
+- `pyproject.toml`
+- `app/main.py`
+- `app/middleware/auth.py`
 
 **实现要点**:
-- Express + TypeScript 项目结构
+- FastAPI 项目结构
 - middleware: JWT 鉴权、CORS、请求日志、错误统一处理
 - 环境变量管理 (.env)
 
@@ -66,8 +66,8 @@
 **描述**: 实现 POST /api/v1/auth/login
 
 **涉及文件**:
-- `server/src/routes/auth.ts`
-- `server/src/services/wechat.ts`
+- `app/routers/auth.py`
+- `app/services/auth_service.py`
 
 **实现要点**:
 - 接收前端传来的 wx.login() code
@@ -80,10 +80,10 @@
 
 ### TS-AUTH-03: JWT 中间件
 
-**描述**: 实现 JWT 鉴权 Express 中间件
+**描述**: 实现 JWT 鉴权 FastAPI 中间件
 
 **涉及文件**:
-- `server/src/middleware/auth.ts`
+- `app/middleware/auth.py`
 
 **实现要点**:
 - 解析 Authorization: Bearer <token>
@@ -98,7 +98,7 @@
 **描述**: 实现 POST /api/v1/auth/refresh
 
 **涉及文件**:
-- `server/src/routes/auth.ts`
+- `app/routers/auth.py`
 
 **实现要点**:
 - 接收 refreshToken
@@ -127,7 +127,7 @@
 **描述**: 创建 PostgreSQL 数据库及表结构
 
 **涉及文件**:
-- `server/db/migrations/001_init.sql`
+- `migrations/versions/`
 
 **实现要点**:
 - `CREATE TABLE users (...)`
@@ -144,7 +144,7 @@ F01 用户认证与账户
 ├── US-AUTH-01 静默登录
 ├── US-AUTH-02 老用户自动登录
 ├── US-AUTH-03 账户信息查看
-├── TS-AUTH-01 项目初始化与 Express 骨架
+├── TS-AUTH-01 项目初始化与 FastAPI 骨架
 ├── TS-AUTH-02 微信登录接口
 ├── TS-AUTH-03 JWT 中间件
 ├── TS-AUTH-04 Token 刷新接口

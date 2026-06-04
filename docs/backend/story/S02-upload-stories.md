@@ -70,8 +70,8 @@
 **描述**: 实现 POST /api/v1/upload/sign，返回 STS 临时密钥
 
 **涉及文件**:
-- `server/src/routes/upload.ts`
-- `server/src/services/cos.ts`
+- `app/routers/upload.py`
+- `app/services/file_service.py`
 
 **实现要点**:
 - 调用 COS STS SDK 生成临时密钥
@@ -86,13 +86,13 @@
 **描述**: 实现 POST /api/v1/media，写入 media 表
 
 **涉及文件**:
-- `server/src/routes/media.ts`
+- `app/routers/media.py`
 
 **实现要点**:
 - 接收 babyId, title, type, cosKey, captureDate
 - 根据 baby.birth_date 自动计算 babyAge
 - INSERT INTO media + 写入 sync_log
-- 异步触发缩略图生成（消息队列或直接调用 Sharp）
+- 异步触发缩略图生成（消息队列或Pillow 异步处理（Celery））
 
 ---
 
@@ -101,7 +101,7 @@
 **描述**: 图片上传后异步生成缩略图并上传到 COS
 
 **涉及文件**:
-- `server/src/services/thumbnail.ts`
+- `app/tasks/thumbnail.py`
 
 **实现要点**:
 - 使用 Sharp 库将图片缩放到 300x300
@@ -116,7 +116,7 @@
 **描述**: 实现 GET /api/v1/media，分页 + 按月龄筛选
 
 **涉及文件**:
-- `server/src/routes/media.ts`
+- `app/routers/media.py`
 
 **实现要点**:
 - 查询参数: babyId, ageMonth(可选), pageSize, cursor
@@ -148,7 +148,7 @@
 **描述**: 实现软删除 + 定时清理机制
 
 **涉及文件**:
-- `server/src/routes/media.ts`（DELETE handler）
+- `app/routers/media.py`（DELETE handler）
 - `server/src/jobs/cleanDeletedMedia.ts`（cron job）
 
 **实现要点**:

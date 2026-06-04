@@ -1,6 +1,6 @@
 # F01 - 用户认证与账户系统
 
-> Feature ID: F01 | 优先级: P0 | 版本: v2.0 | 状态: 📝 设计阶段
+> Feature ID: F01 | 优先级: P0 | 版本: v3.0 | 状态: 📝 设计阶段
 
 ---
 
@@ -40,7 +40,7 @@
    │                              │── POST /api/v1/auth/login      │
    │                              │── code2Session 换取 openId     │
    │                              │                                │
-   │                              │── 查 User 表 (Prisma)          │
+   │                              │── 查 User 表 (SQLAlchemy async)          │
    │                              │   ├─ 存在: 返回 userId        │
    │                              │   └─ 不存在: INSERT 新记录     │
    │                              │                                │
@@ -52,7 +52,7 @@
 
 ### 2.2 数据模型
 
-**User 表（Prisma Schema）**
+**User 表（SQLAlchemy 2.0）**
 
 ```prisma
 model User {
@@ -83,7 +83,7 @@ model User {
 
 - 签发: 服务端用 openId + userId 生成 JWT（HS256）
 - 存储: `wx.getStorageSync('babydiary_token')- 有效期: Access Token 2h，Refresh Token 30d
-- 校验: Express 中间件解析 Authorization: Bearer <token>
+- 校验: FastAPI Depends(get_current_user_id) 解析 Bearer token
 - 黑名单: Redis 记录已登出的 token（防止泄露后滥用）
 
 ---

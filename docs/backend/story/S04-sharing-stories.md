@@ -69,7 +69,7 @@
 **描述**: 实现 POST /api/v1/share/invitations
 
 **涉及文件**:
-- `server/src/routes/share.ts`
+- `app/routers/share.ts`
 
 **实现要点**:
 - 输入: { babyId, permission }
@@ -84,7 +84,7 @@
 **描述**: 实现 POST /api/v1/share/accept
 
 **涉及文件**:
-- `server/src/routes/share.ts`
+- `app/routers/share.ts`
 
 **实现要点**:
 - 输入: { shareToken }
@@ -100,7 +100,7 @@
 **描述**: 实现 GET /api/v1/share/babies
 
 **涉及文件**:
-- `server/src/routes/share.ts`
+- `app/routers/share.ts`
 
 **实现要点**:
 - 查询 share_relations WHERE viewer_user_id
@@ -114,7 +114,7 @@
 **描述**: 媒体列表接口增加共享数据查询
 
 **涉及文件**:
-- `server/src/routes/media.ts`
+- `app/routers/media.ts`
 
 **实现要点**:
 - GET /media 增加查询逻辑:

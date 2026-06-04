@@ -70,7 +70,7 @@
 **描述**: 实现 POST /api/v1/sync/full
 
 **涉及文件**:
-- `server/src/routes/sync.ts`
+- `app/routers/sync.py`
 
 **实现要点**:
 - 接收 babies[] + media[] 数组
@@ -85,7 +85,7 @@
 **描述**: 实现 GET /api/v1/sync/delta?since=timestamp
 
 **涉及文件**:
-- `server/src/routes/sync.ts`
+- `app/routers/sync.py`
 
 **实现要点**:
 - 查询 sync_log WHERE user_id + created_at > since
@@ -99,7 +99,7 @@
 **描述**: 实现 babies 的完整 CRUD
 
 **涉及文件**:
-- `server/src/routes/babies.ts`
+- `app/routers/babies.ts`
 
 **实现要点**:
 - POST /babies: INSERT + sync_log
