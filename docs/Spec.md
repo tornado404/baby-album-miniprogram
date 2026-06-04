@@ -130,6 +130,24 @@
 
 ---
 
+## 阶段五：P0 新增 — 多宝宝管理 & Header 动画 (EPIC-7)
+
+| ID | 任务 | 状态 | 优先级 | 依赖 |
+|----|------|------|--------|------|
+| MB-01 | Figma 移除 Album Home 右上角按钮（设计稿） | ✅ 已完成 | P0 | - |
+| MB-02 | Figma 新增折叠态 Baby Strip 设计（水平头像条+加号） | ✅ 已完成 | P0 | - |
+| MB-03 | Figma 新增宝宝列表页 (Baby List) 设计 | ✅ 已完成 | P0 | - |
+| MB-04 | Album Home 移除导航栏右侧上传/个人按钮（代码） | 🆕 待开发 | P0 | MB-01 |
+| MB-05 | Album Home Header 上划折叠动画（展开↔折叠切换） | 🆕 待开发 | P0 | - |
+| MB-06 | 折叠态水平宝宝头像轮盘 + 加号按钮 | 🆕 待开发 | P0 | MB-05 |
+| MB-07 | 全局 currentBabyId 状态管理 | 🆕 待开发 | P0 | - |
+| MB-08 | 新建宝宝列表页 (baby_list) | 🆕 待开发 | P0 | - |
+| MB-09 | 设置页 宝宝管理 → 跳转 baby_list | 🆕 待开发 | P0 | MB-08 |
+| MB-10 | baby_list 点击宝宝 → 跳转 baby_profile | 🆕 待开发 | P0 | MB-08 |
+| MB-11 | baby_list 点击 "+添加宝宝" → 跳转 baby_onboarding | 🆕 待开发 | P0 | MB-08 |
+
+---
+
 ## 术语对照
 
 | 英文 | 中文 | 说明 |
