@@ -49,4 +49,10 @@ async def health_check():
 
 # 路由注册
 from app.routers import auth as auth_router
+from app.routers import baby as baby_router
+from app.routers import media as media_router
+from app.routers import upload as upload_router
 app.include_router(auth_router.router, prefix="/api/v1/auth", tags=["认证"])
+app.include_router(baby_router.router, prefix="/api/v1/babies", tags=["宝宝"])
+app.include_router(media_router.router, prefix="/api/v1/media", tags=["媒体"])
+app.include_router(upload_router.router, prefix="/api/v1/upload", tags=["上传"])
