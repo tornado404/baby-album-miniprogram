@@ -78,7 +78,7 @@
 }
 
 .upload-icon-circle {
-  width: 160rpx;
+  width: 216rpx;
   height: 160rpx;
   border-radius: 80rpx;
   background: var(--clay-card-pink);
