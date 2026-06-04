@@ -101,6 +101,12 @@
   color: #806680;
 }
 
+.profile-avatar-image {
+  width: 240rpx;
+  height: 240rpx;
+  border-radius: 120rpx;
+}
+
 /* ---- Fields Wrapper ---- */
 .fields-wrapper {
   display: flex;

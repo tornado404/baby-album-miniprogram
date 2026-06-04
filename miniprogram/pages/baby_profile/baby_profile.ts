@@ -1,24 +1,53 @@
 // baby_profile.ts - 宝宝档案编辑页面
-// Claymorphism 设计风格
+// Claymorphism 设计风格，支持头像上传
 
 Page({
   data: {
     safeTop: 44,
     nickname: '小星星',
-    gender: 'female' as 'male' | 'female',
+    gender: 'female',
     birthDate: '2025-12-01',
     dueDate: '2025-11-24',
-    birthDateArray: [] as number[],
-    dueDateArray: [] as number[],
+    birthDateArray: [],
+    dueDateArray: [],
     weight: '7.2',
-    height: '65'
+    height: '65',
+    avatarUrl: '',
+    avatarEmoji: '👶'
   },
 
-  onLoad() {
-    const sysInfo = wx.getSystemInfoSync();
+  onLoad: function () {
+    var sysInfo = wx.getSystemInfoSync();
     this.setData({ safeTop: sysInfo.statusBarHeight || 44 });
 
-    // 初始化日期数组
+    // Load baby profile from storage if editing existing
+    var babyId = '';
+    try {
+      babyId = wx.getStorageSync('baby_diary_current_baby_id') || '';
+    } catch (e) {}
+
+    if (babyId) {
+      var storedBabies = [];
+      try {
+        storedBabies = wx.getStorageSync('album_babies') || [];
+      } catch (e) {}
+
+      for (var i = 0; i < storedBabies.length; i++) {
+        if (storedBabies[i].id === babyId) {
+          var baby = storedBabies[i];
+          var avatar = baby.avatar || '';
+          this.setData({
+            nickname: baby.name || '小星星',
+            gender: baby.gender || 'female',
+            birthDate: baby.birthDate || '2025-12-01',
+            avatarUrl: avatar.indexOf('http') === 0 ? avatar : '',
+            avatarEmoji: avatar.indexOf('http') !== 0 && avatar ? avatar : '👶'
+          });
+          break;
+        }
+      }
+    }
+
     if (this.data.birthDate) {
       this.setData({ birthDateArray: this.dateToArray(this.data.birthDate) });
     }
@@ -27,62 +56,116 @@ Page({
     }
   },
 
-  dateToArray(dateStr: string): number[] {
-    const parts = dateStr.split('-');
-    return parts.map(p => parseInt(p));
+  dateToArray: function (dateStr) {
+    var parts = dateStr.split('-');
+    return parts.map(function (p) { return parseInt(p); });
   },
 
-  arrayToDate(arr: number[]): string {
-    return arr.map(n => String(n).padStart(2, '0')).join('-');
+  arrayToDate: function (arr) {
+    return arr.map(function (n) { return String(n).padStart(2, '0'); }).join('-');
   },
 
-  onBack() {
+  onAvatarTap: function () {
+    var _this = this;
+    wx.showActionSheet({
+      itemList: ['拍照', '从相册选择'],
+      success: function (res) {
+        wx.chooseMedia({
+          count: 1,
+          mediaType: ['image'],
+          sourceType: [res.tapIndex === 0 ? 'camera' : 'album'],
+          success: function (mediaRes) {
+            var tempFile = mediaRes.tempFiles[0];
+            if (tempFile) {
+              _this.setData({
+                avatarUrl: tempFile.tempFilePath || '',
+                avatarEmoji: ''
+              });
+            }
+          }
+        });
+      }
+    });
+  },
+
+  onBack: function () {
     wx.navigateBack();
   },
 
-  onSave() {
+  onSave: function () {
+    // Save to storage
+    var babyProfile = {
+      name: this.data.nickname,
+      gender: this.data.gender,
+      birthDate: this.data.birthDate,
+      avatar: this.data.avatarUrl || this.data.avatarEmoji
+    };
+
+    try {
+      var babyId = wx.getStorageSync('baby_diary_current_baby_id') || '';
+      var storedBabies = wx.getStorageSync('album_babies') || [];
+
+      // Try to find and update existing baby
+      var found = false;
+      for (var i = 0; i < storedBabies.length; i++) {
+        if (storedBabies[i].id === babyId) {
+          storedBabies[i] = Object.assign(storedBabies[i], babyProfile);
+          found = true;
+          break;
+        }
+      }
+
+      if (!found) {
+        // Create new baby entry
+        babyProfile['id'] = babyId || 'baby_' + Date.now();
+        storedBabies.push(babyProfile);
+      }
+
+      wx.setStorageSync('album_babies', storedBabies);
+    } catch (e) {}
+
     wx.showToast({ title: '保存成功', icon: 'success' });
     wx.navigateBack();
   },
 
-  onNicknameInput(e: any) {
+  onNicknameInput: function (e) {
     this.setData({ nickname: e.detail.value });
   },
 
-  onGenderSelect(e: any) {
-    const { gender } = e.currentTarget.dataset;
-    this.setData({ gender });
+  onGenderSelect: function (e) {
+    var gender = e.currentTarget.dataset.gender;
+    this.setData({ gender: gender });
   },
 
-  onBirthDateChange(e: any) {
-    const val = e.detail.value;
-    const dateStr = this.arrayToDate(val);
+  onBirthDateChange: function (e) {
+    var val = e.detail.value;
+    var dateStr = this.arrayToDate(val);
     this.setData({ birthDate: dateStr, birthDateArray: val });
   },
 
-  onDueDateChange(e: any) {
-    const val = e.detail.value;
-    const dateStr = this.arrayToDate(val);
+  onDueDateChange: function (e) {
+    var val = e.detail.value;
+    var dateStr = this.arrayToDate(val);
     this.setData({ dueDate: dateStr, dueDateArray: val });
   },
 
-  onWeightMinus() {
-    const w = parseFloat(this.data.weight) - 0.1;
+  onWeightMinus: function () {
+    var w = parseFloat(this.data.weight) - 0.1;
     if (w >= 0) this.setData({ weight: w.toFixed(1) });
   },
 
-  onWeightPlus() {
-    const w = parseFloat(this.data.weight) + 0.1;
+  onWeightPlus: function () {
+    var w = parseFloat(this.data.weight) + 0.1;
     this.setData({ weight: w.toFixed(1) });
   },
 
-  onHeightMinus() {
-    const h = parseInt(this.data.height) - 1;
+  onHeightMinus: function () {
+    var h = parseInt(this.data.height) - 1;
     if (h >= 0) this.setData({ height: String(h) });
   },
 
-  onHeightPlus() {
-    const h = parseInt(this.data.height) + 1;
+  onHeightPlus: function () {
+    var h = parseInt(this.data.height) + 1;
     this.setData({ height: String(h) });
   }
 });

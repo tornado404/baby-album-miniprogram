@@ -1,9 +1,11 @@
 "use strict";
 // upload.ts - 上传页面
-// Claymorphism 设计风格
+// Claymorphism 设计风格，使用 Mock 云存储
 Page({
     data: {
-        safeTop: 44 // 状态栏高度
+        safeTop: 44,
+        isUploading: false,
+        uploadProgress: 0
     },
     onLoad: function () {
         var sysInfo = wx.getSystemInfoSync();
@@ -40,10 +42,68 @@ Page({
         });
     },
     handleMediaResult: function (res) {
+        var _this = this;
         var files = res.tempFiles || [];
-        if (files.length > 0) {
-            wx.showToast({ title: "\u5DF2\u9009\u62E9".concat(files.length, "\u4E2A\u6587\u4EF6"), icon: 'none' });
-            // TODO: 实际上传逻辑
+        if (files.length === 0)
+            return;
+        this.setData({ isUploading: true, uploadProgress: 0 });
+        var uploaded = 0;
+        var total = files.length;
+        // Get current baby ID for associating media
+        var babyId = '';
+        try {
+            babyId = wx.getStorageSync('baby_diary_current_baby_id') || 'demo-1';
         }
+        catch (e) {
+            babyId = 'demo-1';
+        }
+        // Process each file
+        for (var i = 0; i < files.length; i++) {
+            var file = files[i];
+            this.mockUpload(file, babyId, function () {
+                uploaded++;
+                _this.setData({ uploadProgress: Math.floor(uploaded / total * 100) });
+                if (uploaded >= total) {
+                    _this.setData({ isUploading: false, uploadProgress: 0 });
+                    wx.showToast({ title: '上传完成(mock)', icon: 'success', duration: 1500 });
+                }
+            });
+        }
+    },
+    mockUpload: function (file, babyId, callback) {
+        // Simulate network delay
+        setTimeout(function () {
+            // Create a media record in storage
+            var mediaList = [];
+            try {
+                var stored = wx.getStorageSync('album_media');
+                if (stored && Array.isArray(stored)) {
+                    mediaList = stored;
+                }
+            }
+            catch (e) { }
+            var now = new Date();
+            var dateStr = now.getFullYear() + '-' +
+                String(now.getMonth() + 1).padStart(2, '0') + '-' +
+                String(now.getDate()).padStart(2, '0');
+            var mediaItem = {
+                id: 'media_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
+                title: '新记录',
+                url: file.tempFilePath || '',
+                thumbnailUrl: file.tempFilePath || '',
+                captureDate: dateStr,
+                type: file.mediaType === 'video' ? 'video' : 'image',
+                babyId: babyId,
+                cardColor: ['pink', 'blue', 'beige', 'mint'][Math.floor(Math.random() * 4)],
+                createdAt: now.toISOString()
+            };
+            mediaList.unshift(mediaItem);
+            try {
+                wx.setStorageSync('album_media', mediaList);
+            }
+            catch (e) { }
+            if (callback)
+                callback();
+        }, 800);
     }
 });

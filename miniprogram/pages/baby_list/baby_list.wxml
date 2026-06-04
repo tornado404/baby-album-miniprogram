@@ -1,0 +1,50 @@
+<view class="page page-baby-list">
+
+  <!-- Status Bar -->
+  <view class="status-bar" style="height: {{safeTop}}px;"></view>
+
+  <!-- Navigation Bar -->
+  <view class="list-nav">
+    <view class="nav-btn-circle" bindtap="onBack">
+      <text>←</text>
+    </view>
+    <text class="nav-title">选择宝宝</text>
+    <view class="nav-spacer-right"></view>
+  </view>
+
+  <!-- Content Area -->
+  <scroll-view class="content-area" scroll-y enable-flex>
+    <view class="list-inner">
+
+      <!-- Loading -->
+      <view wx:if="{{isLoading}}" class="load-state">
+        <text>加载中...</text>
+      </view>
+
+      <!-- Empty State -->
+      <view wx:elif="{{babies.length === 0}}" class="empty-state">
+        <text class="empty-text">还没有宝宝哦</text>
+        <text class="empty-hint">添加第一个宝宝开始记录成长</text>
+      </view>
+
+      <!-- Baby Cards -->
+      <view wx:for="{{babies}}" wx:key="id" class="baby-card" data-id="{{item.id}}" bindtap="onBabyTap">
+        <view class="baby-card-avatar" style="background-color: {{item.gender === 'male' ? '#dceaf1' : '#f1dce2'}};">
+          <image wx:if="{{item.avatar && item.avatar.indexOf('http') === 0}}" class="card-avatar-image" src="{{item.avatar}}" mode="aspectFill"></image>
+          <text wx:else>{{item.avatar || '👶'}}</text>
+        </view>
+        <view class="baby-card-info">
+          <text class="baby-card-name">{{item.name}}</text>
+          <text class="baby-card-age">{{item.ageText || '年龄未知'}}</text>
+        </view>
+        <text class="baby-card-arrow">›</text>
+      </view>
+
+      <!-- Add Baby Button -->
+      <view class="add-btn" bindtap="onAddBaby" hover-class="add-btn-hover">
+        <text class="add-btn-plus">+</text>
+        <text class="add-btn-label">添加宝宝</text>
+      </view>
+    </view>
+  </scroll-view>
+</view>

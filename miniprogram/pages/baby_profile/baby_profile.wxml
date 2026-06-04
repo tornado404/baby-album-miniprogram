@@ -17,8 +17,9 @@
 
     <!-- Avatar Card -->
     <view class="avatar-card">
-      <view class="avatar-circle">
-        <text>👶</text>
+      <view class="avatar-circle" bindtap="onAvatarTap">
+        <image wx:if="{{avatarUrl}}" class="profile-avatar-image" src="{{avatarUrl}}" mode="aspectFill"></image>
+        <text wx:else>{{avatarEmoji}}</text>
       </view>
     </view>
 

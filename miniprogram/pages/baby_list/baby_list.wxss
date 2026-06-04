@@ -1,0 +1,199 @@
+/* baby_list.wxss - 宝宝列表页 Claymorphism 风格 */
+
+.page-baby-list {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: #fffbf8;
+}
+
+.status-bar {
+  flex-shrink: 0;
+}
+
+/* ---- Navigation Bar ---- */
+.list-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 104rpx;
+  padding: 0 40rpx 0 24rpx;
+  flex-shrink: 0;
+}
+
+.list-nav .nav-btn-circle {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 36rpx;
+  background: #f9f0e9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.list-nav .nav-btn-circle text {
+  font-size: 40rpx;
+  color: #4a4a4a;
+  font-weight: 600;
+}
+
+.list-nav .nav-title {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #4a4a4a;
+}
+
+.nav-spacer-right {
+  width: 28px;
+  height: 36px;
+  flex-shrink: 0;
+}
+
+/* ---- Content Area ---- */
+.content-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 750rpx;
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+
+.list-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20rpx;
+  padding: 40rpx 20rpx 60rpx;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* ---- Loading / Empty ---- */
+.load-state,
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 120rpx 0;
+  gap: 16rpx;
+}
+
+.load-state text {
+  font-size: 28rpx;
+  color: #999;
+}
+
+.empty-text {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #4a4a4a;
+}
+
+.empty-hint {
+  font-size: 26rpx;
+  color: #999;
+}
+
+/* ---- Baby Card ---- */
+.baby-card {
+  width: 670rpx;
+  height: 200rpx;
+  background: #ffffff;
+  border-radius: 48rpx;
+  box-shadow: 0px 6px 16px 0px rgba(230, 198, 179, 0.25);
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+  padding: 0 32rpx;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+.baby-card:active {
+  opacity: 0.9;
+  transform: scale(0.98);
+}
+
+.baby-card-avatar {
+  width: 112rpx;
+  height: 112rpx;
+  border-radius: 56rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.baby-card-avatar text {
+  font-size: 56rpx;
+  color: #806680;
+}
+
+.card-avatar-image {
+  width: 112rpx;
+  height: 112rpx;
+  border-radius: 56rpx;
+}
+
+.baby-card-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.baby-card-name {
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #4a4a4a;
+}
+
+.baby-card-age {
+  font-size: 26rpx;
+  font-weight: 500;
+  color: #999;
+}
+
+.baby-card-arrow {
+  font-size: 44rpx;
+  color: #b3b3b3;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+/* ---- Add Baby Button ---- */
+.add-btn {
+  width: 400rpx;
+  height: 112rpx;
+  border-radius: 56rpx;
+  background: #ffa87a;
+  box-shadow: 0px 4px 12px 0px rgba(255, 168, 122, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+  flex-shrink: 0;
+  margin-top: 20rpx;
+}
+
+.add-btn-hover {
+  opacity: 0.85;
+  transform: scale(0.97);
+}
+
+.add-btn-plus {
+  font-size: 44rpx;
+  font-weight: 300;
+  color: #ffffff;
+  line-height: 1;
+}
+
+.add-btn-label {
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #ffffff;
+}

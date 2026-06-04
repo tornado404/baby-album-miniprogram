@@ -18,7 +18,7 @@ Page({
     onMenuTap: function (e) {
         var key = e.currentTarget.dataset.key;
         var routes = {
-            baby_manage: '/pages/baby_profile/baby_profile',
+            baby_manage: '/pages/baby_list/baby_list',
             growth_compare: '',
             achievements: '',
             storage: '',

@@ -1,4 +1,4 @@
-<!-- album_home.wxml - Claymorphism 首页（精确 Figma 还原） -->
+<!-- album_home.wxml - Claymorphism 首页 -->
 <view class="page-home">
 
   <!-- Status Bar Spacer -->
@@ -7,30 +7,49 @@
   <!-- Navigation Bar -->
   <view class="home-nav">
     <text class="home-nav-title">宝宝成长日记</text>
-    <view class="home-nav-actions">
-      <!-- Orange upload button with shadow -->
-      <view class="nav-btn-upload" bindtap="onUploadTap">
-        <text class="nav-btn-plus">+</text>
-      </view>
-      <!-- Lavender profile avatar -->
-      <view class="nav-btn-profile" bindtap="goToSettings">
-        <text class="nav-btn-emoji">👤</text>
-      </view>
-    </view>
+    <view class="home-nav-spacer"></view>
   </view>
 
   <!-- Content -->
   <view class="clay-content">
 
-    <!-- Baby Info Header Card -->
-    <view class="baby-header-card" bindtap="onBabySelect">
-      <view class="baby-header-avatar"><text>👶</text></view>
-      <view class="baby-header-info">
-        <text class="baby-header-name">{{currentBaby ? currentBaby.name : '选择宝宝'}} ✨</text>
-        <text class="baby-header-age">{{babyAgeText}}</text>
+    <!-- ===== Baby Info Header (双态折叠) ===== -->
+    <view class="baby-header-container {{headerCollapsed ? 'collapsed' : 'expanded'}}">
+
+      <!-- 展开态：完整信息卡片 -->
+      <view class="baby-header-expanded {{headerCollapsed ? 'fade-out' : ''}}">
+        <view class="baby-header-avatar">
+          <image wx:if="{{currentBaby && currentBaby.avatar && currentBaby.avatar.indexOf('http') === 0}}" class="header-avatar-image" src="{{currentBaby.avatar}}" mode="aspectFill"></image>
+          <text wx:else>{{currentBaby ? (currentBaby.avatar || '👶') : '👶'}}</text>
+        </view>
+        <view class="baby-header-info">
+          <text class="baby-header-name">{{currentBaby ? currentBaby.name : '选择宝宝'}} ✨</text>
+          <text class="baby-header-age">{{babyAgeText}}</text>
+        </view>
+        <view class="baby-header-setting" catchtap="goToBabyProfile">
+          <text>⚙</text>
+        </view>
       </view>
-      <view class="baby-header-setting" catchtap="goToBabyProfile">
-        <text>⚙</text>
+
+      <!-- 折叠态：水平宝宝头像条 -->
+      <view class="baby-header-collapsed {{headerCollapsed ? '' : 'fade-out'}}">
+        <scroll-view class="baby-strip-scroll" scroll-x enable-flex>
+          <view wx:for="{{babies}}" wx:key="id"
+            class="baby-strip-item {{currentBabyId === item.id ? 'active' : ''}}"
+            data-id="{{item.id}}"
+            bindtap="onBabyStripTap"
+          >
+            <view class="strip-avatar" style="background-color: {{item.gender === 'male' ? '#dceaf1' : '#f1dce2'}};">
+              <text>{{item.avatar || '👶'}}</text>
+            </view>
+          </view>
+          <!-- 加号按钮 -->
+          <view class="baby-strip-item strip-add-btn" bindtap="onAddBabyTap">
+            <view class="strip-add-circle">
+              <text>+</text>
+            </view>
+          </view>
+        </scroll-view>
       </view>
     </view>
 

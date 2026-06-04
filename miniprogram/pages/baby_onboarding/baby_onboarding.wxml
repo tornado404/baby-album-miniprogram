@@ -24,7 +24,8 @@
       <!-- Avatar Section -->
       <view class="avatar-section">
         <view class="avatar-circle" bindtap="onAvatarTap">
-          <text class="avatar-emoji">{{avatarEmoji}}</text>
+          <image wx:if="{{avatarUrl}}" class="avatar-image" src="{{avatarUrl}}" mode="aspectFill"></image>
+          <text wx:else class="avatar-emoji">{{avatarEmoji || '👶'}}</text>
         </view>
         <text class="avatar-hint">点击设置头像</text>
       </view>

@@ -2,12 +2,14 @@
 // 简化版：仅头像+昵称，保存后跳转首页
 
 const BABY_KEY = 'baby_diary_baby_profile';
+const CURRENT_BABY_KEY = 'baby_diary_current_baby_id';
 
 Page({
   data: {
     safeTop: 44,
     nickname: '',
     avatarEmoji: '👶',
+    avatarUrl: '',
     isSaving: false,
     inputFocus: false
   },
@@ -18,7 +20,6 @@ Page({
       this.setData({ safeTop: info.statusBarHeight || 44 });
     } catch (e) {}
 
-    // Auto-focus the nickname input
     setTimeout(() => {
       this.setData({ inputFocus: true });
     }, 500);
@@ -29,12 +30,25 @@ Page({
   },
 
   onAvatarTap() {
-    // For MVP: show toast that avatar custom upload is coming
-    // In future: implement wx.chooseMedia for avatar
-    wx.showToast({
-      title: '头像功能即将开放',
-      icon: 'none',
-      duration: 1500
+    var _this = this;
+    wx.showActionSheet({
+      itemList: ['拍照', '从相册选择'],
+      success: function (res) {
+        wx.chooseMedia({
+          count: 1,
+          mediaType: ['image'],
+          sourceType: [res.tapIndex === 0 ? 'camera' : 'album'],
+          success: function (mediaRes) {
+            var tempFile = mediaRes.tempFiles[0];
+            if (tempFile) {
+              _this.setData({
+                avatarUrl: tempFile.tempFilePath || tempFile.thumbTempFilePath || '',
+                avatarEmoji: ''
+              });
+            }
+          }
+        });
+      }
     });
   },
 
@@ -56,16 +70,16 @@ Page({
 
     this.setData({ isSaving: true });
 
-    // Save baby profile (minimal version)
     var babyProfile = {
       id: 'baby_' + Date.now(),
       name: nickname,
-      avatar: this.data.avatarEmoji,
+      avatar: this.data.avatarUrl || this.data.avatarEmoji,
       createdAt: new Date().toISOString()
     };
 
     try {
       wx.setStorageSync(BABY_KEY, babyProfile);
+      wx.setStorageSync(CURRENT_BABY_KEY, babyProfile.id);
     } catch (e) {
       wx.showToast({
         title: '保存失败，请重试',
@@ -82,7 +96,6 @@ Page({
       duration: 1000
     });
 
-    // Navigate to album home after save
     setTimeout(() => {
       wx.redirectTo({
         url: '/pages/album_home/album_home'

@@ -21,44 +21,12 @@
   font-weight: 700;
   color: #4a4a4a;
 }
-.home-nav-actions {
-  display: flex;
-  align-items: center;
-  gap: 24rpx;
-}
 
-/* Upload button - orange pill */
-.nav-btn-upload {
-  width: 72rpx;
-  height: 72rpx;
-  border-radius: 36rpx;
-  background: #ffa87a;
-  box-shadow: 0px 4px 8px 0px rgba(255, 168, 122, 0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.nav-btn-upload .nav-btn-plus {
-  font-size: 44rpx;
-  font-weight: 600;
-  color: #ffffff;
-  line-height: 1;
-}
-
-/* Profile avatar - lavender circle */
-.nav-btn-profile {
-  width: 72rpx;
-  height: 72rpx;
-  border-radius: 36rpx;
-  background: #ddd6ea;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.nav-btn-profile .nav-btn-emoji {
-  font-size: 32rpx;
-  color: #669;
-  line-height: 1;
+/* Right spacer to balance nav bar (replaces removed right buttons) */
+.home-nav-spacer {
+  width: 28px;
+  height: 36px;
+  flex-shrink: 0;
 }
 
 /* ---- Content Area ---- */
@@ -70,6 +38,51 @@
   padding: 20rpx 40rpx 160rpx;
   overflow-y: auto;
   box-sizing: border-box;
+}
+
+/* ===== Baby Header Container (展开/折叠双态) ===== */
+.baby-header-container {
+  width: 602rpx;
+  background: #ffffff;
+  border-radius: 40rpx;
+  box-shadow: 0px 6px 16px 0px rgba(230, 198, 179, 0.35);
+  flex-shrink: 0;
+  overflow: hidden;
+  transition: height 0.3s ease, padding 0.3s ease;
+  position: relative;
+}
+
+.baby-header-container.expanded {
+  height: 136rpx;
+  padding: 0 32rpx;
+}
+
+.baby-header-container.collapsed {
+  height: 90rpx;
+  padding: 0 24rpx;
+}
+
+/* Expanded state */
+.baby-header-expanded {
+  display: flex;
+  align-items: center;
+  gap: 28rpx;
+  width: 100%;
+  height: 100%;
+  transition: opacity 0.25s ease;
+}
+
+.baby-header-collapsed {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  transition: opacity 0.25s ease;
+}
+
+.fade-out {
+  opacity: 0;
+  pointer-events: none;
 }
 
 /* Baby Info Header Card */
@@ -98,6 +111,12 @@
 .baby-header-avatar text {
   font-size: 44rpx;
   color: #806680;
+}
+
+.header-avatar-image {
+  width: 68rpx;
+  height: 88rpx;
+  border-radius: 44rpx;
 }
 .baby-header-info {
   flex: 1;
@@ -129,6 +148,70 @@
 .baby-header-setting text {
   font-size: 30rpx;
   color: #998066;
+}
+
+/* ===== Baby Strip (折叠态头像条) ===== */
+.baby-strip-scroll {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  height: 100%;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.baby-strip-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.baby-strip-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 0 6rpx;
+  height: 100%;
+}
+
+.strip-avatar {
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 28rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.baby-strip-item.active .strip-avatar {
+  box-shadow: 0 0 0 3rpx #ffa87a;
+}
+
+.strip-avatar text {
+  font-size: 28rpx;
+  color: #806680;
+}
+
+.strip-add-btn {
+  padding-left: 10rpx;
+}
+
+.strip-add-circle {
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 28rpx;
+  background: #ffa87a;
+  box-shadow: 0px 3px 6px 0px rgba(255, 168, 122, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.strip-add-circle text {
+  font-size: 36rpx;
+  font-weight: 300;
+  color: #ffffff;
+  line-height: 1;
 }
 
 /* ---- Month Filter ---- */

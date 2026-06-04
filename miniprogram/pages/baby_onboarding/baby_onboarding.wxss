@@ -149,6 +149,12 @@
   color: #806680;
 }
 
+.avatar-image {
+  width: 100px;
+  height: 100px;
+  border-radius: 50px;
+}
+
 .avatar-hint {
   font-size: 14px;
   color: #808080;

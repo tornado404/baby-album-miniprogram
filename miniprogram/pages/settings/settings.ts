@@ -20,7 +20,7 @@ Page({
   onMenuTap(e: any) {
     const { key } = e.currentTarget.dataset;
     const routes: Record<string, string> = {
-      baby_manage: '/pages/baby_profile/baby_profile',
+      baby_manage: '/pages/baby_list/baby_list',
       growth_compare: '',
       achievements: '',
       storage: '',
