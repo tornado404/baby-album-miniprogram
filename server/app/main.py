@@ -47,8 +47,6 @@ async def health_check():
     return {"status": "ok", "app": settings.APP_NAME}
 
 
-# 路由注册（各 Feature 逐步添加）
-# from app.routers import auth, baby, media, upload, sync, share, analytics, export
-# app.include_router(auth.router, prefix="/api/v1/auth", tags=["认证"])
-# app.include_router(baby.router, prefix="/api/v1/babies", tags=["宝宝"])
-# app.include_router(media.router, prefix="/api/v1/media", tags=["媒体"])
+# 路由注册
+from app.routers import auth as auth_router
+app.include_router(auth_router.router, prefix="/api/v1/auth", tags=["认证"])
