@@ -1,0 +1,82 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: baby-postgres
+    environment:
+      POSTGRES_DB: baby_album
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-Cs516@2026}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app -d baby_album"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    networks:
+      - baby-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: baby-redis
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+    networks:
+      - baby-network
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: baby-api
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://app:${DB_PASSWORD:-Cs516@2026}@postgres:5432/baby_album
+      REDIS_URL: redis://redis:6379/0
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+    networks:
+      - baby-network
+
+  nginx:
+    image: nginx:alpine
+    container_name: baby-nginx
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - api
+    restart: unless-stopped
+    networks:
+      - baby-network
+
+networks:
+  baby-network:
+    driver: bridge
+
+volumes:
+  pgdata:
+  redisdata:

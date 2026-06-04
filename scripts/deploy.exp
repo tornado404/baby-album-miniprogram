@@ -1,0 +1,34 @@
+#!/usr/bin/expect -f
+# 部署脚本 - 自动化 SSH 部署到云服务器
+
+set timeout 30
+set server "root@101.126.41.146"
+set password "Cs516@123456"
+set remote_dir "/opt/baby-album"
+
+# 1. 连接并检查 Docker
+spawn ssh -o StrictHostKeyChecking=no $server
+expect "password:"
+send "$password\r"
+expect "#"
+
+send "echo '=== 1. 检查 Docker ==='\r"
+expect "#"
+send "docker --version 2>/dev/null || (curl -fsSL https://get.docker.com | bash && systemctl enable docker && systemctl start docker)\r"
+expect "#"
+
+send "mkdir -p $remote_dir\r"
+expect "#"
+
+send "echo '=== 服务器就绪 ==='\r"
+expect "#"
+
+send "exit\r"
+expect eof
+
+puts "\n✅ 服务器连接成功，Docker 已就绪"
+puts "📁 远程目录: $remote_dir"
+puts "  接下来请手动同步文件并启动容器："
+puts "  cd $(git rev-parse --show-toplevel)/server"
+puts "  scp -r ./* root@101.126.41.146:$remote_dir/"
+puts "  ssh root@101.126.41.146 'cd $remote_dir && docker compose up -d'"
