@@ -13,7 +13,7 @@
   </view>
 
   <!-- Content Area -->
-  <scroll-view class="content-area" scroll-y>
+  <scroll-view class="content-area" scroll-y enable-flex>
     <!-- Upload Card -->
     <view class="upload-card">
       <view class="upload-icon-circle">

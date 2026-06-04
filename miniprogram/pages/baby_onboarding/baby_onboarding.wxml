@@ -1,0 +1,62 @@
+<view class="page" style="padding-top: {{safeTop}}px;">
+  <!-- Status Bar -->
+  <view class="status-bar" style="height: {{safeTop}}px;">
+    <text class="status-time">9:41</text>
+    <view class="status-icons">
+      <view class="icon-signal"></view>
+      <view class="icon-wifi"></view>
+      <view class="icon-battery"></view>
+    </view>
+  </view>
+
+  <!-- Navigation Bar -->
+  <view class="nav-bar">
+    <view class="nav-back" bindtap="onBack">
+      <text class="nav-back-icon">←</text>
+    </view>
+    <text class="nav-title">宝宝信息</text>
+    <view class="nav-spacer"></view>
+  </view>
+
+  <!-- Content Area -->
+  <scroll-view class="content-area" scroll-y>
+    <view class="content-inner">
+      <!-- Avatar Section -->
+      <view class="avatar-section">
+        <view class="avatar-circle" bindtap="onAvatarTap">
+          <text class="avatar-emoji">{{avatarEmoji}}</text>
+        </view>
+        <text class="avatar-hint">点击设置头像</text>
+      </view>
+
+      <!-- Nickname Field -->
+      <view class="field-card">
+        <view class="field-icon">
+          <text class="field-icon-text">✨</text>
+        </view>
+        <text class="field-label">宝宝昵称</text>
+        <view class="field-spacer"></view>
+        <view class="field-input-wrapper {{inputFocus ? 'field-input-focused' : ''}}">
+          <input
+            class="field-input"
+            type="text"
+            placeholder="输入宝宝昵称"
+            placeholder-style="color: #999; font-size: 14px;"
+            value="{{nickname}}"
+            bindinput="onNicknameInput"
+            focus="{{inputFocus}}"
+            maxlength="20"
+          />
+          <view class="field-cursor" wx:if="{{nickname.length === 0 && inputFocus}}"></view>
+        </view>
+      </view>
+
+      <!-- Save Button -->
+      <view class="save-btn-wrapper">
+        <view class="save-btn {{isSaving ? 'save-btn-disabled' : ''}}" bindtap="onSave" hover-class="save-btn-hover">
+          <text class="save-btn-text">{{isSaving ? '保存中...' : '保存'}}</text>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+</view>

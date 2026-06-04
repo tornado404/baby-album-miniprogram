@@ -22,11 +22,11 @@ export interface BabyAge {
 export interface Baby {
   id: string;                    // 唯一标识符
   name: string;                  // 宝宝姓名
-  birthDate: string;            // 出生日期 (YYYY-MM-DD)
-  gender: BabyGender;            // 性别
+  birthDate?: string;            // 出生日期 (YYYY-MM-DD)，首次登录可选
+  gender?: BabyGender;           // 性别，首次登录可选
   avatar?: string;              // 头像URL
   createdAt: string;            // 创建时间 ISO8601
-  updatedAt: string;             // 更新时间 ISO8601
+  updatedAt?: string;           // 更新时间 ISO8601
 }
 
 /**

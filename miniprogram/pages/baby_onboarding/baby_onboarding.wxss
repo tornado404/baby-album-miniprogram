@@ -1,0 +1,279 @@
+/* baby_onboarding.wxss - 首次登录宝宝信息页 */
+/* Claymorphism 风格，精确还原 Figma 设计稿 */
+
+/* ===== 页面基础 ===== */
+.page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  min-height: 100vh;
+  background-color: #fffbf8;
+  position: relative;
+  overflow: hidden;
+}
+
+/* ===== Status Bar ===== */
+.status-bar {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  box-sizing: border-box;
+  background-color: #fffbf8;
+  flex-shrink: 0;
+}
+
+.status-time {
+  font-size: 15px;
+  font-weight: 600;
+  color: #4a4a4a;
+  font-family: "Inter", -apple-system, sans-serif;
+}
+
+.status-icons {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+}
+
+.icon-signal {
+  width: 18px;
+  height: 12px;
+  background-color: #4a4a4a;
+  border-radius: 2px;
+}
+
+.icon-wifi {
+  width: 16px;
+  height: 12px;
+  background-color: #4a4a4a;
+  border-radius: 2px;
+}
+
+.icon-battery {
+  width: 24px;
+  height: 12px;
+  background-color: #4a4a4a;
+  border-radius: 2px;
+}
+
+/* ===== Navigation Bar ===== */
+.nav-bar {
+  width: 100%;
+  height: 52px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px 0 12px;
+  box-sizing: border-box;
+  background-color: #fffbf8;
+  flex-shrink: 0;
+}
+
+.nav-back {
+  width: 28px;
+  height: 36px;
+  border-radius: 18px;
+  background-color: #f9f0e9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.nav-back-icon {
+  font-size: 20px;
+  font-weight: 600;
+  color: #4a4a4a;
+  line-height: normal;
+}
+
+.nav-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #4a4a4a;
+  line-height: normal;
+}
+
+.nav-spacer {
+  width: 28px;
+  height: 36px;
+  flex-shrink: 0;
+}
+
+/* ===== Content Area ===== */
+.content-area {
+  flex: 1;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.content-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 60px 20px 40px;
+  gap: 32px;
+  min-height: 100%;
+  box-sizing: border-box;
+}
+
+/* ===== Avatar Section ===== */
+.avatar-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.avatar-circle {
+  width: 100px;
+  height: 100px;
+  border-radius: 50px;
+  background-color: #f1dce2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0px 8px 20px 0px rgba(241, 220, 226, 0.4);
+  position: relative;
+}
+
+.avatar-emoji {
+  font-size: 48px;
+  line-height: normal;
+  color: #806680;
+}
+
+.avatar-hint {
+  font-size: 14px;
+  color: #808080;
+  line-height: normal;
+}
+
+/* ===== Nickname Field Card ===== */
+.field-card {
+  width: 335px;
+  height: 64px;
+  border-radius: 18px;
+  background-color: #ffffff;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 0 12px;
+  gap: 8px;
+  box-sizing: border-box;
+  box-shadow: 0px 3px 8px 0px rgba(230, 198, 179, 0.18);
+  flex-shrink: 0;
+}
+
+.field-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  background-color: #f9f0e9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.field-icon-text {
+  font-size: 18px;
+  line-height: normal;
+  color: #806666;
+}
+
+.field-label {
+  font-size: 14px;
+  color: #808080;
+  line-height: normal;
+  flex-shrink: 0;
+}
+
+.field-spacer {
+  flex: 1;
+  min-width: 1px;
+  height: 1px;
+}
+
+.field-input-wrapper {
+  height: 36px;
+  border-radius: 14px;
+  background-color: #faf9f8;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 0 8px;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+}
+
+.field-input-focused {
+  background-color: #ffffff;
+  box-shadow: 0 0 0 1.5px rgba(255, 168, 122, 0.3);
+}
+
+.field-input {
+  font-size: 14px;
+  font-weight: 500;
+  color: #4a4a4a;
+  line-height: normal;
+  min-width: 80px;
+  height: 100%;
+}
+
+.field-cursor {
+  width: 1.5px;
+  height: 16px;
+  background-color: #ffa87a;
+  border-radius: 1px;
+  margin-left: 4px;
+  animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* ===== Save Button ===== */
+.save-btn-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  padding-top: 8px;
+}
+
+.save-btn {
+  width: 200px;
+  height: 56px;
+  border-radius: 28px;
+  background-color: #ffa87a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0px 4px 12px 0px rgba(255, 168, 122, 0.3);
+  transition: all 0.2s ease;
+}
+
+.save-btn-hover {
+  opacity: 0.85;
+  transform: scale(0.97);
+}
+
+.save-btn-disabled {
+  opacity: 0.6;
+}
+
+.save-btn-text {
+  font-size: 17px;
+  font-weight: 600;
+  color: #ffffff;
+  line-height: normal;
+}

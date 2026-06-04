@@ -58,6 +58,7 @@
   align-items: center;
   gap: 24rpx;
   padding: 32rpx 0;
+  width: 750rpx;
   box-sizing: border-box;
   overflow-y: auto;
 }
@@ -108,13 +109,13 @@
   font-size: var(--clay-font-lg);
   color: var(--clay-text-primary);
   font-weight: 600;
-  padding: 16rpx 40rpx 0;
-  align-self: flex-start;
+  padding: 16rpx 0 0;
+  text-align: center;
 }
 
 /* Upload Options */
 .upload-option {
-  width: 670rpx;
+  width: 642rpx;
   height: 144rpx;
   background: var(--clay-card-white);
   border-radius: var(--clay-radius-xxl);
@@ -125,6 +126,7 @@
   padding: 0 32rpx;
   flex-shrink: 0;
   box-sizing: border-box;
+  margin: 0 auto;
 }
 
 .option-icon {

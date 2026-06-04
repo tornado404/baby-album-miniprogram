@@ -9,7 +9,7 @@
   </view>
 
   <!-- Content Area -->
-  <scroll-view class="content-area" scroll-y>
+  <scroll-view class="content-area" scroll-y enable-flex>
 
     <!-- User Card -->
     <view class="user-card">

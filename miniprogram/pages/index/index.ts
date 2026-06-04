@@ -63,11 +63,11 @@ Page({
       // Has profile → go to home
       this.redirectToHome();
     } else {
-      // No profile → guide to create
-      wx.showToast({ title: '欢迎！请先创建宝宝档案', icon: 'none', duration: 2000 });
+      // No profile → go to simplified baby onboarding (nickname + avatar only)
+      wx.showToast({ title: '欢迎！请先设置宝宝昵称', icon: 'none', duration: 1500 });
       setTimeout(() => {
-        wx.redirectTo({ url: '/pages/baby_profile/baby_profile' });
-      }, 1500);
+        wx.redirectTo({ url: '/pages/baby_onboarding/baby_onboarding' });
+      }, 1200);
     }
   },
 

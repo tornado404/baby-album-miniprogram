@@ -60,6 +60,13 @@
   color: #ffffff;
 }
 
+/* Spacer to balance nav bar (replaces removed save button) */
+.nav-spacer-right {
+  width: 28px;
+  height: 36px;
+  flex-shrink: 0;
+}
+
 /* ---- Content Area ---- */
 .content-area {
   flex: 1;
@@ -68,6 +75,7 @@
   align-items: center;
   gap: 40rpx;
   padding: 40rpx 0 160rpx;
+  width: 750rpx;
   box-sizing: border-box;
   overflow-y: auto;
 }
@@ -99,7 +107,7 @@
   flex-direction: column;
   align-items: center;
   gap: 20rpx;
-  padding: 16rpx 0;
+  padding: 16rpx;
   width: 670rpx;
   flex-shrink: 0;
 }
@@ -114,7 +122,7 @@
   display: flex;
   align-items: center;
   gap: 16rpx;
-  padding: 0 24rpx;
+  padding: 24rpx;
   flex-shrink: 0;
   box-sizing: border-box;
 }
@@ -275,4 +283,35 @@
 .num-unit {
   font-size: 26rpx;
   color: #999;
+}
+
+/* ---- Save Button (底部居中) ---- */
+.save-btn-wrapper {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  padding: 16rpx 0 40rpx;
+  flex-shrink: 0;
+}
+
+.save-btn {
+  width: 400rpx;
+  height: 112rpx;
+  border-radius: 56rpx;
+  background: #ffa87a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0px 4px 12px 0px rgba(255, 168, 122, 0.3);
+}
+
+.save-btn-hover {
+  opacity: 0.85;
+  transform: scale(0.97);
+}
+
+.save-btn-text {
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #ffffff;
 }

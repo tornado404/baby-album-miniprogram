@@ -46,7 +46,7 @@
 ├── scripts/                     # 自动化脚本
 └── miniprogram/                 # 小程序主目录
     ├── app.ts / app.json / app.wxss
-    ├── pages/                   # 9 个页面
+    ├── pages/                   # 10 个页面
     ├── components/              # 6 个组件
     ├── services/                # 2 个服务
     ├── utils/                   # 5 个工具模块
