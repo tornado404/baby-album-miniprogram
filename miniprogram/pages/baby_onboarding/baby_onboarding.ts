@@ -1,8 +1,10 @@
+// @ts-nocheck
 // baby_onboarding.ts - 首次登录宝宝信息填写页
-// 简化版：仅头像+昵称，保存后跳转首页
+// 对接后端 API：POST /api/v1/babies/ 保存到云端
 
 const BABY_KEY = 'baby_diary_baby_profile';
 const CURRENT_BABY_KEY = 'baby_diary_current_baby_id';
+const API_BASE = 'http://101.126.41.146:8000/api/v1';
 
 Page({
   data: {
@@ -11,23 +13,18 @@ Page({
     avatarEmoji: '👶',
     avatarUrl: '',
     isSaving: false,
-    inputFocus: false
+    inputFocus: false,
   },
 
   onLoad() {
     try {
-      const info = wx.getSystemInfoSync();
+      var info = wx.getSystemInfoSync();
       this.setData({ safeTop: info.statusBarHeight || 44 });
     } catch (e) {}
-
-    setTimeout(() => {
-      this.setData({ inputFocus: true });
-    }, 500);
+    setTimeout(() => { this.setData({ inputFocus: true }); }, 500);
   },
 
-  onBack() {
-    wx.navigateBack();
-  },
+  onBack() { wx.navigateBack(); },
 
   onAvatarTap() {
     var _this = this;
@@ -35,71 +32,49 @@ Page({
       itemList: ['拍照', '从相册选择'],
       success: function (res) {
         wx.chooseMedia({
-          count: 1,
-          mediaType: ['image'],
+          count: 1, mediaType: ['image'],
           sourceType: [res.tapIndex === 0 ? 'camera' : 'album'],
           success: function (mediaRes) {
-            var tempFile = mediaRes.tempFiles[0];
-            if (tempFile) {
-              _this.setData({
-                avatarUrl: tempFile.tempFilePath || tempFile.thumbTempFilePath || '',
-                avatarEmoji: ''
-              });
-            }
-          }
+            var f = mediaRes.tempFiles[0];
+            if (f) _this.setData({ avatarUrl: f.tempFilePath || '', avatarEmoji: '' });
+          },
         });
-      }
+      },
     });
   },
 
-  onNicknameInput(e: any) {
-    this.setData({ nickname: e.detail.value });
-  },
+  onNicknameInput(e) { this.setData({ nickname: e.detail.value }); },
 
   onSave() {
-    const nickname = this.data.nickname.trim();
-
-    if (!nickname) {
-      wx.showToast({
-        title: '请输入宝宝昵称',
-        icon: 'none',
-        duration: 1500
-      });
-      return;
-    }
-
+    var name = this.data.nickname.trim();
+    if (!name) { wx.showToast({ title: '请输入宝宝昵称', icon: 'none' }); return; }
     this.setData({ isSaving: true });
+    var _this = this;
 
-    var babyProfile = {
-      id: 'baby_' + Date.now(),
-      name: nickname,
-      avatar: this.data.avatarUrl || this.data.avatarEmoji,
-      createdAt: new Date().toISOString()
-    };
+    var token = '';
+    try { token = wx.getStorageSync('baby_diary_access_token') || ''; } catch (e) {}
 
-    try {
-      wx.setStorageSync(BABY_KEY, babyProfile);
-      wx.setStorageSync(CURRENT_BABY_KEY, babyProfile.id);
-    } catch (e) {
-      wx.showToast({
-        title: '保存失败，请重试',
-        icon: 'none',
-        duration: 1500
-      });
-      this.setData({ isSaving: false });
-      return;
-    }
-
-    wx.showToast({
-      title: '保存成功',
-      icon: 'success',
-      duration: 1000
+    wx.request({
+      url: API_BASE + '/babies/',
+      method: 'POST',
+      data: { name: name, gender: null, birthDate: null, avatar: _this.data.avatarUrl || _this.data.avatarEmoji },
+      header: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+      success: function (res) {
+        if (res.statusCode === 200 || res.statusCode === 201) {
+          var baby = res.data;
+          var profile = { id: baby.id || 'baby_' + Date.now(), name: name, avatar: _this.data.avatarUrl || _this.data.avatarEmoji, createdAt: new Date().toISOString() };
+          try { wx.setStorageSync(BABY_KEY, profile); wx.setStorageSync(CURRENT_BABY_KEY, profile.id); } catch (e) {}
+          wx.showToast({ title: '保存成功', icon: 'success', duration: 1000 });
+          setTimeout(function () { wx.redirectTo({ url: '/pages/album_home/album_home' }); }, 1000);
+        } else { _this.setData({ isSaving: false }); wx.showToast({ title: '保存失败', icon: 'none' }); }
+      },
+      fail: function () {
+        // 离线降级
+        var profile = { id: 'baby_' + Date.now(), name: name, avatar: _this.data.avatarUrl || _this.data.avatarEmoji, createdAt: new Date().toISOString() };
+        try { wx.setStorageSync(BABY_KEY, profile); wx.setStorageSync(CURRENT_BABY_KEY, profile.id); } catch (e) {}
+        wx.showToast({ title: '已保存到本地', icon: 'success', duration: 1000 });
+        setTimeout(function () { wx.redirectTo({ url: '/pages/album_home/album_home' }); }, 1000);
+      },
     });
-
-    setTimeout(() => {
-      wx.redirectTo({
-        url: '/pages/album_home/album_home'
-      });
-    }, 1000);
-  }
+  },
 });

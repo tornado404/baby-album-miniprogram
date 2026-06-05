@@ -1,4 +1,8 @@
 // @ts-nocheck
+// album_home.ts - 首页，对接后端 API
+
+const API_BASE = 'http://101.126.41.146:8000/api/v1';
+
 Page({
   data: {
     safeTop: 44,
@@ -20,7 +24,6 @@ Page({
       { label: '全部', value: null, minAge: null, maxAge: null, active: true }
     ],
     babyAgeText: '',
-    // Header animation
     headerCollapsed: false,
     headerHeight: 136
   },
@@ -32,103 +35,204 @@ Page({
     } catch (e) {}
 
     // Read currentBabyId from storage
-    var storedId = '';
     try {
-      storedId = wx.getStorageSync('baby_diary_current_baby_id') || '';
+      var storedId = wx.getStorageSync('baby_diary_current_baby_id') || '';
+      this.setData({ currentBabyId: storedId });
     } catch (e) {}
-    this.setData({ currentBabyId: storedId });
 
     this.initPage();
     this.loadBabies();
   },
 
   initPage: function () {
-    // Try to load media from storage, fallback to mock data
     var _this = this;
-    var babyId = this.data.currentBabyId || 'demo-1';
-    var allMedia = [];
+    var babyId = this.data.currentBabyId || '';
 
-    try {
-      var storedMedia = wx.getStorageSync('album_media');
-      if (storedMedia && Array.isArray(storedMedia) && storedMedia.length > 0) {
-        allMedia = storedMedia;
-      }
-    } catch (e) {}
+    this.setData({ isLoading: true });
 
-    // If no media in storage, use mock seeded data
-    if (allMedia.length === 0) {
-      allMedia = this.getMockMediaList();
-      // Seed into storage for future reads
-      try {
-        wx.setStorageSync('album_media', allMedia);
-      } catch (e) {}
+    // 1. 尝试从 API 加载宝宝信息
+    this.fetchBabyInfo(babyId);
+
+    // 2. 尝试从 API 加载媒体列表
+    this.fetchMediaList(babyId, 1);
+  },
+
+  getToken: function () {
+    try { return wx.getStorageSync('baby_diary_access_token') || ''; } catch (e) { return ''; }
+  },
+
+  fetchBabyInfo: function (babyId) {
+    var _this = this;
+    var token = this.getToken();
+
+    if (!babyId || !token) {
+      this.fallbackBabyInfo(babyId);
+      return;
     }
 
-    // Ensure babies are in storage too
+    wx.request({
+      url: API_BASE + '/babies/' + babyId,
+      method: 'GET',
+      header: { 'Authorization': 'Bearer ' + token },
+      timeout: 8000,
+      success: function (res) {
+        if (res.statusCode === 200 && res.data) {
+          var b = res.data;
+          _this.setData({
+            currentBaby: b,
+            babyAgeText: b.birthDate ? _this.calcAge(b.birthDate) + ' · ' + (b.gender === 'male' ? '男宝' : '女宝') : '',
+            isLoading: false,
+          });
+        } else {
+          _this.fallbackBabyInfo(babyId);
+        }
+      },
+      fail: function () { _this.fallbackBabyInfo(babyId); },
+    });
+  },
+
+  fallbackBabyInfo: function (babyId) {
+    // 从本地缓存读取
+    var babies = [];
     try {
-      var storedBabies = wx.getStorageSync('album_babies');
-      if (!storedBabies || storedBabies.length === 0) {
-        wx.setStorageSync('album_babies', [
-          { id: 'demo-1', name: '小星星', avatar: '👶', gender: 'female', birthDate: '2025-12-01' },
-          { id: 'demo-2', name: '小月亮', avatar: '👧', gender: 'male', birthDate: '2026-03-20' }
-        ]);
-      }
+      var stored = wx.getStorageSync('album_babies');
+      if (Array.isArray(stored)) babies = stored;
     } catch (e) {}
 
-    // Set currentBaby from storage
     var currentBaby = null;
-    for (var i = 0; i < _this.data.babies.length; i++) {
-      if (_this.data.babies[i].id === babyId) {
-        currentBaby = _this.data.babies[i];
-        break;
-      }
+    for (var i = 0; i < babies.length; i++) {
+      if (babies[i].id === babyId) { currentBaby = babies[i]; break; }
     }
-    if (!currentBaby) {
-      currentBaby = { id: 'demo-1', name: '小星星', avatar: '👶', gender: 'female', birthDate: '2025-12-01' };
+    if (!currentBaby && babies.length > 0) { currentBaby = babies[0]; }
+
+    this.setData({
+      currentBaby: currentBaby,
+      babyAgeText: currentBaby ? (currentBaby.birthDate ? '未知年龄' : '') : '',
+      isLoading: false,
+    });
+  },
+
+  fetchMediaList: function (babyId, page) {
+    var _this = this;
+    var token = this.getToken();
+    if (!babyId || !token) { this.fallbackMediaList(); return; }
+
+    wx.request({
+      url: API_BASE + '/media/',
+      method: 'GET',
+      data: { babyId: babyId, page: page },
+      header: { 'Authorization': 'Bearer ' + token },
+      timeout: 8000,
+      success: function (res) {
+        if (res.statusCode === 200 && res.data && res.data.length > 0) {
+          var items = res.data.map(function (m) {
+            return {
+              id: m.id, title: m.title || '', url: m.cosUrl || '',
+              thumbnailUrl: m.thumbnailUrl || m.cosUrl || '',
+              cardColor: _this.getCardColor(m.id),
+              captureDate: m.captureDate,
+            };
+          });
+          _this.setData({
+            mediaList: items,
+            isEmpty: items.length === 0,
+            isLoading: false,
+          });
+        } else {
+          _this.fallbackMediaList();
+        }
+      },
+      fail: function () { _this.fallbackMediaList(); },
+    });
+  },
+
+  fallbackMediaList: function () {
+    // 从本地缓存读取媒体列表
+    var mediaList = [];
+    try {
+      var stored = wx.getStorageSync('album_media');
+      if (Array.isArray(stored) && stored.length > 0) mediaList = stored;
+    } catch (e) {}
+
+    if (mediaList.length === 0) {
+      mediaList = this.getMockMediaList();
     }
 
     this.setData({
-      currentBabyId: babyId,
-      currentBaby: currentBaby,
-      babyAgeText: babyId === 'demo-1' ? '6个月3天 · 女宝' : '2个月15天 · 男宝',
-      mediaList: allMedia,
-      filterOptions: [
-        { label: '全部', value: null, active: true },
-        { label: '7个月', value: 7, active: false },
-        { label: '6个月', value: 6, active: false },
-        { label: '5个月', value: 5, active: false },
-        { label: '4个月', value: 4, active: false },
-        { label: '3个月', value: 3, active: false }
-      ],
+      mediaList: mediaList,
+      isEmpty: mediaList.length === 0,
       isLoading: false,
-      isEmpty: allMedia.length === 0
     });
   },
 
   getMockMediaList: function () {
     return [
-      { id: 'm1', title: '第一次翻身', url: '', thumbnailUrl: '', cardColor: 'pink', captureDate: '2026-05-01', cardColorIndex: 0 },
-      { id: 'm2', title: '学坐啦', url: '', thumbnailUrl: '', cardColor: 'blue', captureDate: '2026-05-10', cardColorIndex: 1 },
-      { id: 'm3', title: '今天会笑了', url: '', thumbnailUrl: '', cardColor: 'beige', captureDate: '2026-05-15', cardColorIndex: 2 },
-      { id: 'm4', title: '新玩具', url: '', thumbnailUrl: '', cardColor: 'mint', captureDate: '2026-05-20', cardColorIndex: 3 }
+      { id: 'm1', title: '第一次翻身', url: '', thumbnailUrl: '', cardColor: 'pink', captureDate: '2026-05-01' },
+      { id: 'm2', title: '学坐啦', url: '', thumbnailUrl: '', cardColor: 'blue', captureDate: '2026-05-10' },
+      { id: 'm3', title: '今天会笑了', url: '', thumbnailUrl: '', cardColor: 'beige', captureDate: '2026-05-15' },
+      { id: 'm4', title: '新玩具', url: '', thumbnailUrl: '', cardColor: 'mint', captureDate: '2026-05-20' },
     ];
   },
 
   loadBabies: function () {
-    // Mock babies list (from storage or mock)
-    var babies = [
-      { id: 'demo-1', name: '小星星', avatar: '👶', gender: 'female', birthDate: '2025-12-01' },
-      { id: 'demo-2', name: '小月亮', avatar: '👧', gender: 'male', birthDate: '2026-03-20' }
-    ];
-    this.setData({ babies: babies });
+    var _this = this;
+    var token = this.getToken();
+
+    wx.request({
+      url: API_BASE + '/babies/',
+      method: 'GET',
+      header: { 'Authorization': 'Bearer ' + token },
+      timeout: 8000,
+      success: function (res) {
+        if (res.statusCode === 200 && Array.isArray(res.data)) {
+          var babies = res.data;
+          _this.setData({ babies: babies });
+          // 缓存到本地
+          try { wx.setStorageSync('album_babies', babies); } catch (e) {}
+        } else {
+          _this.fallbackBabies();
+        }
+      },
+      fail: function () { _this.fallbackBabies(); },
+    });
   },
 
-  // ---- Scroll-triggered Header Collapse ----
+  fallbackBabies: function () {
+    try {
+      var stored = wx.getStorageSync('album_babies');
+      if (Array.isArray(stored) && stored.length > 0) {
+        this.setData({ babies: stored });
+        return;
+      }
+    } catch (e) {}
+    this.setData({
+      babies: [
+        { id: 'demo-1', name: '小星星', avatar: '👶', gender: 'female' },
+        { id: 'demo-2', name: '小月亮', avatar: '👧', gender: 'male' },
+      ],
+    });
+  },
+
+  calcAge: function (birthDate) {
+    if (!birthDate) return '';
+    var parts = birthDate.split('-');
+    var birth = new Date(parts[0], parts[1] - 1, parts[2]);
+    var now = new Date();
+    var months = (now.getFullYear() - birth.getFullYear()) * 12 + (now.getMonth() - birth.getMonth());
+    if (months < 0) months = 0;
+    return months + '个月';
+  },
+
+  getCardColor: function (id) {
+    var colors = ['pink', 'blue', 'beige', 'mint'];
+    var hash = 0;
+    for (var i = 0; i < id.length; i++) { hash = ((hash << 5) - hash) + id.charCodeAt(i); }
+    return colors[Math.abs(hash) % colors.length];
+  },
+
   onPageScroll: function (e) {
     var scrollTop = e.scrollTop || 0;
-    var threshold = 60;
-    var collapsed = scrollTop > threshold;
-
+    var collapsed = scrollTop > 60;
     if (collapsed !== this.data.headerCollapsed) {
       this.setData({ headerCollapsed: collapsed });
     }
@@ -138,68 +242,27 @@ Page({
     var babyId = e.currentTarget.dataset.id;
     var babies = this.data.babies;
     var currentBaby = null;
-    var babyAgeText = '';
-
     for (var i = 0; i < babies.length; i++) {
-      if (babies[i].id === babyId) {
-        currentBaby = babies[i];
-        break;
-      }
+      if (babies[i].id === babyId) { currentBaby = babies[i]; break; }
     }
-
     if (currentBaby) {
-      // Different age text per baby (mock)
-      if (babyId === 'demo-1') {
-        babyAgeText = '6个月3天 · 女宝';
-      } else if (babyId === 'demo-2') {
-        babyAgeText = '2个月15天 · 男宝';
-      }
-
       this.setData({
-        currentBabyId: babyId,
-        currentBaby: currentBaby,
-        babyAgeText: babyAgeText,
-        headerCollapsed: false  // Expand header on baby switch
+        currentBabyId: babyId, currentBaby: currentBaby, headerCollapsed: false
       });
-
-      // Persist to storage
-      try {
-        wx.setStorageSync('baby_diary_current_baby_id', babyId);
-      } catch (e) {}
+      try { wx.setStorageSync('baby_diary_current_baby_id', babyId); } catch (e) {}
+      // 重新加载媒体列表
+      this.fetchMediaList(babyId, 1);
     }
   },
 
-  onAddBabyTap: function () {
-    wx.navigateTo({ url: '/pages/baby_list/baby_list' });
-  },
-
+  onAddBabyTap: function () { wx.navigateTo({ url: '/pages/baby_list/baby_list' }); },
   onFilterSelect: function (e) {
     var value = e.currentTarget.dataset.value;
-    var opts = this.data.filterOptions.map(function (o) {
-      o.active = o.value === value;
-      return o;
-    });
+    var opts = this.data.filterOptions.map(function (o) { o.active = o.value === value; return o; });
     this.setData({ filterOptions: opts });
   },
-
-  onBabySelect: function () {
-    wx.navigateTo({ url: '/pages/baby_profile/baby_profile' });
-  },
-
-  onMediaTap: function (e) {
-    var id = e.currentTarget.dataset.id;
-    wx.navigateTo({ url: '/pages/media_detail/media_detail?id=' + id });
-  },
-
-  onUploadTap: function () {
-    wx.showToast({ title: '功能开发中', icon: 'none' });
-  },
-
-  goToSettings: function () {
-    wx.redirectTo({ url: '/pages/settings/settings' });
-  },
-
-  goToBabyProfile: function () {
-    wx.navigateTo({ url: '/pages/baby_profile/baby_profile' });
-  }
+  onBabySelect: function () { wx.navigateTo({ url: '/pages/baby_profile/baby_profile' }); },
+  onMediaTap: function (e) { wx.navigateTo({ url: '/pages/media_detail/media_detail?id=' + e.currentTarget.dataset.id }); },
+  goToSettings: function () { wx.redirectTo({ url: '/pages/settings/settings' }); },
+  goToBabyProfile: function () { wx.navigateTo({ url: '/pages/baby_profile/baby_profile' }); },
 });

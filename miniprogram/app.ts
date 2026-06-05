@@ -1,18 +1,52 @@
-// app.ts
-App<IAppOption>({
-  globalData: {},
-  onLaunch() {
-    // 展示本地存储能力
-    const logs = wx.getStorageSync('logs') || []
-    logs.unshift(Date.now())
-    wx.setStorageSync('logs', logs)
+// @ts-nocheck
+// app.ts - 应用入口，Token 检测 + 自动刷新
 
-    // 登录
-    wx.login({
-      success: res => {
-        console.log(res.code)
-        // 发送 res.code 到后台换取 openId, sessionKey, unionId
-      },
-    })
+const API_BASE = 'http://101.126.41.146:8000/api/v1';
+
+App({
+  globalData: {},
+
+  onLaunch() {
+    // 检查 token 有效性
+    this.checkToken();
   },
-})
+
+  checkToken() {
+    var token = '';
+    try { token = wx.getStorageSync('baby_diary_access_token') || ''; } catch (e) {}
+
+    if (!token) return;
+
+    // 验证 token
+    wx.request({
+      url: API_BASE + '/auth/me',
+      method: 'GET',
+      header: { 'Authorization': 'Bearer ' + token },
+      success: function (res) {
+        if (res.statusCode === 401) {
+          // Token 过期，尝试刷新
+          this.refreshToken();
+        }
+      },
+      fail: function () {},
+    });
+  },
+
+  refreshToken() {
+    var refreshToken = '';
+    try { refreshToken = wx.getStorageSync('baby_diary_refresh_token') || ''; } catch (e) {}
+    if (!refreshToken) return;
+
+    wx.request({
+      url: API_BASE + '/auth/refresh',
+      method: 'POST',
+      data: { refreshToken: refreshToken },
+      success: function (res) {
+        if (res.statusCode === 200 && res.data && res.data.accessToken) {
+          wx.setStorageSync('baby_diary_access_token', res.data.accessToken);
+        }
+      },
+      fail: function () {},
+    });
+  },
+});
