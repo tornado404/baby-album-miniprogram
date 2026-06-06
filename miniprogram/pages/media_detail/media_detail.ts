@@ -26,7 +26,7 @@ Page({
   },
 
   onLoad(options: any) {
-    const sysInfo = wx.getSystemInfoSync();
+    const sysInfo = wx.getWindowInfo();
     this.setData({ safeTop: sysInfo.statusBarHeight || 44 });
 
     const { id } = options;

@@ -18,7 +18,7 @@ Page({
 
   onLoad() {
     try {
-      var info = wx.getSystemInfoSync();
+      var info = wx.getWindowInfo();
       this.setData({ safeTop: info.statusBarHeight || 44 });
     } catch (e) {}
     setTimeout(() => { this.setData({ inputFocus: true }); }, 500);
