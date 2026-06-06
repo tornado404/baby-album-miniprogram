@@ -1,4 +1,4 @@
-/* index.wxss - 登录引导页 Claymorphism 风格 */
+/* index.wxss - 登录引导页 精确 Figma 还原 */
 
 .page-onboarding {
   min-height: 100vh;
@@ -8,7 +8,21 @@
 }
 
 .status-bar {
+  display: flex;
+  align-items: flex-start;
+  padding: 0 24px;
+  box-sizing: border-box;
   flex-shrink: 0;
+  background: #fffbf8;
+  width: 100%;
+}
+
+.status-time {
+  font-size: 15px;
+  font-weight: 600;
+  color: #4a4a4a;
+  font-family: "Inter", -apple-system, sans-serif;
+  line-height: normal;
 }
 
 /* ---- Main Content ---- */
@@ -19,6 +33,20 @@
   align-items: center;
   padding: 0 40rpx;
   box-sizing: border-box;
+  justify-content: center;
+}
+
+/* ---- Spacers ---- */
+.spacer-top {
+  flex: 1;
+  min-height: 40rpx;
+  max-height: 200rpx;
+}
+
+.spacer-bottom {
+  flex: 1;
+  min-height: 80rpx;
+  max-height: 300rpx;
 }
 
 /* ---- Logo Circle ---- */
@@ -36,6 +64,7 @@
 .onboarding-logo text {
   font-size: 128rpx;
   color: #806680;
+  line-height: normal;
 }
 
 /* ---- Titles ---- */
@@ -44,6 +73,7 @@
   font-weight: 700;
   color: #4a4a4a;
   text-align: center;
+  line-height: 1.3;
 }
 
 .onboarding-subtitle {
@@ -51,12 +81,15 @@
   font-weight: 500;
   color: #999;
   text-align: center;
+  line-height: 1.4;
 }
 
 .onboarding-tags {
   font-size: 26rpx;
+  font-weight: 400;
   color: #b2a699;
   text-align: center;
+  line-height: 1.4;
 }
 
 /* ---- Bottom Section ---- */
@@ -66,34 +99,37 @@
   flex-direction: column;
   align-items: center;
   flex-shrink: 0;
-  padding-bottom: 80rpx;
+  padding-bottom: 100rpx;
 }
 
-/* ---- Login Button (orange pill with shadow) ---- */
+/* ---- Login Button ---- */
 .login-btn {
-  padding: 0 56rpx;
+  width: 260rpx;
   height: 112rpx;
-  background: #ffa87a;
   border-radius: 56rpx;
+  background: #ffa87a;
   box-shadow: 0px 4px 10px 0px rgba(255, 168, 122, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
-.login-btn:active {
-  opacity: 0.9;
-  transform: scale(0.98);
+
+.login-btn-hover {
+  opacity: 0.88;
+  transform: scale(0.97);
 }
 
 .login-btn-text {
   font-size: 34rpx;
   font-weight: 600;
   color: #ffffff;
+  text-align: center;
+  line-height: normal;
 }
 
 /* ---- Loading State ---- */
 .loading-container {
-  width: 560rpx;
   height: 112rpx;
   display: flex;
   align-items: center;
@@ -127,4 +163,3 @@
   margin-top: 16rpx;
   text-align: center;
 }
-
