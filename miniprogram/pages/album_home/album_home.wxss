@@ -160,8 +160,6 @@
   white-space: nowrap;
 }
 
-.baby-strip-scroll::-webkit-scrollbar {
-  display: none;
 }
 
 .baby-strip-item {
