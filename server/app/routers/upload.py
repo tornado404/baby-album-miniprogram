@@ -1,8 +1,8 @@
-"""上传路由（Mock STS）"""
+"""上传路由 — 对接 MinIO 预签名 URL"""
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from app.middleware.auth import get_current_user_id
-import uuid
+from app.services.file_service import get_upload_url
 
 router = APIRouter()
 
@@ -24,9 +24,6 @@ async def upload_sign(
     req: UploadSignRequest,
     user_id: str = Depends(get_current_user_id),
 ):
-    ext = req.fileName.split(".")[-1] if "." in req.fileName else "jpg"
-    cos_key = f"{user_id}/photos/{uuid.uuid4().hex}.{ext}"
-    return UploadSignResponse(
-        uploadUrl=f"https://mock-cos.example.com/{cos_key}",
-        cosKey=cos_key,
-    )
+    """获取 MinIO 预签名上传 URL（15 分钟有效）"""
+    result = get_upload_url(user_id, req.fileName, req.fileType)
+    return UploadSignResponse(**result)

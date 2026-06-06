@@ -32,6 +32,13 @@ class Settings(BaseSettings):
     COS_BUCKET: str = "baby-album"
     COS_REGION: str = "ap-guangzhou"
 
+    # MinIO 对象存储
+    MINIO_ENDPOINT: str = "101.126.41.146:9000"
+    MINIO_ACCESS_KEY: str = "Cs516@2026"
+    MINIO_SECRET_KEY: str = "Cs516@2026"
+    MINIO_BUCKET: str = "baby-album"
+    MINIO_PUBLIC_URL: str = "http://101.126.41.146:9000"
+
     # 上传限制
     UPLOAD_MAX_SIZE: int = 20 * 1024 * 1024  # 20MB
 
