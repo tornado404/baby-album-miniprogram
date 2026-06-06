@@ -1,165 +1,199 @@
-/* media_detail.wxss - Claymorphism 风格媒体详情页 */
+/* media_detail.wxss - 内容详情页 精确 Figma 还原 */
 
 .page-detail {
   min-height: 100vh;
-  background: #000;
+  background: #f9f0e9;
   display: flex;
   flex-direction: column;
 }
 
-/* Navigation Bar */
-.detail-nav {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 200;
-  background: linear-gradient(180deg, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0) 100%);
+.status-bar {
+  flex-shrink: 0;
 }
 
-.detail-nav-inner {
+/* ---- Navigation Bar (Figma 精确) ---- */
+.detail-nav {
   display: flex;
   align-items: center;
   justify-content: space-between;
   height: 104rpx;
-  padding: 0 24rpx;
+  padding: 0 24rpx 0 12rpx;
+  flex-shrink: 0;
+  background: #f9f0e9;
 }
 
-.detail-nav-btn {
+.nav-btn-white {
   width: 72rpx;
   height: 72rpx;
   border-radius: 36rpx;
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  background: #ffffff;
+  box-shadow: 0px 2px 4px 0px rgba(230, 198, 179, 0.2);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
 }
 
-.detail-nav-btn text {
-  font-size: 40rpx;
-  color: #fff;
-  font-weight: 600;
+.nav-btn-text {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #4a4a4a;
 }
 
-.detail-nav-more {
-  font-size: 36rpx !important;
-  font-weight: 700 !important;
+.nav-title-text {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #4a4a4a;
 }
 
-.detail-nav-title {
-  font-size: var(--clay-font-lg);
-  font-weight: 600;
-  color: #fff;
-  text-align: center;
+.nav-menu-text {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: #4a4a4a;
+  letter-spacing: 2rpx;
+}
+
+/* ---- Loading ---- */
+.loading-state {
   flex: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  padding: 0 20rpx;
-}
-
-/* Loading */
-.detail-loading {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .loading-ring {
   width: 48rpx;
   height: 48rpx;
-  border: 4rpx solid rgba(255,255,255,0.2);
-  border-top-color: var(--clay-primary);
+  border: 4rpx solid rgba(255,168,122,0.2);
+  border-top-color: #ffa87a;
   border-radius: 50%;
-  animation: detail-spin 0.8s linear infinite;
+  animation: spin 0.8s linear infinite;
 }
 
-@keyframes detail-spin {
+@keyframes spin {
   to { transform: rotate(360deg); }
 }
 
-/* Preview Area */
-.preview-wrapper {
+/* ---- Content Area ---- */
+.content-area {
   flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.media-swiper {
-  width: 100%;
-  height: 100%;
-}
-
-.image-wrap {
-  width: 100%;
-  height: 100%;
-  transform-origin: center center;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.preview-image {
-  width: 100%;
-  height: 100%;
-}
-
-/* Info Bar (Claymorphism) */
-.detail-info-bar {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 32rpx;
-  padding-bottom: calc(32rpx + env(safe-area-inset-bottom));
-  background: linear-gradient(0deg, rgba(74,74,74,0.85) 0%, rgba(74,74,74,0) 100%);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  display: flex;
-  align-items: flex-end;
-  z-index: 100;
-}
-
-.info-left {
   display: flex;
   flex-direction: column;
-  gap: 8rpx;
-  flex: 1;
+  padding: 40rpx 20rpx;
+  box-sizing: border-box;
 }
 
-.info-title {
-  font-size: var(--clay-font-lg);
-  font-weight: 600;
-  color: #fff;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.info-meta {
+/* ---- Main Image (Figma: 粉色背景 圆角24px) ---- */
+.main-image-wrap {
+  width: 288rpx;
+  height: 680rpx;
+  background: #f1dce2;
+  border-radius: 48rpx;
+  box-shadow: 0px 8px 24px 0px rgba(241, 220, 226, 0.35);
   display: flex;
   align-items: center;
-  gap: 16rpx;
+  justify-content: center;
+  flex-shrink: 0;
+  margin: 0 auto;
+  overflow: hidden;
 }
 
+.main-image {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.main-image-placeholder {
+  font-size: 144rpx;
+  color: #998080;
+}
+
+/* ---- Info Card (Figma: 白色圆角20px 阴影) ---- */
+.info-card {
+  width: 670rpx;
+  background: #ffffff;
+  border-radius: 40rpx;
+  box-shadow: 0px 4px 12px 0px rgba(230, 198, 179, 0.25);
+  padding: 40rpx;
+  margin-top: 40rpx;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+/* Title Row */
+.info-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 56rpx;
+}
+
+.info-title-text {
+  font-size: 40rpx;
+  font-weight: 700;
+  color: #4a4a4a;
+}
+
+.milestone-badge {
+  height: 48rpx;
+  background: #ffa87a;
+  border-radius: 24rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 16rpx;
+  flex-shrink: 0;
+}
+
+.milestone-badge text {
+  font-size: 22rpx;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+/* Date */
 .info-date {
-  font-size: var(--clay-font-body);
-  color: rgba(255,255,255,0.75);
+  font-size: 26rpx;
+  color: #999;
+  margin-top: 16rpx;
 }
 
-.info-age {
-  font-size: var(--clay-font-sm);
-  color: rgba(255,168,122,0.9);
-  font-weight: 500;
+/* Separator */
+.info-separator {
+  width: 100%;
+  height: 2rpx;
+  background: #e6e6e6;
+  margin: 24rpx 0;
 }
 
-/* Actions Sheet (Claymorphism) */
+/* Description */
+.info-desc {
+  font-size: 28rpx;
+  color: #666;
+  line-height: 44rpx;
+}
+
+/* Tags */
+.info-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  margin-top: 20rpx;
+}
+
+.info-tag {
+  height: 44rpx;
+  background: #f9f0e9;
+  border-radius: 22rpx;
+  padding: 0 20rpx;
+  font-size: 22rpx;
+  color: #806666;
+  display: flex;
+  align-items: center;
+}
+
+/* ---- Action Sheet ---- */
 .actions-overlay {
   position: fixed;
   inset: 0;
@@ -172,11 +206,10 @@
   bottom: 0;
   left: 0;
   right: 0;
-  background: var(--clay-bg);
+  background: #fffbf8;
   border-radius: 36rpx 36rpx 0 0;
   z-index: 301;
-  padding: 16rpx 0;
-  padding-bottom: calc(16rpx + env(safe-area-inset-bottom));
+  padding: 16rpx 0 calc(16rpx + env(safe-area-inset-bottom));
   box-shadow: 0px -6px 20px 0px rgba(230, 198, 179, 0.25);
 }
 
@@ -185,10 +218,10 @@
   align-items: center;
   gap: 24rpx;
   padding: 28rpx 40rpx;
-  font-size: var(--clay-font-lg);
-  color: var(--clay-text-primary);
+  font-size: 30rpx;
+  color: #4a4a4a;
   font-weight: 500;
-  border-bottom: 1rpx solid var(--clay-card-beige);
+  border-bottom: 1rpx solid #f4e6d6;
 }
 
 .actions-item.danger {
@@ -204,13 +237,11 @@
 .actions-cancel {
   padding: 28rpx 40rpx;
   text-align: center;
-  font-size: var(--clay-font-lg);
-  color: var(--clay-text-secondary);
+  font-size: 30rpx;
+  color: #999;
   font-weight: 500;
-  margin-top: 8rpx;
-  background: var(--clay-card-white);
+  margin: 8rpx 20rpx 0;
+  background: #ffffff;
   border-radius: 24rpx;
-  margin-left: 20rpx;
-  margin-right: 20rpx;
-  box-shadow: var(--clay-shadow-card-lighter);
+  box-shadow: 0px 2px 6px 0px rgba(230, 198, 179, 0.15);
 }
