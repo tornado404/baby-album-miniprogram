@@ -1,7 +1,7 @@
 # E2E 测试原理
 
 > 本文档总结本项目 E2E 截图测试框架的工作原理、通信协议、数据流、关键实现细节及已知坑。
-> 配套上手文档：[`docs/e2e-快速上手.md`](../e2e-快速上手.md)。
+> 配套上手文档：[`e2e-快速上手.md`](./e2e-快速上手.md)。
 
 ## 1. 整体架构
 
@@ -224,7 +224,7 @@ done
 | `scripts/keep-devtools.sh` | IDE 守护脚本（WSL 用） |
 | `scripts/start-devtools.bat` / `.ps1` / `-silent.bat` | Windows 侧启动脚本 |
 | `docs/e2e-快速上手.md` | 上手指南 |
-| `docs/tests/arch.md` | 本文档（原理总结） |
+| `docs/05-testing/arch.md` | 本文档（原理总结） |
 
 ## 8. 未来扩展方向
 

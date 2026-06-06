@@ -75,7 +75,7 @@ cd miniprogram
 npx tsc -p tsconfig.json
 ```
 
-3. 用 WebSocket 验证（参见 docs/tests/arch.md）：
+3. 用 WebSocket 验证（参见 docs/05-testing/arch.md）：
 
 ```ts
 await automator.send('App.callFunction', {

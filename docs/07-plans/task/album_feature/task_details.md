@@ -83,7 +83,7 @@
 | 文件路径 | 说明 |
 |----------|------|
 | `miniprogram/pages/tech_validate/` | 验证页面目录 |
-| `docs/task/album_feature/tech_validation_report.md` | 技术验证报告 |
+| `docs/07-plans/task/album_feature/tech_validation_report.md` | 技术验证报告 |
 
 ### 注意事项
 - 此任务为风险预防性质
@@ -1249,7 +1249,7 @@
 
 | 文件路径 | 说明 |
 |----------|------|
-| `docs/task/album_feature/integration_report.md` | 集成验证报告 |
+| `docs/07-plans/task/album_feature/integration_report.md` | 集成验证报告 |
 
 ### 注意事项
 - 验证是持续过程，不是单独阶段

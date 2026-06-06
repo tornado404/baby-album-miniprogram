@@ -15,7 +15,7 @@
 ### 1.2 文档结构
 
 ```
-docs/backend/
+docs/03-architecture/backend/
 ├── README.md                        # 本文件 — 后端总览
 ├── architecture.md                  # 架构深度设计（数据库/部署/工程结构）
 ├── feature/                         # Feature 级别设计

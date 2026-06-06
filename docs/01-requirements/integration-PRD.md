@@ -2,7 +2,7 @@
 
 > 版本：v1.0 | 最后更新：2026-06-05
 > 状态：📝 待评审
-> 配套：`docs/PRD.md`（产品需求）、`docs/backend/`（后端设计）
+> 配套：`docs/archive/PRD.md`（产品需求）、`docs/03-architecture/backend/`（后端设计）
 
 ---
 

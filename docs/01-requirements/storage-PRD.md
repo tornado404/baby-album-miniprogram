@@ -1,7 +1,7 @@
 # 相册数据存储服务设计文档
 
 > 版本：v2.0 | 最后更新：2026-06-06 | 状态：📝 设计阶段
-> 配套：`docs/backend/architecture.md`（后端架构）、`docs/integration-PRD.md`（联调方案）
+> 配套：`docs/03-architecture/backend/architecture.md`（后端架构）、`docs/01-requirements/integration-PRD.md`（联调方案）
 
 ---
 
@@ -26,36 +26,96 @@
 
 ---
 
-## 2. MinIO 部署方案
+## 2. MinIO 独立部署方案
 
-### 2.1 Docker Compose 配置
+MinIO 以独立容器运行，不耦合在业务服务的 `docker-compose.yml` 中。
+这样可以独立启停、管理、升级，也方便未来切换为其他 S3 兼容服务（如腾讯云 COS、阿里云 OSS）。
 
-在现有 `docker-compose.yml` 中增加 MinIO 服务：
+### 2.1 独立 Docker Compose 配置
+
+创建独立的 `docker-compose-minio.yml`（放在项目根目录或服务器任意位置）：
 
 ```yaml
-minio:
-  image: minio/minio:latest
-  container_name: baby-minio
-  command: server /data --console-address ":9001"
-  environment:
-    MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
-    MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
-  volumes:
-    - miniodata:/data
-  ports:
-    - "9000:9000"    # S3 API
-    - "9001:9001"    # Web 控制台
-  healthcheck:
-    test: ["CMD", "mc", "ready", "local"]
-    interval: 10s
-    timeout: 5s
-    retries: 5
-  restart: unless-stopped
-  networks:
-    - baby-network
+# docker-compose-minio.yml
+# 独立 MinIO 对象存储服务
+# 管理地址: http://<server-ip>:9001  账号: Cs516@2026 / Cs516@2026
 
-volumes:
-  miniodata:  # 新增
+version: '3.8'
+
+services:
+  minio:
+    image: minio/minio:latest
+    container_name: baby-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-Cs516@2026}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-Cs516@2026}
+      MINIO_DOMAIN: ${SERVER_IP:-101.126.41.146}
+    volumes:
+      - /opt/baby-minio/data:/data    # 宿主机持久化路径
+    ports:
+      - "9000:9000"    # S3 API 端口（后端/前端通过此端口访问）
+      - "9001:9001"    # Web 管理控制台（浏览器访问）
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+```
+
+### 2.2 启动与管理命令
+
+```bash
+# ===== 启动 =====
+# 首次启动
+docker compose -f docker-compose-minio.yml up -d
+
+# 查看状态
+docker compose -f docker-compose-minio.yml ps
+docker logs baby-minio
+
+# 停止
+docker compose -f docker-compose-minio.yml stop
+
+# 彻底删除（数据卷保留）
+docker compose -f docker-compose-minio.yml down
+
+# 升级（更换镜像版本）
+docker compose -f docker-compose-minio.yml pull
+docker compose -f docker-compose-minio.yml up -d
+```
+
+### 2.3 Web 管理控制台
+
+MinIO 提供浏览器管理界面：
+
+| 项目 | 值 |
+|------|-----|
+| 地址 | `http://101.126.41.146:9001` |
+| 用户名 | `Cs516@2026` |
+| 密码 | `Cs516@2026` |
+
+控制台功能：
+- 浏览/上传/删除文件
+- 创建和管理 Bucket
+- 查看存储用量
+- 生成临时访问密钥
+- 配置 Bucket 策略（公开读/私有）
+
+### 2.4 数据持久化
+
+MinIO 数据存储在宿主机 `/opt/baby-minio/data/` 目录：
+
+```bash
+# 查看数据目录
+ls -la /opt/baby-minio/data/
+
+# 备份数据
+tar -czf baby-minio-backup-$(date +%Y%m%d).tar.gz /opt/baby-minio/data/
+
+# 迁移数据（到新服务器）
+rsync -avz /opt/baby-minio/data/ root@新服务器IP:/opt/baby-minio/data/
 ```
 
 ### 2.2 MinIO 初始化（创建 Bucket）
@@ -68,8 +128,8 @@ from minio import Minio
 
 client = Minio(
     "localhost:9000",
-    access_key="minioadmin",
-    secret_key="minioadmin",
+    access_key="Cs516@2026",
+    secret_key="Cs516@2026",
     secure=False,
 )
 
@@ -298,28 +358,97 @@ async def generate_thumbnail(cos_key: str):
 ### 8.1 服务器操作
 
 ```bash
-# 1. 在 docker-compose.yml 中增加 MinIO 服务
-# 2. 重新部署
-cd /opt/baby-album
-docker compose up -d minio
+# ===== 1. 启动 MinIO 独立容器 =====
+# 先上传 docker-compose-minio.yml 到服务器
+cd /opt
+mkdir -p baby-minio
+# 创建独立 compose 文件（内容见 2.1 节）
+docker compose -f baby-minio/docker-compose-minio.yml up -d
 
-# 3. 初始化 bucket
-docker exec baby-api python scripts/init_minio.py
-
-# 4. 验证
+# 验证 MinIO 运行
 curl http://localhost:9000/minio/health/live
+# 返回: {"status":"alive"} ✅
+
+# 浏览器访问管理控制台
+# http://101.126.41.146:9001  账号: Cs516@2026 / Cs516@2026
+
+# ===== 2. 创建 Bucket =====
+# 方式 A：通过 Web 控制台（推荐新手）
+#   打开 http://101.126.41.146:9001 → 登录 → 创建 Bucket "baby-album"
+
+# 方式 B：通过 mc 客户端
+docker exec baby-minio mc mb data/baby-album
+
+# 方式 C：通过 Python 脚本（推荐自动化）
+docker compose -f /opt/baby-album/docker-compose.yml exec api python scripts/init_minio.py
+
+# ===== 3. 设置缩略图公开读策略 =====
+# 在 Web 控制台中: baby-album Bucket → 设置 → Policy → 添加:
+#   - Prefix: thumbnails/
+#   - Access: Public (read only)
 ```
 
-### 8.2 环境变量新增
+### 8.2 业务服务连接 MinIO
+
+业务 API 服务（FastAPI）通过 Docker 网络连接 MinIO。由于 MinIO 是独立容器，
+需要确保在同一 Docker 网络或通过宿主机 IP 访问。
+
+**方案 A：同一 Docker 网络（推荐）**
+
+将业务服务的 `docker-compose.yml` 中的 `api` 服务连接到一个外部网络，
+MinIO 也使用同一个网络：
+
+```yaml
+# 在业务服务的 docker-compose.yml 中
+networks:
+  default:
+    name: baby-shared-network
+    external: true  # 使用已存在的网络
+```
+
+MinIO 的 `docker-compose-minio.yml` 同样声明此网络：
+
+```yaml
+networks:
+  default:
+    name: baby-shared-network
+    external: true
+```
+
+**方案 B：通过宿主机 IP 访问（更简单）**
 
 ```bash
-# .env 新增
-MINIO_ENDPOINT=minio:9000
-MINIO_ACCESS_KEY=minioadmin
-MINIO_SECRET_KEY=minioadmin
+# 业务服务的 .env 中
+MINIO_ENDPOINT=101.126.41.146:9000   # 宿主机 IP
+MINIO_ACCESS_KEY=Cs516@2026
+MINIO_SECRET_KEY=Cs516@2026
 MINIO_BUCKET=baby-album
 MINIO_PUBLIC_URL=http://101.126.41.146:9000
 ```
+
+### 8.3 环境变量配置
+
+在业务服务的 `.env` 中新增：
+
+```bash
+# MinIO 对象存储
+MINIO_ENDPOINT=101.126.41.146:9000
+MINIO_ACCESS_KEY=Cs516@2026
+MINIO_SECRET_KEY=Cs516@2026
+MINIO_BUCKET=baby-album
+MINIO_PUBLIC_URL=http://101.126.41.146:9000
+```
+
+### 8.4 切换为其他 S3 兼容服务
+
+由于 MinIO 使用标准 S3 API，切换为云服务只需修改 `.env`：
+
+| 服务 | MINIO_ENDPOINT | 密钥来源 |
+|------|---------------|----------|
+| MinIO（自建） | `你的IP:9000` | 自己设置 |
+| 腾讯云 COS | `cos.ap-guangzhou.myqcloud.com` | 控制台获取 |
+| 阿里云 OSS | `oss-cn-hangzhou.aliyuncs.com` | 控制台获取 |
+| AWS S3 | `s3.ap-northeast-1.amazonaws.com` | IAM 用户 |
 
 ---
 
