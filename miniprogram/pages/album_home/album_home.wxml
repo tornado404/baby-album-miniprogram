@@ -103,7 +103,7 @@
   </scroll-view>
 
   <!-- Bottom Navigation -->
-  <bottom-nav current="home"></bottom-nav>
+  <bottom-nav current="journey"></bottom-nav>
 
   <!-- FAB Upload Button -->
   <view class="fab-upload" bindtap="onUploadTap">

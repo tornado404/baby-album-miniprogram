@@ -1,12 +1,12 @@
-/* bottom-nav.wxss - Claymorphism 底部导航样式 */
+/* bottom-nav.wxss - Figma Bottom Nav v2 */
 
 .bottom-nav {
   display: flex;
   align-items: center;
   height: 128rpx;
-  padding: 12rpx 0;
-  background: var(--clay-card-white);
-  box-shadow: var(--clay-shadow-nav);
+  padding: 16rpx 0 0;
+  background: #ffffff;
+  box-shadow: 0px -3px 10px 0px rgba(230, 198, 179, 0.15);
   box-sizing: border-box;
   position: fixed;
   bottom: 0;
@@ -22,12 +22,11 @@
   align-items: center;
   justify-content: center;
   gap: 4rpx;
-  min-width: 0;
-  color: var(--clay-text-secondary);
+  color: #999;
 }
 
 .bottom-nav-item.active {
-  color: var(--clay-primary);
+  color: #ffa87a;
 }
 
 .nav-icon {
@@ -38,14 +37,14 @@
 .nav-label {
   font-size: 20rpx;
   line-height: 1;
-  font-weight: 500;
+  font-weight: 400;
 }
 
 .bottom-nav-item.active .nav-label {
   font-weight: 600;
 }
 
-/* 安全区域适配 */
+/* 底部安全区 */
 .bottom-nav {
-  padding-bottom: calc(12rpx + env(safe-area-inset-bottom));
+  padding-bottom: calc(0rpx + env(safe-area-inset-bottom));
 }
