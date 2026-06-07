@@ -230,7 +230,7 @@ Page({
     return colors[Math.abs(hash) % colors.length];
   },
 
-  onPageScroll: function (e) {
+  onContentScroll: function (e) {
     var scrollTop = e.scrollTop || 0;
     var collapsed = scrollTop > 60;
     if (collapsed !== this.data.headerCollapsed) {

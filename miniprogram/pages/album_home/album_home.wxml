@@ -10,8 +10,8 @@
     <view class="home-nav-spacer"></view>
   </view>
 
-  <!-- Content -->
-  <view class="clay-content">
+  <!-- Content (scroll-view for scroll events) -->
+  <scroll-view class="clay-content" scroll-y bindscroll="onContentScroll" enable-flex>
 
     <!-- ===== Baby Info Header (双态折叠) ===== -->
     <view class="baby-header-container {{headerCollapsed ? 'collapsed' : 'expanded'}}">
@@ -100,7 +100,7 @@
         </view>
       </view>
     </view>
-  </view>
+  </scroll-view>
 
   <!-- Bottom Navigation -->
   <bottom-nav current="home"></bottom-nav>
