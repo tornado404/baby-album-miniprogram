@@ -1,0 +1,75 @@
+<view wx:if="{{show}}" class="overlay-mask" bindtap="onClose"></view>
+<view wx:if="{{show}}" class="overlay-sheet">
+
+  <!-- Header -->
+  <view class="sheet-header">
+    <text class="sheet-title">✨ 编辑媒体信息</text>
+    <text class="sheet-count">{{currentIndex + 1}}/{{totalFiles}}</text>
+  </view>
+
+  <!-- Thumbnail Preview -->
+  <view class="sheet-thumb-wrap">
+    <image wx:if="{{currentFile && currentFile.tempFilePath}}" class="sheet-thumb" src="{{currentFile.tempFilePath}}" mode="aspectFill"></image>
+    <view wx:else class="sheet-thumb-placeholder">📷</view>
+  </view>
+
+  <!-- Location -->
+  <view class="sheet-section">
+    <text class="section-label">📍 位置</text>
+    <view class="section-row">
+      <input class="section-input" placeholder="{{locationLoading ? '获取中...' : '输入位置（可选）'}}" value="{{locationName}}" bindinput="onMomentInput" />
+    </view>
+  </view>
+
+  <!-- Tags -->
+  <view class="sheet-section">
+    <text class="section-label">🏷️ 标签</text>
+    <view class="tags-grid">
+      <view wx:for="{{presetTags}}" wx:key="name"
+        class="tag-chip {{tags.indexOf(item.name) >= 0 ? 'active' : ''}}"
+        style="{{tags.indexOf(item.name) >= 0 ? 'background:' + item.color : ''}}"
+        data-tag="{{item.name}}"
+        bindtap="onTagTap"
+      >
+        <text>{{item.name}}</text>
+      </view>
+    </view>
+    <view class="custom-tag-row">
+      <input class="custom-tag-input" placeholder="输入自定义标签" value="{{customTagInput}}" bindinput="onCustomTagInput" />
+      <view class="custom-tag-btn" bindtap="onAddCustomTag">添加</view>
+    </view>
+  </view>
+
+  <!-- Moment -->
+  <view class="sheet-section">
+    <text class="section-label">✏️ 美好时刻</text>
+    <input class="section-input" placeholder="今天宝宝做了什么？" value="{{moment}}" bindinput="onMomentInput" maxlength="140" />
+  </view>
+
+  <!-- Milestone -->
+  <view class="sheet-section">
+    <text class="section-label">🍼 宝宝飞跃阶段</text>
+    <scroll-view class="milestone-scroll" scroll-x>
+      <view wx:for="{{milestones}}" wx:key="key"
+        class="milestone-item {{milestone === item.key ? 'active' : ''}}"
+        data-key="{{item.key}}"
+        bindtap="onMilestoneSelect"
+      >
+        <text class="milestone-icon">{{item.icon}}</text>
+        <text class="milestone-label">{{item.label}}</text>
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- Navigation -->
+  <view class="sheet-nav">
+    <view class="nav-btn {{currentIndex <= 0 ? 'disabled' : ''}}" bindtap="onPrev">← 上一张</view>
+    <view class="nav-btn {{currentIndex >= totalFiles - 1 ? 'disabled' : ''}}" bindtap="onNext">下一张 →</view>
+  </view>
+
+  <!-- Save Button -->
+  <view class="save-all-btn" bindtap="onSaveAll">
+    <text>全部保存</text>
+  </view>
+
+</view>
