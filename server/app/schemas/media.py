@@ -8,6 +8,18 @@ class MediaCreate(BaseModel):
     type: str = "image"
     cosKey: str
     captureDate: str
+    locationName: Optional[str] = None
+    tags: Optional[list[str]] = None
+    moment: Optional[str] = None
+    milestone: Optional[str] = None
+
+class MediaUpdate(BaseModel):
+    title: Optional[str] = None
+    locationName: Optional[str] = None
+    tags: Optional[list[str]] = None
+    moment: Optional[str] = None
+    milestone: Optional[str] = None
+    isArchived: Optional[bool] = None
 
 class MediaResponse(BaseModel):
     id: str
@@ -19,3 +31,8 @@ class MediaResponse(BaseModel):
     fileSize: int = 0
     width: Optional[int] = None
     height: Optional[int] = None
+    locationName: Optional[str] = None
+    tags: Optional[list[str]] = None
+    moment: Optional[str] = None
+    milestone: Optional[str] = None
+    isArchived: bool = False

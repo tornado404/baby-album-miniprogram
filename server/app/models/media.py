@@ -4,7 +4,7 @@ import uuid
 import enum
 from datetime import datetime
 from sqlalchemy import (
-    String, Integer, BigInteger, Boolean, DateTime,
+    String, Integer, BigInteger, Boolean, DateTime, Float,
     ForeignKey, Index, Enum as SAEnum
 )
 from sqlalchemy.dialects.postgresql import ARRAY
@@ -49,6 +49,15 @@ class Media(Base):
     baby_age_days: Mapped[int | None] = mapped_column(Integer)
     tags: Mapped[list[str]] = mapped_column(ARRAY(String), default=list)
     is_deleted: Mapped[bool] = mapped_column(Boolean, default=False)
+
+    # v2.0 extended fields
+    location_lat: Mapped[float | None] = mapped_column(Float, nullable=True)
+    location_lng: Mapped[float | None] = mapped_column(Float, nullable=True)
+    location_name: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    moment: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    milestone: Mapped[str | None] = mapped_column(String(30), nullable=True)
+    is_archived: Mapped[bool] = mapped_column(Boolean, default=False)
+    archived_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime, default=datetime.utcnow
     )
