@@ -1,0 +1,68 @@
+# 宝宝成长相册后端 CI
+# 每次 push 到 master / PR 自动运行：ruff lint → pytest
+# 使用 uv 管理 Python 依赖
+
+name: Backend CI
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - "server/**"
+  pull_request:
+    branches: [master]
+    paths:
+      - "server/**"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: server
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: app
+          POSTGRES_PASSWORD: change_me
+          POSTGRES_DB: baby_album
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: "0.4.x"
+          enable-cache: true
+          cache-dependency-glob: "server/pyproject.toml"
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies (uv)
+        run: |
+          uv sync --dev --frozen
+
+      - name: Lint with ruff
+        run: |
+          uv run ruff check app/ tests/
+
+      - name: Run pytest
+        env:
+          DATABASE_URL: postgresql+asyncpg://app:change_me@localhost:5432/baby_album
+          JWT_SECRET: test-secret
+          JWT_REFRESH_SECRET: test-refresh-secret
+        run: |
+          uv run pytest -v --tb=short --no-header

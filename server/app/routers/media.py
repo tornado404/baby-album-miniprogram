@@ -96,6 +96,17 @@ async def create_media(
     create_data = data.dict(exclude_unset=True)
     if "tags" not in create_data or create_data["tags"] is None:
         create_data.pop("tags", None)
+
+    # camelCase → snake_case 字段映射
+    field_map = {
+        "babyId": "baby_id", "cosKey": "cos_key",
+        "captureDate": "capture_date",
+        "locationName": "location_name",
+    }
+    for camel, snake in field_map.items():
+        if camel in create_data:
+            create_data[snake] = create_data.pop(camel)
+
     m = await MediaService(db).create_media(user_id, create_data)
     return MediaOut(
         id=m.id, type=m.type.value, title=m.title,
@@ -106,6 +117,43 @@ async def create_media(
         moment=m.moment, milestone=m.milestone,
         isArchived=m.is_archived,
     )
+
+
+@router.put("/batch-archive")
+async def batch_archive(
+    data: BatchArchiveRequest,
+    user_id: str = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+):
+    now = datetime.utcnow()
+    for mid in data.ids:
+        r = await db.execute(select(Media).where(Media.id == mid, Media.user_id == user_id))
+        m = r.scalar_one_or_none()
+        if m:
+            m.is_archived = data.archived
+            m.archived_at = now if data.archived else None
+    await db.commit()
+    return {"message": f"{len(data.ids)} media updated", "archived": data.archived}
+
+
+@router.put("/batch-tag")
+async def batch_tag(
+    data: BatchTagRequest,
+    user_id: str = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+):
+    for mid in data.ids:
+        r = await db.execute(select(Media).where(Media.id == mid, Media.user_id == user_id))
+        m = r.scalar_one_or_none()
+        if m:
+            current = set(m.tags or [])
+            if data.action == "add":
+                current.update(data.tags)
+            elif data.action == "remove":
+                current -= set(data.tags)
+            m.tags = list(current)
+    await db.commit()
+    return {"message": f"{len(data.ids)} media tagged", "tags": data.tags}
 
 
 @router.put("/{media_id}", response_model=MediaOut)
@@ -147,40 +195,3 @@ async def delete_media(
         return {"message": "Deleted"}
     except ValueError as e:
         raise HTTPException(404, str(e))
-
-
-@router.put("/batch-archive")
-async def batch_archive(
-    data: BatchArchiveRequest,
-    user_id: str = Depends(get_current_user_id),
-    db: AsyncSession = Depends(get_db),
-):
-    now = datetime.utcnow()
-    for mid in data.ids:
-        r = await db.execute(select(Media).where(Media.id == mid, Media.user_id == user_id))
-        m = r.scalar_one_or_none()
-        if m:
-            m.is_archived = data.archived
-            m.archived_at = now if data.archived else None
-    await db.commit()
-    return {"message": f"{len(data.ids)} media updated", "archived": data.archived}
-
-
-@router.put("/batch-tag")
-async def batch_tag(
-    data: BatchTagRequest,
-    user_id: str = Depends(get_current_user_id),
-    db: AsyncSession = Depends(get_db),
-):
-    for mid in data.ids:
-        r = await db.execute(select(Media).where(Media.id == mid, Media.user_id == user_id))
-        m = r.scalar_one_or_none()
-        if m:
-            current = set(m.tags or [])
-            if data.action == "add":
-                current.update(data.tags)
-            elif data.action == "remove":
-                current -= set(data.tags)
-            m.tags = list(current)
-    await db.commit()
-    return {"message": f"{len(data.ids)} media tagged", "tags": data.tags}
