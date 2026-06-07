@@ -14,6 +14,11 @@
   justify-content: space-between;
   height: 104rpx;
   padding: 0 40rpx;
+  align-items: center;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
 }
 .home-nav-title {
@@ -55,6 +60,7 @@
 .baby-header-container.expanded {
   height: 136rpx;
   padding: 0 32rpx;
+  align-items: center;
 }
 
 .baby-header-container.collapsed {
@@ -96,6 +102,7 @@
   align-items: center;
   gap: 28rpx;
   padding: 0 32rpx;
+  align-items: center;
   flex-shrink: 0;
 }
 .baby-header-avatar {

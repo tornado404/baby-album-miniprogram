@@ -82,6 +82,8 @@ Page({
 
   /**
    * 单文件上传（sign → put → create）
+   * 注意：用 wx.request + ArrayBuffer 直传 MinIO（不用 wx.uploadFile，
+   *       因为 wx.uploadFile 只支持 POST multipart，而预签名 URL 需要 PUT 原始二进制）
    */
   uploadFile(file, babyId, token, callback) {
     var _this = this;
@@ -105,12 +107,22 @@ Page({
         var uploadUrl = signRes.data.uploadUrl;
         var cosKey = signRes.data.cosKey;
 
-        // Step 2: 直传 MinIO
-        wx.uploadFile({
+        // Step 2: 读取文件为 ArrayBuffer，用 PUT 直传 MinIO
+        var fs = wx.getFileSystemManager();
+        try {
+          var arrayBuf = fs.readFileSync(file.tempFilePath);
+        } catch (e) {
+          _this.fallbackMockUpload(file, babyId, callback);
+          return;
+        }
+
+        wx.request({
           url: uploadUrl,
-          filePath: file.tempFilePath,
-          name: 'file',
           method: 'PUT',
+          data: arrayBuf,
+          // 注意：预签名 URL 只签了 host 头，不能添加其他 Header
+          header: {},
+          timeout: 30000,
           success: function (uploadRes) {
             if (uploadRes.statusCode < 200 || uploadRes.statusCode >= 300) {
               _this.handleUploadError(callback);
