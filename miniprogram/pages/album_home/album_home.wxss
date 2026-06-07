@@ -48,7 +48,7 @@
 
 /* ===== Baby Header Container (展开/折叠双态) ===== */
 .baby-header-container {
-  width: 602rpx;
+  width: 618rpx;
   background: #ffffff;
   border-radius: 40rpx;
   box-shadow: 0px 6px 16px 0px rgba(230, 198, 179, 0.35);
@@ -94,7 +94,7 @@
 
 /* Baby Info Header Card */
 .baby-header-card {
-  width: 602rpx;
+  width: 618rpx;
   height: 136rpx;
   background: #ffffff;
   border-radius: 40rpx;
@@ -107,7 +107,7 @@
   flex-shrink: 0;
 }
 .baby-header-avatar {
-  width: 68rpx;
+  width: 76rpx;
   height: 88rpx;
   border-radius: 44rpx;
   background: #f1dce2;
@@ -122,7 +122,7 @@
 }
 
 .header-avatar-image {
-  width: 68rpx;
+  width: 76rpx;
   height: 88rpx;
   border-radius: 44rpx;
 }

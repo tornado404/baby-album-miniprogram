@@ -94,8 +94,8 @@
 }
 
 .upload-hint {
-  font-size: var(--clay-font-lg);
-  color: var(--clay-text-pink);
+  font-size: 32rpx;
+  color: #807366;
   font-weight: 500;
 }
 
@@ -106,7 +106,7 @@
 
 /* Section Title */
 .section-title {
-  font-size: var(--clay-font-lg);
+  font-size: 32rpx;
   color: var(--clay-text-primary);
   font-weight: 600;
   padding: 16rpx 0 0;
