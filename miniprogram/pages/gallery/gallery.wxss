@@ -1,0 +1,40 @@
+.page-gallery { min-height: 100vh; display: flex; flex-direction: column; background: #fffbf8; }
+.status-bar { flex-shrink: 0; }
+
+/* Nav Bar */
+.gallery-nav { display: flex; align-items: center; justify-content: space-between; height: 104rpx; padding: 0 32rpx; flex-shrink: 0; }
+.gallery-nav-title { font-size: 36rpx; font-weight: 700; color: #4a4a4a; }
+.nav-batch-btn text, .nav-cancel-btn text { font-size: 28rpx; font-weight: 500; color: #ffa87a; }
+
+/* Filter Row */
+.filter-row { display: flex; gap: 16rpx; padding: 16rpx 32rpx; flex-shrink: 0; }
+.filter-chip { padding: 12rpx 28rpx; border-radius: 32rpx; font-size: 26rpx; font-weight: 500; background: #ffffff; color: #808080; box-shadow: 0px 2px 4px rgba(230,198,179,0.15); }
+.filter-chip.active { background: #ffa87a; color: #ffffff; box-shadow: 0px 3px 6px rgba(255,168,122,0.3); }
+
+/* Loading / Empty */
+.load-state { flex: 1; display: flex; align-items: center; justify-content: center; }
+.empty-state { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16rpx; padding-bottom: 200rpx; }
+.empty-icon { font-size: 96rpx; }
+.empty-text { font-size: 32rpx; font-weight: 600; color: #4a4a4a; }
+.empty-hint { font-size: 26rpx; color: #999; }
+
+/* Media Grid */
+.media-grid { flex: 1; padding: 0 24rpx; }
+.grid-inner { column-count: 2; column-gap: 16rpx; padding-bottom: 200rpx; }
+
+.media-card { break-inside: avoid; margin-bottom: 16rpx; background: #ffffff; border-radius: 24rpx; padding: 16rpx; box-shadow: 0px 3px 8px rgba(230,198,179,0.18); position: relative; }
+.card-checkbox { position: absolute; top: 8rpx; left: 8rpx; width: 40rpx; height: 40rpx; border-radius: 20rpx; background: rgba(255,255,255,0.8); border: 2rpx solid #ccc; display: flex; align-items: center; justify-content: center; z-index: 10; }
+.card-checkbox.checked { background: #ffa87a; border-color: #ffa87a; }
+.card-checkbox text { font-size: 24rpx; color: #fff; font-weight: 700; }
+.card-img { width: 100%; height: 180rpx; border-radius: 16rpx; display: flex; align-items: center; justify-content: center; }
+.card-img-text { font-size: 48rpx; color: #998080; }
+.card-loc { font-size: 22rpx; color: #999; margin-top: 12rpx; display: block; }
+.card-tag { font-size: 20rpx; color: #806666; background: #f9f0e9; padding: 4rpx 12rpx; border-radius: 16rpx; margin-top: 8rpx; display: inline-block; }
+.card-moment { font-size: 24rpx; color: #4a4a4a; font-weight: 500; margin-top: 8rpx; display: block; }
+
+/* Batch Action Bar */
+.batch-bar { position: fixed; bottom: 128rpx; left: 0; right: 0; background: rgba(255,255,255,0.95); padding: 16rpx 32rpx; box-shadow: 0px -4px 12px rgba(230,198,179,0.2); z-index: 50; }
+.batch-count { font-size: 24rpx; color: #999; display: block; margin-bottom: 12rpx; }
+.batch-actions { display: flex; gap: 16rpx; }
+.batch-btn { flex: 1; height: 72rpx; border-radius: 36rpx; background: #ffffff; border: 2rpx solid #e6e6e6; display: flex; align-items: center; justify-content: center; font-size: 26rpx; color: #4a4a4a; font-weight: 500; }
+.batch-btn-danger { border-color: #ee0a24; color: #ee0a24; }
