@@ -4,7 +4,7 @@ WORKDIR /app
 
 RUN pip install --no-cache-dir --default-timeout 300 \
     fastapi uvicorn[standard] sqlalchemy asyncpg pydantic \
-    pydantic-settings pyjwt redis httpx pillow python-multipart
+    pydantic-settings pyjwt redis httpx pillow python-multipart minio
 
 COPY app/ app/
 COPY scripts/ scripts/

@@ -1,0 +1,38 @@
+[Unit]
+Description=Baby Album GitHub WebHook Listener
+After=network.target docker.service
+Wants=docker.service
+
+[Service]
+Type=simple
+User=deploy
+Group=deploy
+
+# 工作目录（仓库根目录）
+WorkingDirectory=/opt/baby-album
+
+# WebHook 监听器路径
+ExecStart=/usr/bin/python3 /opt/baby-album/server/scripts/webhook/listener.py \
+    --port 9002 \
+    --secret ${GITHUB_WEBHOOK_SECRET} \
+    --log /var/log/baby-webhook.log
+
+# 环境变量（从文件加载）
+EnvironmentFile=/opt/baby-album/.env
+
+# 重启策略
+Restart=always
+RestartSec=10
+
+# 安全加固
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=false  # 需要访问 /opt/baby-album/.git
+
+# 日志
+StandardOutput=append:/var/log/baby-webhook.log
+StandardError=append:/var/log/baby-webhook.log
+
+[Install]
+WantedBy=multi-user.target
