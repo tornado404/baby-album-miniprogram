@@ -2,6 +2,8 @@
 # 独立 MinIO 对象存储服务（不耦合业务服务）
 # 管理控制台: http://<server-ip>:9001  账号: Cs516@2026 / Cs516@2026
 
+version: "3.3"
+
 services:
   minio:
     image: minio/minio:latest

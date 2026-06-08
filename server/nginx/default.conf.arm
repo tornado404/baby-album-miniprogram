@@ -1,0 +1,24 @@
+# ARM 本地测试服务器 nginx 配置
+# 部署时替换 default.conf（由 docker-compose.arm.yml 处理）
+
+upstream baby_api {
+    server api:8000;
+}
+
+server {
+    listen 80;
+    server_name 192.168.50.126;
+    client_max_body_size 50M;
+
+    location / {
+        proxy_pass http://baby_api;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location /health {
+        proxy_pass http://baby_api/health;
+    }
+}

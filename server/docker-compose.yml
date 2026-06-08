@@ -1,3 +1,5 @@
+version: "3.3"
+
 services:
   postgres:
     image: postgres:15-alpine
@@ -5,7 +7,7 @@ services:
     environment:
       POSTGRES_DB: baby_album
       POSTGRES_USER: app
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-Cs516@2026}
+      POSTGRES_PASSWORD: Cs516@2026
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql
@@ -43,10 +45,8 @@ services:
     image: baby-api-base:latest
     container_name: baby-api
     depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_started
+      - postgres
+      - redis
     env_file:
       - .env
     ports:
@@ -59,7 +59,6 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 15s
     restart: unless-stopped
     networks:
       - baby-network
