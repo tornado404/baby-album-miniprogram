@@ -1,0 +1,11 @@
+# docker-compose.arm.yml
+# ARM 本地测试服务器的 Docker Compose 覆盖配置
+# 用法：docker-compose -f docker-compose.yml -f docker-compose.arm.yml up -d
+
+version: "3.3"
+
+services:
+  nginx:
+    volumes:
+      # ARM 版 nginx 配置（server_name = 192.168.50.126）
+      - ./nginx/default.conf.arm:/etc/nginx/http.d/default.conf

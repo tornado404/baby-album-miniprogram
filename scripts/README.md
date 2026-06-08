@@ -1,6 +1,123 @@
 # 微信小程序开发脚本
 
-此目录包含用于微信小程序开发、测试和 CI/CD 的脚本。
+此目录包含用于微信小程序开发、测试、CI/CD 以及**后端部署**的脚本。
+
+## 后端部署
+
+### 部署环境概览
+
+| 环境 | 服务器 | 用户 | 部署方式 | 用途 |
+|------|--------|------|----------|------|
+| **生产**（腾讯云） | 101.126.41.146 | root | `deploy-to-server.sh` | 线上正式环境 |
+| **测试**（ARM） | 192.168.50.126 | linaro | `deploy-arm.sh` | 本地 ARM 开发板测试 |
+
+### 部署命令
+
+```bash
+# 生产环境部署（云服务器）
+./scripts/deploy-to-server.sh
+
+# ARM 测试环境部署（本地开发板）
+./scripts/deploy-arm.sh
+```
+
+### ARM 测试环境架构
+
+```
+┌──────────────────────────────────────────────────┐
+│  ARM 开发板 (192.168.50.126)                      │
+│                                                   │
+│  ┌──────────┐  ┌─────────┐  ┌──────────────────┐ │
+│  │ Nginx:80 │→ │ API:8000│→ │ PostgreSQL:5432  │ │
+│  │ (反向代理)│  │ (FastAPI)│  │ Redis:6379       │ │
+│  └──────────┘  └─────────┘  └──────────────────┘ │
+│                  ↓                               │
+│  ┌──────────────────────────────────────────────┐│
+│  │ MinIO:9000 (对象存储) / :9001 (控制台)        ││
+│  └──────────────────────────────────────────────┘│
+└──────────────────────────────────────────────────┘
+```
+
+### 服务配置分离
+
+生产配置保留在 `server/` 主配置文件中，ARM 测试环境的差异通过覆盖文件实现：
+
+| 文件 | 作用 |
+|------|------|
+| `server/docker-compose.yml` | 公共配置（生产+测试共用） |
+| `server/docker-compose.arm.yml` | ARM 覆盖（server_name、nginx 挂载路径） |
+| `server/docker-compose-minio.yml` | MinIO 独立配置 |
+| `server/nginx/default.conf` | 生产 nginx 配置（server_name: 101.126.41.146） |
+| `server/nginx/default.conf.arm` | ARM nginx 配置（server_name: 192.168.50.126） |
+
+ARM 部署使用 compose override 模式：
+```bash
+docker-compose -f docker-compose.yml -f docker-compose.arm.yml up -d
+```
+
+### 首次部署 ARM
+
+首次部署需要构建 API 镜像（ARM 本地构建，约 5-10 分钟）：
+```bash
+# 在 ARM 板上
+cd /home/linaro/baby-album/server
+docker build -t baby-api-base:latest .
+
+# 或使用部署脚本（自动完成所有步骤）
+./scripts/deploy-arm.sh
+```
+
+镜像构建后，后续更新代码只需重启容器（无需重新构建）：
+```bash
+docker-compose -f docker-compose.yml -f docker-compose.arm.yml restart api
+```
+
+### 服务管理命令
+
+```bash
+# 查看所有容器状态
+docker ps --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'
+
+# 查看日志
+docker logs baby-api -f --tail 50
+docker logs baby-postgres -f --tail 20
+
+# 重启单个服务
+docker-compose -f docker-compose.yml -f docker-compose.arm.yml restart api
+docker-compose -f docker-compose-minio.yml restart minio
+
+# 重建容器（配置变更后使用）
+docker-compose -f docker-compose.yml -f docker-compose.arm.yml up -d --force-recreate
+
+# 停止所有服务
+docker-compose -f docker-compose.yml -f docker-compose.arm.yml down
+docker-compose -f docker-compose-minio.yml down
+
+# 更新 API 代码（无需构建镜像，代码通过卷挂载）
+# 1. 在本地修改 app/ 目录下的代码
+# 2. 重启 API 容器
+cd /home/linaro/baby-album/server
+docker-compose -f docker-compose.yml -f docker-compose.arm.yml restart api
+```
+
+### 服务访问地址
+
+| 服务 | ARM 测试环境 | 生产环境 |
+|------|-------------|---------|
+| API 直连 | http://192.168.50.126:8000 | http://101.126.41.146:8000 |
+| Nginx 代理 | http://192.168.50.126/ | http://101.126.41.146/ |
+| Swagger 文档 | http://192.168.50.126:8000/docs | http://101.126.41.146:8000/docs |
+| MinIO API | http://192.168.50.126:9000 | http://101.126.41.146:9000 |
+| MinIO 控制台 | http://192.168.50.126:9001 | http://101.126.41.146:9001 |
+
+### 账号信息
+
+| 服务 | 账号 | 密码 |
+|------|------|------|
+| PostgreSQL | app | Cs516@2026 |
+| MinIO 管理 | Cs516@2026 | Cs516@2026 |
+| ARM SSH | linaro | 89728972 |
+| 云服务器 SSH | root | Cs516@123456 |
 
 ## 文件说明
 

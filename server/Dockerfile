@@ -2,7 +2,7 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-RUN pip install --no-cache-dir --default-timeout 300 \
+RUN pip install --no-cache-dir --default-timeout 600 \
     fastapi uvicorn[standard] sqlalchemy asyncpg pydantic \
     pydantic-settings pyjwt redis httpx pillow python-multipart minio
 
