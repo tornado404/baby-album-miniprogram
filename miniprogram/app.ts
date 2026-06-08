@@ -13,6 +13,7 @@ App({
 
   checkToken() {
     var token = '';
+    var that = this;  // 保存 App 实例引用
     try { token = wx.getStorageSync('baby_diary_access_token') || ''; } catch (e) {}
 
     if (!token) return;
@@ -25,7 +26,7 @@ App({
       success: function (res) {
         if (res.statusCode === 401) {
           // Token 过期，尝试刷新
-          this.refreshToken();
+          that.refreshToken();
         }
       },
       fail: function () {},

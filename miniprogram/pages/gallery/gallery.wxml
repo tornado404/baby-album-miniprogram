@@ -1,0 +1,88 @@
+<view class="page-gallery">
+
+  <!-- Status Bar -->
+  <view class="status-bar" style="height: {{safeTop}}px;"></view>
+
+  <!-- Nav Bar -->
+  <view class="gallery-nav">
+    <text class="gallery-nav-title">素材库</text>
+    <view wx:if="{{!selectMode}}" class="nav-batch-btn" bindtap="onSelectAll">
+      <text>批量选择</text>
+    </view>
+    <view wx:else class="nav-cancel-btn" bindtap="onCancelSelect">
+      <text>取消</text>
+    </view>
+  </view>
+
+  <!-- Filter Chips -->
+  <view class="filter-row">
+    <view wx:for="{{filters}}" wx:key="*this"
+      class="filter-chip {{index === filterIndex ? 'active' : ''}}"
+      data-index="{{index}}"
+      bindtap="onFilterTap"
+    >
+      <text>{{item}}</text>
+    </view>
+  </view>
+
+  <!-- Loading -->
+  <view wx:if="{{isLoading && mediaList.length === 0}}" class="load-state">
+    <text>加载中...</text>
+  </view>
+
+  <!-- Empty -->
+  <view wx:elif="{{mediaList.length === 0 && !isLoading}}" class="empty-state">
+    <text class="empty-icon">📦</text>
+    <text class="empty-text">素材库是空的</text>
+    <text class="empty-hint">上传的照片和视频会出现在这里</text>
+  </view>
+
+  <!-- Media Grid -->
+  <scroll-view wx:else class="media-grid" scroll-y>
+    <view class="grid-inner">
+      <view wx:for="{{mediaList}}" wx:key="id"
+        class="media-card"
+        data-id="{{item.id}}"
+        bindtap="onMediaTap"
+        bindlongpress="onLongPress"
+      >
+        <!-- Checkbox in select mode -->
+        <view wx:if="{{selectMode}}" class="card-checkbox {{selectedIds.indexOf(item.id) >= 0 ? 'checked' : ''}}">
+          <text wx:if="{{selectedIds.indexOf(item.id) >= 0}}">✓</text>
+        </view>
+
+        <!-- Thumbnail -->
+        <view class="card-img" style="background: {{item.cardColor === 'blue' ? '#dceaf1' : '#f1dce2'}};">
+          <text class="card-img-text">📷</text>
+        </view>
+
+        <!-- Info -->
+        <text wx:if="{{item.locationName}}" class="card-loc">{{item.locationName}}</text>
+        <text wx:if="{{item.tags && item.tags.length > 0}}" class="card-tag">🏷️ {{item.tags[0]}}</text>
+        <text wx:if="{{item.moment}}" class="card-moment">{{item.moment}}</text>
+      </view>
+    </view>
+  </scroll-view>
+
+  <!-- Batch Action Bar -->
+  <view wx:if="{{selectMode}}" class="batch-bar">
+    <text class="batch-count">已选择 {{selectedIds.length}} 项</text>
+    <view class="batch-actions">
+      <view class="batch-btn" bindtap="onSelectAll">
+        <text>{{allSelected ? '取消全选' : '全选'}}</text>
+      </view>
+      <view class="batch-btn" bindtap="onBatchArchive">
+        <text>归档</text>
+      </view>
+      <view class="batch-btn" bindtap="onBatchTag">
+        <text>标签</text>
+      </view>
+      <view class="batch-btn batch-btn-danger" bindtap="onBatchDelete">
+        <text>删除</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- Bottom Nav -->
+  <bottom-nav current="gallery"></bottom-nav>
+</view>

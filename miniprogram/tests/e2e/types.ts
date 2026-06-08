@@ -1,7 +1,7 @@
 /**
  * E2E + AI 视觉测试框架 - 基础类型定义
  *
- * 按 architect docs/plan/2026-06-01-architecture-analysis.md §2.2.1
+ * 按 architect docs/07-plans/plan/2026-06-01-architecture-analysis.md §2.2.1
  * 约束：types.ts 不得引用任何其他模块（保持纯类型）。
  *
  * 注意：微信小程序运行时不支持 ES2020+ 语法，但此文件仅在 Node.js 测试环境编译。

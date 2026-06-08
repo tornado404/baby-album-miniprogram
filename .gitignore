@@ -1,1 +1,10 @@
-node_modulesminiprogram/miniprogram_npm/
+node_modules
+miniprogram/miniprogram_npm/
+
+# Python
+__pycache__/
+*.pyc
+server/test.db
+*.egg-info/
+.venv/
+uv.lock

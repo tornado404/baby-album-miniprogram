@@ -95,7 +95,7 @@ log_info "重启 API 容器..."
 cd "$REPO_DIR"
 
 # 使用 docker compose 重新创建容器（代码通过 volume 挂载，无需重新 build）
-if ! docker compose -f "$COMPOSE_FILE" up -d api; then
+if ! docker compose -p baby-album -f "$COMPOSE_FILE" up -d --force-recreate api; then
     log_error "docker compose up 失败"
     exit 1
 fi
@@ -125,7 +125,7 @@ if [ "$HEALTHY" != "true" ]; then
     git reset --hard "$OLD_HASH"
 
     # 重启容器（回滚后的代码）
-    if docker compose -f "$COMPOSE_FILE" up -d api; then
+    if docker compose -p baby-album -f "$COMPOSE_FILE" up -d --force-recreate api; then
         sleep 10
         if curl -sSf "$HEALTH_URL" > /dev/null 2>&1; then
             log_info "回滚成功 — 运行之前版本"

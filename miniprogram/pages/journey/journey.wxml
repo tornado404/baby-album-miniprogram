@@ -1,0 +1,77 @@
+<view class="page-journey">
+
+  <!-- Status Bar -->
+  <view class="status-bar" style="height: {{safeTop}}px;"></view>
+
+  <!-- Nav Bar -->
+  <view class="journey-nav">
+    <text class="journey-nav-title">成长历程</text>
+    <view class="journey-share-btn" bindtap="onShare">
+      <text>分享</text>
+    </view>
+  </view>
+
+  <!-- Baby Header -->
+  <view class="baby-header">
+    <view class="baby-header-avatar">
+      <text>{{currentBaby ? (currentBaby.avatar || '👶') : '👶'}}</text>
+    </view>
+    <view class="baby-header-info">
+      <text class="baby-header-name">{{currentBaby ? currentBaby.name : '宝宝'}} ✨</text>
+      <text class="baby-header-age">{{babyAgeText}} · {{totalMedia}}张记录</text>
+    </view>
+  </view>
+
+  <!-- Milestone Progress -->
+  <scroll-view class="milestone-row" scroll-x>
+    <view wx:for="{{milestones}}" wx:key="key" class="milestone-dot">
+      <text class="milestone-dot-icon">{{item.icon}}</text>
+    </view>
+  </scroll-view>
+
+  <!-- Loading -->
+  <view wx:if="{{isLoading}}" class="load-state">
+    <text>加载中...</text>
+  </view>
+
+  <!-- Timeline -->
+  <scroll-view wx:else class="timeline-scroll" scroll-y>
+    <view class="timeline-inner">
+
+      <!-- Empty -->
+      <view wx:if="{{groupedMedia.length === 0 && !isLoading}}" class="empty-state">
+        <text>还没有归档内容</text>
+        <text class="empty-hint">在「素材库」中归档后展示在这里</text>
+      </view>
+
+      <!-- Month Groups -->
+      <view wx:for="{{groupedMedia}}" wx:key="month" class="month-group">
+        <view class="month-title">
+          <text>🎉 {{item.month}}</text>
+          <text class="month-count">{{item.items.length}}张</text>
+        </view>
+
+        <view class="month-cards">
+          <view wx:for="{{item.items}}" wx:key="id"
+            class="timeline-card"
+            data-id="{{item.id}}"
+            bindtap="onMediaTap"
+          >
+            <view class="tcard-img" style="background: {{item.cardColor === 'blue' ? '#dceaf1' : item.cardColor === 'beige' ? '#f4e6d6' : '#f1dce2'}};">
+              <text>📷</text>
+            </view>
+            <view class="tcard-info">
+              <text wx:if="{{item.title}}" class="tcard-title">{{item.title}}</text>
+              <text wx:if="{{item.locationName}}" class="tcard-loc">{{item.locationName}}</text>
+              <text wx:if="{{item.tags && item.tags.length}}" class="tcard-tag">🏷️ {{item.tags[0]}}</text>
+              <text wx:if="{{item.moment}}" class="tcard-moment">{{item.moment}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+
+  <!-- Bottom Nav -->
+  <bottom-nav current="journey"></bottom-nav>
+</view>

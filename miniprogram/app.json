@@ -10,6 +10,8 @@
     "pages/baby_profile/baby_profile",
     "pages/baby_onboarding/baby_onboarding",
     "pages/baby_list/baby_list",
+    "pages/gallery/gallery",
+    "pages/journey/journey",
     "pages/3d_viewer/3d_viewer"
   ],
   "window": {
