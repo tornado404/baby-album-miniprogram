@@ -1,9 +1,10 @@
 "use strict";
 // @ts-nocheck
 // index.ts - 登录引导页
-// 状态: idle → loading → error / success
+// 对接后端 API：wx.login → POST /auth/login → JWT
 var AUTH_KEY = 'baby_diary_authed';
 var BABY_KEY = 'baby_diary_baby_profile';
+var API_BASE = 'http://101.126.41.146:8000/api/v1';
 Page({
     data: {
         safeTop: 44,
@@ -11,66 +12,143 @@ Page({
         errorMsg: ''
     },
     onLoad: function () {
-        // Get safe area
         try {
-            var info = wx.getSystemInfoSync();
+            var info = wx.getWindowInfo();
             this.setData({ safeTop: info.statusBarHeight || 44 });
         }
         catch (e) { }
-        // Check if already authenticated
-        var authed = wx.getStorageSync(AUTH_KEY);
-        var babyProfile = wx.getStorageSync(BABY_KEY);
-        if (authed && babyProfile) {
-            // Already has account → go directly to home
-            this.redirectToHome();
+        // Check token validity
+        this.checkLoginStatus();
+    },
+    checkLoginStatus: function () {
+        var token = '';
+        try {
+            token = wx.getStorageSync('baby_diary_access_token') || '';
+        }
+        catch (e) { }
+        if (token) {
+            this.setData({ authState: 'loading' });
+            this.verifyAndRoute(token);
         }
     },
-    onLoginTap: function () {
+    verifyAndRoute: function (token) {
         var _this = this;
-        this.setData({ authState: 'loading', errorMsg: '' });
-        // Step 1: WeChat login (get code)
-        wx.login({
-            success: function (loginRes) {
-                if (loginRes.code) {
-                    console.log('微信登录 code:', loginRes.code);
-                    // In production: send loginRes.code to backend
-                    // For MVP: simulate success
-                    _this.handleAuthSuccess();
+        wx.request({
+            url: API_BASE + '/auth/me',
+            method: 'GET',
+            header: { 'Authorization': 'Bearer ' + token },
+            success: function (res) {
+                if (res.statusCode === 200) {
+                    var babyProfile = wx.getStorageSync(BABY_KEY);
+                    _this.redirectTo(babyProfile ? 'home' : 'onboarding');
+                }
+                else if (res.statusCode === 401) {
+                    _this.tryRefreshToken();
                 }
                 else {
-                    _this.handleAuthError('登录失败，请重试');
+                    _this.setData({ authState: 'idle' });
                 }
             },
             fail: function () {
-                _this.handleAuthError('网络错误，请检查网络后重试');
-            }
+                // Offline: use local cache
+                var babyProfile = wx.getStorageSync(BABY_KEY);
+                if (babyProfile)
+                    _this.redirectTo('home');
+                else
+                    _this.setData({ authState: 'idle' });
+            },
         });
     },
-    handleAuthSuccess: function () {
-        // Mark as authenticated
+    tryRefreshToken: function () {
+        var _this = this;
+        var refreshToken = '';
+        try {
+            refreshToken = wx.getStorageSync('baby_diary_refresh_token') || '';
+        }
+        catch (e) { }
+        if (!refreshToken) {
+            this.setData({ authState: 'idle' });
+            return;
+        }
+        wx.request({
+            url: API_BASE + '/auth/refresh',
+            method: 'POST',
+            data: { refreshToken: refreshToken },
+            success: function (res) {
+                if (res.statusCode === 200 && res.data && res.data.accessToken) {
+                    wx.setStorageSync('baby_diary_access_token', res.data.accessToken);
+                    if (res.data.refreshToken) {
+                        wx.setStorageSync('baby_diary_refresh_token', res.data.refreshToken);
+                    }
+                    var babyProfile = wx.getStorageSync(BABY_KEY);
+                    _this.redirectTo(babyProfile ? 'home' : 'onboarding');
+                }
+                else {
+                    _this.setData({ authState: 'idle' });
+                }
+            },
+            fail: function () { _this.setData({ authState: 'idle' }); },
+        });
+    },
+    onLoginTap: function () {
+        this.setData({ authState: 'loading', errorMsg: '' });
+        var _this = this;
+        wx.login({
+            success: function (loginRes) {
+                if (loginRes.code) {
+                    wx.request({
+                        url: API_BASE + '/auth/login',
+                        method: 'POST',
+                        data: { code: loginRes.code },
+                        timeout: 15000,
+                        success: function (res) {
+                            if (res.statusCode === 200 && res.data && res.data.accessToken) {
+                                wx.setStorageSync('baby_diary_access_token', res.data.accessToken);
+                                wx.setStorageSync('baby_diary_refresh_token', res.data.refreshToken);
+                                wx.setStorageSync('baby_diary_user_id', res.data.userId);
+                                wx.setStorageSync(AUTH_KEY, true);
+                                _this.setData({ authState: 'success' });
+                                if (res.data.isNewUser) {
+                                    _this.redirectTo('onboarding');
+                                }
+                                else {
+                                    _this.redirectTo('home');
+                                }
+                            }
+                            else {
+                                _this.handleAuthError('登录失败，请重试');
+                            }
+                        },
+                        fail: function () {
+                            _this.handleOfflineFallback();
+                        },
+                    });
+                }
+                else {
+                    _this.handleAuthError('微信登录失败');
+                }
+            },
+            fail: function () { _this.handleAuthError('网络错误，请检查网络'); },
+        });
+    },
+    handleOfflineFallback: function () {
         wx.setStorageSync(AUTH_KEY, true);
-        this.setData({ authState: 'success' });
-        // Check if baby profile exists
         var babyProfile = wx.getStorageSync(BABY_KEY);
+        this.setData({ authState: 'success' });
         if (babyProfile) {
-            // Has profile → go to home
-            this.redirectToHome();
+            this.redirectTo('home');
         }
         else {
-            // No profile → guide to create
-            wx.showToast({ title: '欢迎！请先创建宝宝档案', icon: 'none', duration: 2000 });
-            setTimeout(function () {
-                wx.redirectTo({ url: '/pages/baby_profile/baby_profile' });
-            }, 1500);
+            this.redirectTo('onboarding');
         }
     },
     handleAuthError: function (msg) {
-        this.setData({
-            authState: 'error',
-            errorMsg: msg || '授权失败，请重试'
-        });
+        this.setData({ authState: 'error', errorMsg: msg || '授权失败，请重试' });
     },
-    redirectToHome: function () {
-        wx.redirectTo({ url: '/pages/album_home/album_home' });
-    }
+    redirectTo: function (target) {
+        var url = target === 'home'
+            ? '/pages/album_home/album_home'
+            : '/pages/baby_onboarding/baby_onboarding';
+        wx.redirectTo({ url: url });
+    },
 });

@@ -33,7 +33,7 @@ function makeMinioUrl(bucket: string, path: string): string {
     '&X-Amz-Signature=abc123def456';
 }
 
-global.wx = {
+(global as any).wx = {
   getStorageSync: function (key: string) {
     return mockStorage[key] !== undefined ? mockStorage[key] : null;
   },
@@ -41,11 +41,25 @@ global.wx = {
   removeStorageSync: function (key: string) { delete mockStorage[key]; },
   getSystemInfoSync: function () { return { statusBarHeight: 44 }; },
 
+  getFileSystemManager: function () {
+    return {
+      readFileSync: function (filePath: string) {
+        // 模拟读取文件为 ArrayBuffer
+        return new ArrayBuffer(1024);
+      },
+    };
+  },
+
   request: function (opts: any) {
     mockRequests.push({
       url: opts.url, method: opts.method, data: opts.data, header: opts.header,
     });
 
+    // 模拟直传 MinIO（PUT 到 presigned URL）
+    if (opts.method === 'PUT' && opts.url.match(/X-Amz-Algorithm=/)) {
+      opts.success({ statusCode: 200, data: 'ETag: \"abc123\"' });
+      return;
+    }
     // 模拟 /auth/refresh
     if (opts.url.includes('/auth/refresh')) {
       if (opts.data && opts.data.refreshToken === 'expired-refresh-token') {
@@ -102,7 +116,7 @@ global.wx = {
   },
 
   uploadFile: function (opts: any) {
-    mockUploadTasks.push({ url: opts.url, filePath: opts.filePath, method: opts.method || 'PUT' });
+    mockUploadTasks.push({ url: opts.url, filePath: opts.filePath, method: opts.method || 'POST' });
     opts.success({ statusCode: 200, data: 'ETag: \"abc123\"' });
   },
 
@@ -161,26 +175,33 @@ describe('上传流程单元测试', () => {
     expect(mockRequests[0].data.fileType).toBe('video');
   });
 
-  // ---------- TC3: wx.uploadFile 直传 MinIO ----------
-  test('TC3: wx.uploadFile PUT 直传 MinIO', function () {
+  // ---------- TC3: readFileSync + wx.request PUT 直传 MinIO ----------
+  test('TC3: readFileSync + wx.request PUT 直传 MinIO（替代 wx.uploadFile）', function () {
     var uploadUrl = makeMinioUrl('baby-album', 'photos/user-1/test.jpg');
     var filePath = 'wxfile://temp_photo_camera_123.jpg';
+    var fs = wx.getFileSystemManager();
+    var arrayBuf = fs.readFileSync(filePath);
+    expect(arrayBuf).toBeInstanceOf(ArrayBuffer);
 
-    wx.uploadFile({
+    var uploadOk = false;
+    wx.request({
       url: uploadUrl,
-      filePath: filePath,
-      name: 'file',
       method: 'PUT',
-      success: function (res: any) { expect(res.statusCode).toBe(200); },
+      data: arrayBuf,
+      header: {},
+      success: function (res: any) { uploadOk = (res.statusCode === 200); },
     });
 
-    expect(mockUploadTasks.length).toBe(1);
-    expect(mockUploadTasks[0].url).toBe(uploadUrl);
-    expect(mockUploadTasks[0].filePath).toBe(filePath);
+    expect(uploadOk).toBe(true);
+    // 验证请求：PUT 到 presigned URL，header 为空（不干扰签名）
+    var putReq = mockRequests[mockRequests.length - 1];
+    expect(putReq.method).toBe('PUT');
+    expect(putReq.header).toEqual({});
+    expect(putReq.data).toBeInstanceOf(ArrayBuffer);
   });
 
   // ---------- TC4: 三步骤完整链路 ----------
-  test('TC4: 完整上传链路（sign → upload → create media）', function () {
+  test('TC4: 完整上传链路（sign → readFile+PUT → create media）', function () {
     var token = wx.getStorageSync('baby_diary_access_token');
     var babyId = wx.getStorageSync('baby_diary_current_baby_id');
 
@@ -196,13 +217,15 @@ describe('上传流程单元测试', () => {
     expect(signResult).not.toBeNull();
     expect(signResult.method).toBe('PUT');
 
-    // Step 2: upload to MinIO
+    // Step 2: readFileSync + PUT to MinIO
     var uploadOk = false;
-    wx.uploadFile({
+    var fs = wx.getFileSystemManager();
+    var arrayBuf = fs.readFileSync('wxfile://temp_summer.jpg');
+    wx.request({
       url: signResult.uploadUrl,
-      filePath: 'wxfile://temp_summer.jpg',
-      name: 'file',
       method: 'PUT',
+      data: arrayBuf,
+      header: {},
       success: function (res: any) { uploadOk = (res.statusCode === 200); },
     });
     expect(uploadOk).toBe(true);
@@ -226,12 +249,11 @@ describe('上传流程单元测试', () => {
     expect(mediaResult.babyAge.months).toBe(6);
 
     // 验证请求计数
-    expect(mockRequests.length).toBe(2); // sign + media
-    expect(mockUploadTasks.length).toBe(1); // upload
+    expect(mockRequests.length).toBe(3); // sign + upload + media
   });
 
   // ---------- TC5: 视频上传链路 ----------
-  test('TC5: 视频上传链路（sign → upload → create）', function () {
+  test('TC5: 视频上传链路（sign → readFile+PUT → create）', function () {
     var token = wx.getStorageSync('baby_diary_access_token');
     var babyId = 'baby-video-test';
 
@@ -245,11 +267,13 @@ describe('上传流程单元测试', () => {
     });
     expect(signResult.cosKey).toMatch(/\.mp4$/);
 
-    wx.uploadFile({
+    var fs = wx.getFileSystemManager();
+    var arrayBuf = fs.readFileSync('wxfile://temp_walking.mp4');
+    wx.request({
       url: signResult.uploadUrl,
-      filePath: 'wxfile://temp_walking.mp4',
-      name: 'file',
       method: 'PUT',
+      data: arrayBuf,
+      header: {},
       success: function (res: any) { expect(res.statusCode).toBe(200); },
     });
 
@@ -266,51 +290,75 @@ describe('上传流程单元测试', () => {
 
   // ---------- TC6: Token 过期后自动刷新 ----------
   test('TC6: 401 时自动刷新 token 后重放请求', function () {
-    var token = 'expired-token';
-    var callCount = 0;
+    var origRequest = (global as any).wx.request;
+    var origToken = mockStorage['baby_diary_access_token'];
+    try {
+      var callLog: Array<string> = [];
 
-    global.wx.request = function (opts: any) {
-      callCount++;
+      (global as any).wx.request = function (opts: any) {
+        if (opts.url.includes('/upload/sign')) {
+          if (callLog.indexOf('sign-401') === -1) {
+            // 第一次 sign 请求返回 401
+            callLog.push('sign-401');
+            opts.success({ statusCode: 401, data: { code: 40102, message: 'Token expired' } });
+          } else {
+            // refresh 后的重放请求成功
+            callLog.push('sign-ok');
+            opts.success({
+              statusCode: 200,
+              data: { uploadUrl: makeMinioUrl('baby-album', 'photos/user-1/retry.jpg'), cosKey: 'photos/user-1/retry.jpg', method: 'PUT' },
+            });
+          }
+          return;
+        }
+        if (opts.url.includes('/auth/refresh')) {
+          callLog.push('refresh');
+          mockStorage['baby_diary_access_token'] = 'refreshed-token-abc';
+          mockStorage['baby_diary_refresh_token'] = 'new-rt-999';
+          opts.success({
+            statusCode: 200,
+            data: { accessToken: 'refreshed-token-abc', refreshToken: 'new-rt-999' },
+          });
+          return;
+        }
+        opts.success({ statusCode: 200, data: {} });
+      };
 
-      // 第一次请求返回 401（token 过期）
-      if (callCount === 1 && opts.url.includes('/upload/sign')) {
-        opts.success({ statusCode: 401, data: { code: 40102, message: 'Token expired' } });
-        return;
-      }
-      // 刷新 token 请求
-      if (opts.url.includes('/auth/refresh')) {
-        // 更新存储的 token
-        mockStorage['baby_diary_access_token'] = 'refreshed-token-abc';
-        mockStorage['baby_diary_refresh_token'] = 'new-rt-999';
-        opts.success({
-          statusCode: 200,
-          data: { accessToken: 'refreshed-token-abc', refreshToken: 'new-rt-999' },
-        });
-        return;
-      }
-      // 重放请求
-      opts.success({
-        statusCode: 200,
-        data: { uploadUrl: makeMinioUrl('baby-album', 'photos/user-1/retry.jpg'), cosKey: 'photos/user-1/retry.jpg', method: 'PUT' },
+      // 模拟 request.ts 的 401 → refresh → retry 逻辑
+      // Step 1: sign 请求返回 401（token 过期）
+      wx.request({
+        url: 'http://101.126.41.146:8000/api/v1/upload/sign', method: 'POST',
+        data: { fileName: 'test.jpg', fileType: 'image', babyId: 'baby-1' },
+        header: { 'Authorization': 'Bearer expired-token' },
+        success: function () {},
       });
-    };
+      expect(callLog).toContain('sign-401');
 
-    // 模拟重放逻辑
-    var retryResult: any = null;
-    wx.request({
-      url: 'http://101.126.41.146:8000/api/v1/upload/sign',
-      method: 'POST',
-      data: { fileName: 'retry.jpg', fileType: 'image', babyId: 'baby-1' },
-      header: { 'Authorization': 'Bearer ' + token },
-      success: function (res: any) { retryResult = res.data; },
-    });
+      // Step 2: 调 refresh 更新 token
+      wx.request({
+        url: 'http://101.126.41.146:8000/api/v1/auth/refresh',
+        method: 'POST', data: { refreshToken: 'valid-refresh-token' },
+        success: function () {},
+      });
+      expect(callLog).toContain('refresh');
+      expect(mockStorage['baby_diary_access_token']).toBe('refreshed-token-abc');
 
-    // 验证 token 被刷新
-    expect(mockStorage['baby_diary_access_token']).toBe('refreshed-token-abc');
+      // Step 3: 用新 token 重放 sign 请求
+      wx.request({
+        url: 'http://101.126.41.146:8000/api/v1/upload/sign', method: 'POST',
+        data: { fileName: 'test.jpg', fileType: 'image', babyId: 'baby-1' },
+        header: { 'Authorization': 'Bearer refreshed-token-abc' },
+        success: function () {},
+      });
+      expect(callLog).toContain('sign-ok');
+    } finally {
+      (global as any).wx.request = origRequest;
+      mockStorage['baby_diary_access_token'] = origToken;
+    }
   });
 
   // ---------- TC7: 批量 9 张上传 ----------
-  test('TC7: 批量 9 张照片上传进度', function () {
+  test('TC7: 批量 9 张照片上传（使用 readFileSync + wx.request PUT）', function () {
     var total = 9;
     var uploaded = 0;
     var progresses: number[] = [];
@@ -326,19 +374,24 @@ describe('上传流程单元测试', () => {
       });
       expect(signResult).not.toBeNull();
 
-      wx.uploadFile({
+      var fs = wx.getFileSystemManager();
+      var arrayBuf = fs.readFileSync('wxfile://photo_' + i + '.jpg');
+      wx.request({
         url: signResult.uploadUrl,
-        filePath: 'wxfile://photo_' + i + '.jpg',
-        name: 'file',
         method: 'PUT',
+        data: arrayBuf,
+        header: {},
         success: function () { uploaded++; progresses.push(Math.floor(uploaded / total * 100)); },
       });
     }
 
-    expect(mockRequests.length).toBe(9);
-    expect(mockUploadTasks.length).toBe(9);
+    expect(mockRequests.length).toBe(18); // sign*9 + upload*9 （不再使用 uploadFile）
     expect(mockRequests[0].data.fileName).toBe('photo_0.jpg');
-    expect(mockRequests[8].data.fileName).toBe('photo_8.jpg');
+    // 第 9 个 sign 请求在 index 16（因为每轮迭代 2 个请求: sign + PUT）
+    expect(mockRequests[16].data.fileName).toBe('photo_8.jpg');
+    // 验证 upload 请求是 PUT 到 presigned URL（第 1 个 PUT 在 index 1）
+    expect(mockRequests[1].method).toBe('PUT');
+    expect(mockRequests[1].header).toEqual({});
   });
 
   // ---------- TC8: 空文件列表不处理 ----------

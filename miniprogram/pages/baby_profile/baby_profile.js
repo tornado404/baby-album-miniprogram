@@ -16,7 +16,7 @@ Page({
         avatarEmoji: '👶'
     },
     onLoad: function () {
-        var sysInfo = wx.getSystemInfoSync();
+        var sysInfo = wx.getWindowInfo();
         this.setData({ safeTop: sysInfo.statusBarHeight || 44 });
         // Load baby profile from storage if editing existing
         var babyId = '';

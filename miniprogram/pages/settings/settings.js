@@ -1,19 +1,65 @@
 "use strict";
-// settings.ts - 我的/设置页面
-// Claymorphism 设计风格
+// @ts-nocheck
+// settings.ts - 我的/设置页面，对接后端 API
+var API_BASE = 'http://101.126.41.146:8000/api/v1';
 Page({
     data: {
         safeTop: 44,
         userName: '星星妈妈',
-        recordDays: 180,
-        photoCount: 128,
-        videoCount: 32,
-        modelCount: 3,
-        achievementCount: 3
+        recordDays: 0,
+        photoCount: 0,
+        videoCount: 0,
+        modelCount: 0,
+        achievementCount: 0,
     },
     onLoad: function () {
-        var sysInfo = wx.getSystemInfoSync();
-        this.setData({ safeTop: sysInfo.statusBarHeight || 44 });
+        try {
+            var info = wx.getWindowInfo();
+            this.setData({ safeTop: info.statusBarHeight || 44 });
+        }
+        catch (e) { }
+        this.loadStats();
+    },
+    loadStats: function () {
+        var _this = this;
+        var token = '';
+        try {
+            token = wx.getStorageSync('baby_diary_access_token') || '';
+        }
+        catch (e) { }
+        // 加载统计数据
+        wx.request({
+            url: API_BASE + '/analytics/stats',
+            method: 'GET',
+            header: { 'Authorization': 'Bearer ' + token },
+            timeout: 8000,
+            success: function (res) {
+                if (res.statusCode === 200 && res.data && res.data.data) {
+                    var d = res.data.data;
+                    _this.setData({
+                        photoCount: d.photoCount || 0,
+                        videoCount: d.videoCount || 0,
+                        modelCount: d.modelCount || 0,
+                        recordDays: d.recordDays || 0,
+                    });
+                }
+            },
+            fail: function () { },
+        });
+        // 加载成就
+        wx.request({
+            url: API_BASE + '/analytics/achievements',
+            method: 'GET',
+            header: { 'Authorization': 'Bearer ' + token },
+            timeout: 8000,
+            success: function (res) {
+                if (res.statusCode === 200 && res.data && res.data.data) {
+                    var unlocked = (res.data.data.badges || []).filter(function (b) { return b.unlocked; });
+                    _this.setData({ achievementCount: unlocked.length });
+                }
+            },
+            fail: function () { },
+        });
     },
     onMenuTap: function (e) {
         var key = e.currentTarget.dataset.key;
@@ -23,20 +69,19 @@ Page({
             achievements: '',
             storage: '',
             share: '',
-            about: ''
+            about: '',
         };
         var url = routes[key];
         if (url) {
-            switch (key) {
-                case 'baby_manage':
-                    wx.navigateTo({ url: url });
-                    break;
-                default:
-                    wx.showToast({ title: '功能开发中', icon: 'none' });
+            if (key === 'baby_manage') {
+                wx.navigateTo({ url: url });
+            }
+            else {
+                wx.showToast({ title: '功能开发中', icon: 'none' });
             }
         }
         else {
             wx.showToast({ title: '功能开发中', icon: 'none' });
         }
-    }
+    },
 });
