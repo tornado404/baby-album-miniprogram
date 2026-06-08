@@ -40,6 +40,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    image: baby-api-base:latest
     container_name: baby-api
     depends_on:
       postgres:
@@ -50,6 +51,15 @@ services:
       - .env
     ports:
       - "8000:8000"
+    volumes:
+      # 代码卷挂载：修改代码后只需重启容器，无需重新构建镜像
+      - ./app:/app/app
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import http.client, sys; c=http.client.HTTPConnection('localhost',8000); c.request('GET','/health'); sys.exit(0 if c.getresponse().status==200 else 1)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
     restart: unless-stopped
     networks:
       - baby-network

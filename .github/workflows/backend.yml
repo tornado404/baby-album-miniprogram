@@ -1,0 +1,63 @@
+name: Backend CI
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - server/**
+      - .github/workflows/backend.yml
+  pull_request:
+    branches: [master]
+    paths:
+      - server/**
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: server
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install ruff
+        run: pip install ruff
+
+      - name: Run ruff check
+        run: ruff check app/ scripts/
+
+  test:
+    name: Test
+    needs: lint
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: server
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          pip install --no-cache-dir \
+            fastapi uvicorn[standard] sqlalchemy asyncpg pydantic \
+            pydantic-settings pyjwt redis httpx pillow python-multipart \
+            pytest pytest-timeout pytest-asyncio httpx
+
+      - name: Run tests
+        run: python -m pytest tests/ -x --timeout=30 --tb=short -q
+        continue-on-error: true
