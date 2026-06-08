@@ -12,7 +12,7 @@
 set -euo pipefail
 
 # ── 配置 ──────────────────────────────────────────────────────────────────────
-REPO_DIR="${REPO_DIR:-/opt/baby-album}"
+REPO_DIR="${REPO_DIR:-/opt/baby-repo}"
 BRANCH="${DEPLOY_BRANCH:-master}"
 COMPOSE_FILE="server/docker-compose.yml"
 HEALTH_URL="http://localhost:8000/health"
@@ -78,16 +78,9 @@ if [ "$LOCAL_HASH" = "$REMOTE_HASH" ]; then
     exit 0
 fi
 
-# 执行合并（优先 rebase 保持线性历史）
-log_info "合并 origin/${BRANCH}..."
-if git rebase "origin/$BRANCH" 2>/dev/null; then
-    log_info "Rebase 成功"
-elif git merge "origin/$BRANCH" 2>/dev/null; then
-    log_info "Merge 成功"
-else
-    log_error "合并失败，需要手动处理冲突"
-    exit 1
-fi
+# 执行 fast-forward（服务器始终与远程保持一致，不会产生冲突）
+log_info "更新到 origin/${BRANCH}..."
+git reset --hard "origin/$BRANCH"
 
 NEW_HASH=$(git rev-parse HEAD)
 log_info "新版本: ${NEW_HASH:0:12}"
