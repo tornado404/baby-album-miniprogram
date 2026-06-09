@@ -112,8 +112,54 @@
         </view>
         <text class="menu-arrow">›</text>
       </view>
+
+      <!-- Divider -->
+      <view class="dev-divider"></view>
+
+      <!-- Developer Settings -->
+      <view class="menu-item dev-menu-item" bindtap="onEnvSwitchTap">
+        <view class="menu-icon dev-icon">
+          <text>🛠</text>
+        </view>
+        <view class="menu-text-area">
+          <text class="menu-title">开发者设置</text>
+          <text class="menu-desc dev-env-name">{{envName}}</text>
+        </view>
+        <text class="menu-arrow">›</text>
+      </view>
     </view>
   </scroll-view>
+
+  <!-- Environment Picker Popup -->
+  <t-popup visible="{{showEnvPicker}}" placement="bottom" bind:visible-change="onEnvPickerClose">
+    <view class="env-picker-container">
+      <view class="env-picker-header">
+        <text class="env-picker-title">切换 API 环境</text>
+        <text class="env-picker-hint">切换后需重启小程序生效</text>
+      </view>
+      <view class="env-list">
+        <view
+          class="env-item {{selectedEnv === item.key ? 'env-item-active' : ''}}"
+          wx:for="{{environments}}"
+          wx:key="key"
+          data-env="{{item.key}}"
+          bindtap="onEnvSelect"
+        >
+          <view class="env-info">
+            <text class="env-name">{{item.name}}</text>
+            <text class="env-desc">{{item.desc}}</text>
+          </view>
+          <view class="env-check {{selectedEnv === item.key ? 'env-check-active' : ''}}">
+            <text wx:if="{{selectedEnv === item.key}}">✓</text>
+          </view>
+        </view>
+      </view>
+      <view class="env-picker-actions">
+        <view class="env-btn env-btn-cancel" bindtap="onEnvPickerClose">取消</view>
+        <view class="env-btn env-btn-confirm" bindtap="onConfirmSwitch">确认切换</view>
+      </view>
+    </view>
+  </t-popup>
 
   <!-- Bottom Navigation -->
   <bottom-nav current="profile"></bottom-nav>
