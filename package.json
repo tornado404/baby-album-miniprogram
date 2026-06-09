@@ -17,7 +17,10 @@
     "build:npm": "node scripts/build-npm.js",
     "ci:build": "node scripts/ci.js build",
     "ci:preview": "node scripts/ci.js preview",
-    "ci:upload": "node scripts/ci.js upload"
+    "ci:upload": "node scripts/ci.js upload",
+    "build:dev": "node scripts/build.js development",
+    "build:test": "node scripts/build.js testing",
+    "build:prod": "node scripts/build.js production"
   },
   "keywords": [],
   "author": "",
