@@ -1,31 +1,32 @@
 // @ts-nocheck
 // app.ts - 应用入口，Token 检测 + 自动刷新
+// 使用统一配置中心获取 API 地址
 
-const API_BASE = 'http://101.126.41.146:8000/api/v1';
+import { API_CONFIG } from './config/api';
 
 App({
-  globalData: {},
+  globalData: {
+    env: API_CONFIG.name,
+  },
 
   onLaunch() {
-    // 检查 token 有效性
+    console.log('[app] 当前环境:', API_CONFIG.name, API_CONFIG.baseURL);
     this.checkToken();
   },
 
   checkToken() {
     var token = '';
-    var that = this;  // 保存 App 实例引用
+    var that = this;
     try { token = wx.getStorageSync('baby_diary_access_token') || ''; } catch (e) {}
 
     if (!token) return;
 
-    // 验证 token
     wx.request({
-      url: API_BASE + '/auth/me',
+      url: API_CONFIG.baseURL + '/auth/me',
       method: 'GET',
       header: { 'Authorization': 'Bearer ' + token },
       success: function (res) {
         if (res.statusCode === 401) {
-          // Token 过期，尝试刷新
           that.refreshToken();
         }
       },
@@ -39,7 +40,7 @@ App({
     if (!refreshToken) return;
 
     wx.request({
-      url: API_BASE + '/auth/refresh',
+      url: API_CONFIG.baseURL + '/auth/refresh',
       method: 'POST',
       data: { refreshToken: refreshToken },
       success: function (res) {
