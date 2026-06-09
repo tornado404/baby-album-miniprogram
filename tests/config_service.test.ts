@@ -191,3 +191,5 @@ describe('config_service.ts - 运行时配置切换服务', () => {
     });
   });
 });
+
+export {};

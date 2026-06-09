@@ -252,3 +252,5 @@ describe('config/api.ts - API 环境配置中心', () => {
     });
   });
 });
+
+export {};
