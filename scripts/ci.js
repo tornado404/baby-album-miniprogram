@@ -22,7 +22,7 @@ const fs = require('fs');
 // 项目配置
 const PROJECT_PATH = path.resolve(__dirname, '..');
 const MINIPROGRAM_PATH = path.join(PROJECT_PATH, 'miniprogram');
-const APPID = 'wx5d0e66dc0e6fb16d';
+const APPID = 'wx3db22b5d6da5d38a';
 
 // 获取私钥
 function getPrivateKey() {
