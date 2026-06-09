@@ -71,6 +71,9 @@ async def list_media(
     user_id: str = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db),
 ):
+    if not babyId:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=400, detail={"code": 40001, "message": "Missing required parameter: babyId"})
     svc = MediaService(db)
     items = await svc.list_media(babyId, page)
     result = []
