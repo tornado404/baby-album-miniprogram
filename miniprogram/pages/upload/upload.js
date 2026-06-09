@@ -27,10 +27,10 @@ Page({
     },
     getBabyId: function () {
         try {
-            return wx.getStorageSync('baby_diary_current_baby_id') || 'demo-1';
+            return wx.getStorageSync('baby_diary_current_baby_id') || '';
         }
         catch (e) {
-            return 'demo-1';
+            return '';
         }
     },
     onTakePhoto: function () {
@@ -75,6 +75,8 @@ Page({
                 if (uploaded >= total) {
                     _this.setData({ isUploading: false, uploadStatus: '' });
                     wx.showToast({ title: '上传完成', icon: 'success', duration: 1500 });
+                    // 上传完成后延迟返回首页，触发 onShow 刷新列表
+                    setTimeout(function () { wx.navigateBack(); }, 1500);
                 }
             });
         }

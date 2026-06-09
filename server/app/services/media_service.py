@@ -2,6 +2,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, desc
 from app.models.media import Media
+from app.services.file_service import get_file_url
 
 
 class MediaService:
@@ -18,7 +19,9 @@ class MediaService:
         return r.scalars().all()
 
     async def create_media(self, user_id: str, data: dict):
-        m = Media(user_id=user_id, **data)
+        cos_key = data.get("cos_key", "")
+        cos_url = get_file_url(cos_key) if cos_key else ""
+        m = Media(user_id=user_id, cos_url=cos_url, **data)
         self.db.add(m)
         await self.db.commit()
         await self.db.refresh(m)

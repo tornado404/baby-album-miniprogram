@@ -41,6 +41,21 @@ Page({
         this.initPage();
         this.loadBabies();
     },
+
+    onShow: function () {
+        // 从其他页面返回时刷新数据（如上传完成后返回）
+        var babyId = '';
+        try {
+            babyId = wx.getStorageSync('baby_diary_current_baby_id') || '';
+        }
+        catch (e) { }
+        if (babyId && babyId !== this.data.currentBabyId) {
+            this.setData({ currentBabyId: babyId });
+        }
+        if (babyId) {
+            this.fetchMediaList(babyId, 1);
+        }
+    },
     initPage: function () {
         var _this = this;
         var babyId = this.data.currentBabyId || '';

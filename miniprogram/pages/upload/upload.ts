@@ -77,6 +77,8 @@ Page({
         if (uploaded >= total) {
           _this.setData({ isUploading: false, uploadStatus: '' });
           wx.showToast({ title: '上传完成', icon: 'success', duration: 1500 });
+          // 上传完成后延迟返回首页，触发 onShow 刷新列表
+          setTimeout(function () { wx.navigateBack(); }, 1500);
         }
       });
     }
