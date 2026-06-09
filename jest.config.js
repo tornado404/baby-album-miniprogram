@@ -18,7 +18,8 @@ module.exports = {
       rootDir: __dirname,
       roots: ['<rootDir>/tests', '<rootDir>/miniprogram/tests'],
       // 单元测试用 .test.ts；E2E spec 用 .spec.ts（在 e2e project 中）
-      testMatch: ['<rootDir>/tests/**/*.test.ts', '<rootDir>/miniprogram/tests/**/*.test.ts'],
+      testRegex: '.*\\.test\\.ts$',
+      // Jest 30 testMatch 在部分 Windows 环境有 glob 发现 bug，改用 testRegex
       testPathIgnorePatterns: [
         '/node_modules/',
         '/reports/'

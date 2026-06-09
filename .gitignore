@@ -1,6 +1,7 @@
 node_modules
 miniprogram/miniprogram_npm/
 .worktrees/
+*.bak
 
 # Python
 __pycache__/

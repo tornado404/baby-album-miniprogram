@@ -30,6 +30,7 @@ docs/
 |------|------|------|
 | [`storage-PRD.md`](./01-requirements/storage-PRD.md) | 相册数据存储服务设计（MinIO + 直传方案） | 📝 设计阶段 |
 | [`integration-PRD.md`](./01-requirements/integration-PRD.md) | 前后端联调需求文档 | 📝 待评审 |
+| [`switchable-config-PRD.md`](./01-requirements/switchable-config-PRD.md) | 可切换API服务器配置 — 本地/云服务器环境切换 | 📝 设计阶段 |
 
 ## 2️⃣ 设计规范 (02-design/)
 
@@ -54,6 +55,7 @@ docs/
 |------|------|
 | [`album_v1/feature_design.md`](./04-features/album_v1/feature_design.md) | 相册 v1 功能设计 |
 | [`story/story.md`](./04-features/story/story.md) | 前端用户故事 |
+| [`switchable-config-guide.md`](./04-features/switchable-config-guide.md) | 环境配置切换操作指南 — 本地/测试/生产三端切换 |
 
 ## 5️⃣ 测试体系 (05-testing/)
 
@@ -95,7 +97,7 @@ docs/
 | 角色 | 推荐入口 |
 |------|----------|
 | 🎨 **产品 / 设计** | `PRD-v2.md` → `Design.md` |
-| 🖥️ **前端开发** | `Tech.md` → `Spec.md` → `album_v1/feature_design.md` |
+| 🖥️ **前端开发** | `Tech.md` → `Spec.md` → `album_v1/feature_design.md` → `switchable-config-guide.md`（环境切换） |
 | ⚙️ **后端开发** | `backend/README.md` → `backend/architecture.md` |
 | 🧪 **测试** | `e2e-快速上手.md` → `E2E-Testing-Guide.md` → `arch.md` |
 | 📋 **项目管理** | `07-plans/plan/` → `07-plans/task/` |
