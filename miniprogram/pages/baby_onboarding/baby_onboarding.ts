@@ -2,9 +2,10 @@
 // baby_onboarding.ts - 首次登录宝宝信息填写页
 // 对接后端 API：POST /api/v1/babies/ 保存到云端
 
+import { API_CONFIG } from '../../config/api';
+
 const BABY_KEY = 'baby_diary_baby_profile';
 const CURRENT_BABY_KEY = 'baby_diary_current_baby_id';
-const API_BASE = 'http://101.126.41.146:8000/api/v1';
 
 Page({
   data: {
@@ -55,7 +56,7 @@ Page({
     try { token = wx.getStorageSync('baby_diary_access_token') || ''; } catch (e) {}
 
     wx.request({
-      url: API_BASE + '/babies/',
+      url: API_CONFIG.baseURL + '/babies/',
       method: 'POST',
       data: { name: name, gender: null, birthDate: null, avatar: _this.data.avatarUrl || _this.data.avatarEmoji },
       header: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },

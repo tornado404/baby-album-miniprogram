@@ -1,7 +1,7 @@
 // @ts-nocheck
 // journey.ts - 成长历程页面
 
-const API_BASE = 'http://101.126.41.146:8000/api/v1';
+import { API_CONFIG } from '../../config/api';
 
 Page({
   data: {
@@ -47,7 +47,7 @@ Page({
     if (!babyId || !token) { this.fallbackBaby(); return; }
 
     wx.request({
-      url: API_BASE + '/babies/' + babyId,
+      url: API_CONFIG.baseURL + '/babies/' + babyId,
       method: 'GET',
       header: { 'Authorization': 'Bearer ' + token },
       success: function (res) {
@@ -77,7 +77,7 @@ Page({
     var _this = this;
     var token = this.getToken();
     wx.request({
-      url: API_BASE + '/media/?archived=true',
+      url: API_CONFIG.baseURL + '/media/?archived=true',
       method: 'GET',
       header: { 'Authorization': 'Bearer ' + token },
       success: function (res) {

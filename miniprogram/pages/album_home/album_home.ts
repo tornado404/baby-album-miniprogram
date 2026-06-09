@@ -1,7 +1,8 @@
 // @ts-nocheck
 // album_home.ts - 首页，对接后端 API
+// 使用统一配置中心 API_CONFIG
 
-const API_BASE = 'http://101.126.41.146:8000/api/v1';
+import { API_CONFIG } from '../../config/api';
 
 Page({
   data: {
@@ -71,7 +72,7 @@ Page({
     }
 
     wx.request({
-      url: API_BASE + '/babies/' + babyId,
+      url: API_CONFIG.baseURL + '/babies/' + babyId,
       method: 'GET',
       header: { 'Authorization': 'Bearer ' + token },
       timeout: 8000,
@@ -118,7 +119,7 @@ Page({
     if (!babyId || !token) { this.fallbackMediaList(); return; }
 
     wx.request({
-      url: API_BASE + '/media/',
+      url: API_CONFIG.baseURL + '/media/',
       method: 'GET',
       data: { babyId: babyId, page: page },
       header: { 'Authorization': 'Bearer ' + token },
@@ -179,7 +180,7 @@ Page({
     var token = this.getToken();
 
     wx.request({
-      url: API_BASE + '/babies/',
+      url: API_CONFIG.baseURL + '/babies/',
       method: 'GET',
       header: { 'Authorization': 'Bearer ' + token },
       timeout: 8000,

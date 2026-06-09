@@ -1,7 +1,7 @@
 // @ts-nocheck
 // media_detail.ts - 内容详情页，对接后端 API (Figma 精确还原)
 
-const API_BASE = 'http://101.126.41.146:8000/api/v1';
+import { API_CONFIG } from '../../config/api';
 
 Page({
   data: {
@@ -35,7 +35,7 @@ Page({
     try { token = wx.getStorageSync('baby_diary_access_token') || ''; } catch (e) {}
 
     wx.request({
-      url: API_BASE + '/media/' + id,
+      url: API_CONFIG.baseURL + '/media/' + id,
       method: 'GET',
       header: { 'Authorization': 'Bearer ' + token },
       timeout: 10000,

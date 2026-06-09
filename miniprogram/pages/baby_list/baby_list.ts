@@ -1,7 +1,7 @@
 // @ts-nocheck
 // baby_list.ts - 宝宝列表页，对接后端 API
 
-const API_BASE = 'http://101.126.41.146:8000/api/v1';
+import { API_CONFIG } from '../../config/api';
 
 Page({
   data: {
@@ -27,7 +27,7 @@ Page({
     try { token = wx.getStorageSync('baby_diary_access_token') || ''; } catch (e) {}
 
     wx.request({
-      url: API_BASE + '/babies/',
+      url: API_CONFIG.baseURL + '/babies/',
       method: 'GET',
       header: { 'Authorization': 'Bearer ' + token },
       timeout: 8000,

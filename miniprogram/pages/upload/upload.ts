@@ -1,7 +1,9 @@
 // @ts-nocheck
 // upload.ts - 上传页面，对接 MinIO 直传 + 后端媒体 API
+// 上传流程：POST /upload/sign → PUT MinIO → POST /media/
 
-const API_BASE = 'http://101.126.41.146:8000/api/v1';
+import { API_CONFIG } from '../../config/api';
+import { mediaApi } from '../../services/media_api';
 
 Page({
   data: {
@@ -25,7 +27,7 @@ Page({
   },
 
   getBabyId() {
-    try { return wx.getStorageSync('baby_diary_current_baby_id') || 'demo-1'; } catch (e) { return 'demo-1'; }
+    try { return wx.getStorageSync('baby_diary_current_baby_id') || ''; } catch (e) { return ''; }
   },
 
   onTakePhoto() {
@@ -92,14 +94,22 @@ Page({
     var captureDate = new Date().toISOString().split('T')[0];
 
     // Step 1: 获取预签名 URL
+    if (!babyId) {
+      console.warn('[upload] 未选择宝宝，跳过上传');
+      wx.showToast({ title: '请先创建宝宝档案', icon: 'none', duration: 2000 });
+      if (callback) callback();
+      return;
+    }
+
     wx.request({
-      url: API_BASE + '/upload/sign',
+      url: API_CONFIG.baseURL + '/upload/sign',
       method: 'POST',
       data: { fileName: fileName, fileType: fileType, babyId: babyId },
       header: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
       timeout: 10000,
       success: function (signRes) {
         if (signRes.statusCode !== 200 || !signRes.data.uploadUrl) {
+          console.warn('[upload] 获取上传签名失败:', signRes.statusCode, signRes.data);
           _this.fallbackMockUpload(file, babyId, callback);
           return;
         }
@@ -131,22 +141,27 @@ Page({
 
             // Step 3: 创建媒体记录
             wx.request({
-              url: API_BASE + '/media/',
+              url: API_CONFIG.baseURL + '/media/',
               method: 'POST',
               data: {
                 babyId: babyId, title: '', type: fileType,
                 cosKey: cosKey, captureDate: captureDate,
               },
               header: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+              timeout: 10000,
               success: function (mediaRes) {
                 if (mediaRes.statusCode === 200 || mediaRes.statusCode === 201) {
                   // 同步到本地缓存
                   _this.syncToLocal(file, babyId, fileType, captureDate, cosKey);
+                } else {
+                  console.warn('[upload] 创建媒体记录失败:', mediaRes.statusCode, mediaRes.data);
+                  _this.setData({ uploadStatus: '记录创建失败' });
                 }
                 if (callback) callback();
               },
-              fail: function () {
-                // 媒体记录创建失败但不影响文件上传
+              fail: function (err) {
+                console.warn('[upload] 创建媒体请求失败:', err);
+                _this.setData({ uploadStatus: '记录创建失败' });
                 if (callback) callback();
               },
             });
