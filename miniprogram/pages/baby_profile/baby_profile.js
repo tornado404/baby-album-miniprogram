@@ -39,7 +39,9 @@ Page({
     loadFromApi: function (babyId) {
         var _this = this;
         var token = '';
-        try { token = wx.getStorageSync('baby_diary_access_token') || ''; }
+        try {
+            token = wx.getStorageSync('baby_diary_access_token') || '';
+        }
         catch (e) { }
         wx.request({
             url: api_1.API_CONFIG.baseURL + '/babies/' + babyId,
@@ -131,10 +133,14 @@ Page({
             height: this.data.height,
         };
         var babyId = '';
-        try { babyId = wx.getStorageSync(storage_keys_1.STORAGE_KEYS.currentBabyId) || ''; }
+        try {
+            babyId = wx.getStorageSync(storage_keys_1.STORAGE_KEYS.currentBabyId) || '';
+        }
         catch (e) { }
         var token = '';
-        try { token = wx.getStorageSync('baby_diary_access_token') || ''; }
+        try {
+            token = wx.getStorageSync('baby_diary_access_token') || '';
+        }
         catch (e) { }
         var _this = this;
         var url;
@@ -157,7 +163,9 @@ Page({
                 if (res.statusCode === 200 || res.statusCode === 201) {
                     var savedBaby = res.data;
                     if (!babyId && savedBaby && savedBaby.id) {
-                        try { wx.setStorageSync(storage_keys_1.STORAGE_KEYS.currentBabyId, savedBaby.id); }
+                        try {
+                            wx.setStorageSync(storage_keys_1.STORAGE_KEYS.currentBabyId, savedBaby.id);
+                        }
                         catch (e) { }
                     }
                     _this.syncLocalBabies(babyProfile, babyId, savedBaby);
