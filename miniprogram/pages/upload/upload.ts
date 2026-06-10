@@ -23,10 +23,6 @@ Page({
 
   onBack() { wx.navigateBack(); },
 
-  getToken() {
-    try { return wx.getStorageSync('baby_diary_access_token') || ''; } catch (e) { return ''; }
-  },
-
   getBabyId() {
     try { return wx.getStorageSync(STORAGE_KEYS.currentBabyId) || ''; } catch (e) { return ''; }
   },
@@ -64,13 +60,12 @@ Page({
     this.setData({ isUploading: true, uploadProgress: 0, uploadStatus: '获取上传凭证...' });
     var _this = this;
     var babyId = this.getBabyId();
-    var token = this.getToken();
     var uploaded = 0;
     var total = files.length;
 
     // 逐个上传
     for (var i = 0; i < files.length; i++) {
-      this.uploadFile(files[i], babyId, token, function () {
+      this.uploadFile(files[i], babyId, function () {
         uploaded++;
         var pct = Math.floor(uploaded / total * 100);
         _this.setData({ uploadProgress: pct, uploadStatus: '上传中 ' + pct + '%' });
@@ -90,7 +85,7 @@ Page({
    * 注意：用 wx.request + ArrayBuffer 直传 MinIO（不用 wx.uploadFile，
    *       因为 wx.uploadFile 只支持 POST multipart，而预签名 URL 需要 PUT 原始二进制）
    */
-  uploadFile(file, babyId, token, callback) {
+  uploadFile(file, babyId, callback) {
     var _this = this;
     var fileName = (file.tempFilePath || 'photo.jpg').split('/').pop() || 'photo.jpg';
     var fileType = file.mediaType === 'video' ? 'video' : 'image';
@@ -104,80 +99,58 @@ Page({
       return;
     }
 
-    wx.request({
-      url: API_CONFIG.baseURL + '/upload/sign',
-      method: 'POST',
-      data: { fileName: fileName, fileType: fileType, babyId: babyId },
-      header: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
-      timeout: 10000,
-      success: function (signRes) {
-        if (signRes.statusCode !== 200 || !signRes.data.uploadUrl) {
-          console.warn('[upload] 获取上传签名失败:', signRes.statusCode, signRes.data);
-          _this.fallbackMockUpload(file, babyId, callback);
-          return;
-        }
-
-        var uploadUrl = signRes.data.uploadUrl;
-        var cosKey = signRes.data.cosKey;
-
-        // Step 2: 读取文件为 ArrayBuffer，用 PUT 直传 MinIO
-        var fs = wx.getFileSystemManager();
-        try {
-          var arrayBuf = fs.readFileSync(file.tempFilePath);
-        } catch (e) {
-          _this.fallbackMockUpload(file, babyId, callback);
-          return;
-        }
-
-        wx.request({
-          url: uploadUrl,
-          method: 'PUT',
-          data: arrayBuf,
-          // 注意：预签名 URL 只签了 host 头，不能添加其他 Header
-          header: {},
-          timeout: 30000,
-          success: function (uploadRes) {
-            if (uploadRes.statusCode < 200 || uploadRes.statusCode >= 300) {
-              _this.handleUploadError(callback);
-              return;
-            }
-
-            // Step 3: 创建媒体记录
-            wx.request({
-              url: API_CONFIG.baseURL + '/media/',
-              method: 'POST',
-              data: {
-                babyId: babyId, title: '', type: fileType,
-                cosKey: cosKey, captureDate: captureDate,
-              },
-              header: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
-              timeout: 10000,
-              success: function (mediaRes) {
-                if (mediaRes.statusCode === 200 || mediaRes.statusCode === 201) {
-                  // 同步到本地缓存
-                  _this.syncToLocal(file, babyId, fileType, captureDate, cosKey);
-                } else {
-                  console.warn('[upload] 创建媒体记录失败:', mediaRes.statusCode, mediaRes.data);
-                  _this.setData({ uploadStatus: '记录创建失败' });
-                }
-                if (callback) callback();
-              },
-              fail: function (err) {
-                console.warn('[upload] 创建媒体请求失败:', err);
-                _this.setData({ uploadStatus: '记录创建失败' });
-                if (callback) callback();
-              },
-            });
-          },
-          fail: function () {
-            _this.fallbackMockUpload(file, babyId, callback);
-          },
-        });
-      },
-      fail: function () {
-        // 后端不可达，降级到本地 Mock
+    mediaApi.getUploadSign(fileName, fileType, babyId).then(function (signData) {
+      var uploadUrl = signData.uploadUrl;
+      var cosKey = signData.cosKey;
+      if (!uploadUrl || !cosKey) {
+        console.warn('[upload] 获取上传签名失败: 响应缺少字段', signData);
         _this.fallbackMockUpload(file, babyId, callback);
-      },
+        return;
+      }
+
+      // Step 2: 读取文件为 ArrayBuffer，用 PUT 直传 MinIO
+      var fs = wx.getFileSystemManager();
+      try {
+        var arrayBuf = fs.readFileSync(file.tempFilePath);
+      } catch (e) {
+        _this.fallbackMockUpload(file, babyId, callback);
+        return;
+      }
+
+      wx.request({
+        url: uploadUrl,
+        method: 'PUT',
+        data: arrayBuf,
+        // 注意：预签名 URL 只签了 host 头，不能添加其他 Header
+        header: {},
+        timeout: 30000,
+        success: function (uploadRes) {
+          if (uploadRes.statusCode < 200 || uploadRes.statusCode >= 300) {
+            _this.handleUploadError(callback);
+            return;
+          }
+
+          // Step 3: 创建媒体记录
+          mediaApi.create({
+            babyId: babyId, title: '', type: fileType,
+            cosKey: cosKey, captureDate: captureDate,
+          }).then(function () {
+            // 同步到本地缓存
+            _this.syncToLocal(file, babyId, fileType, captureDate, cosKey);
+            if (callback) callback();
+          }).catch(function () {
+            console.warn('[upload] 创建媒体记录失败');
+            _this.setData({ uploadStatus: '记录创建失败' });
+            if (callback) callback();
+          });
+        },
+        fail: function () {
+          _this.fallbackMockUpload(file, babyId, callback);
+        },
+      });
+    }).catch(function () {
+      // 后端不可达，降级到本地 Mock
+      _this.fallbackMockUpload(file, babyId, callback);
     });
   },
 
