@@ -3,7 +3,7 @@
 // Claymorphism 设计风格，支持头像上传
 Object.defineProperty(exports, "__esModule", { value: true });
 var storage_keys_1 = require("../../constants/storage_keys");
-var api_1 = require("../../config/api");
+var baby_api_1 = require("../../services/baby_api");
 Page({
     data: {
         safeTop: 44,
@@ -38,36 +38,20 @@ Page({
     },
     loadFromApi: function (babyId) {
         var _this = this;
-        var token = '';
-        try {
-            token = wx.getStorageSync('baby_diary_access_token') || '';
-        }
-        catch (e) { }
-        wx.request({
-            url: api_1.API_CONFIG.baseURL + '/babies/' + babyId,
-            method: 'GET',
-            header: { 'Authorization': 'Bearer ' + token },
-            timeout: 8000,
-            success: function (res) {
-                if (res.statusCode === 200 && res.data) {
-                    var b = res.data;
-                    var avatar = b.avatar || '';
-                    _this.setData({
-                        nickname: b.name || '小星星',
-                        gender: b.gender || 'female',
-                        birthDate: b.birthDate || '2025-12-01',
-                        avatarUrl: avatar.indexOf('http') === 0 ? avatar : '',
-                        avatarEmoji: avatar.indexOf('http') !== 0 && avatar ? avatar : '👶',
-                    });
-                    if (_this.data.birthDate) {
-                        _this.setData({ birthDateArray: _this.dateToArray(_this.data.birthDate) });
-                    }
-                }
-                else {
-                    _this.loadFromLocal(babyId);
-                }
-            },
-            fail: function () { _this.loadFromLocal(babyId); },
+        baby_api_1.babyApi.get(babyId).then(function (b) {
+            var avatar = b.avatar || '';
+            _this.setData({
+                nickname: b.name || '小星星',
+                gender: b.gender || 'female',
+                birthDate: b.birthDate || '2025-12-01',
+                avatarUrl: avatar.indexOf('http') === 0 ? avatar : '',
+                avatarEmoji: avatar.indexOf('http') !== 0 && avatar ? avatar : '👶',
+            });
+            if (_this.data.birthDate) {
+                _this.setData({ birthDateArray: _this.dateToArray(_this.data.birthDate) });
+            }
+        }).catch(function () {
+            _this.loadFromLocal(babyId);
         });
     },
     loadFromLocal: function (babyId) {
@@ -137,48 +121,26 @@ Page({
             babyId = wx.getStorageSync(storage_keys_1.STORAGE_KEYS.currentBabyId) || '';
         }
         catch (e) { }
-        var token = '';
-        try {
-            token = wx.getStorageSync('baby_diary_access_token') || '';
-        }
-        catch (e) { }
         var _this = this;
-        var url;
-        var method;
+        var promise;
         if (babyId) {
-            url = api_1.API_CONFIG.baseURL + '/babies/' + babyId;
-            method = 'PUT';
+            promise = baby_api_1.babyApi.update(babyId, babyProfile);
         }
         else {
-            url = api_1.API_CONFIG.baseURL + '/babies/';
-            method = 'POST';
+            promise = baby_api_1.babyApi.create(babyProfile);
         }
-        wx.request({
-            url: url,
-            method: method,
-            data: babyProfile,
-            header: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
-            timeout: 10000,
-            success: function (res) {
-                if (res.statusCode === 200 || res.statusCode === 201) {
-                    var savedBaby = res.data;
-                    if (!babyId && savedBaby && savedBaby.id) {
-                        try {
-                            wx.setStorageSync(storage_keys_1.STORAGE_KEYS.currentBabyId, savedBaby.id);
-                        }
-                        catch (e) { }
-                    }
-                    _this.syncLocalBabies(babyProfile, babyId, savedBaby);
-                    wx.showToast({ title: '保存成功', icon: 'success' });
-                    wx.navigateBack();
+        promise.then(function (savedBaby) {
+            if (!babyId && savedBaby && savedBaby.id) {
+                try {
+                    wx.setStorageSync(storage_keys_1.STORAGE_KEYS.currentBabyId, savedBaby.id);
                 }
-                else {
-                    _this.saveLocalFallback(babyProfile, babyId);
-                }
-            },
-            fail: function () {
-                _this.saveLocalFallback(babyProfile, babyId);
-            },
+                catch (e) { }
+            }
+            _this.syncLocalBabies(babyProfile, babyId, savedBaby);
+            wx.showToast({ title: '保存成功', icon: 'success' });
+            wx.navigateBack();
+        }).catch(function () {
+            _this.saveLocalFallback(babyProfile, babyId);
         });
     },
     syncLocalBabies: function (profile, babyId, savedBaby) {

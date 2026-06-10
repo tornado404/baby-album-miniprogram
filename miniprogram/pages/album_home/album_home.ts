@@ -1,8 +1,9 @@
 // @ts-nocheck
 // album_home.ts - 首页，对接后端 API
-// 使用统一配置中心 API_CONFIG
+// 使用统一服务层 babyApi / mediaApi
 
-import { API_CONFIG } from '../../config/api';
+import { babyApi } from '../../services/baby_api';
+import { mediaApi } from '../../services/media_api';
 import { STORAGE_KEYS } from '../../constants/storage_keys';
 
 Page({
@@ -81,37 +82,20 @@ Page({
     this.fetchMediaList(babyId, 1);
   },
 
-  getToken: function () {
-    try { return wx.getStorageSync('baby_diary_access_token') || ''; } catch (e) { return ''; }
-  },
-
   fetchBabyInfo: function (babyId) {
     var _this = this;
-    var token = this.getToken();
-
-    if (!babyId || !token) {
+    if (!babyId) {
       this.fallbackBabyInfo(babyId);
       return;
     }
-
-    wx.request({
-      url: API_CONFIG.baseURL + '/babies/' + babyId,
-      method: 'GET',
-      header: { 'Authorization': 'Bearer ' + token },
-      timeout: 8000,
-      success: function (res) {
-        if (res.statusCode === 200 && res.data) {
-          var b = res.data;
-          _this.setData({
-            currentBaby: b,
-            babyAgeText: b.birthDate ? _this.calcAge(b.birthDate) + ' · ' + (b.gender === 'male' ? '男宝' : '女宝') : '',
-            isLoading: false,
-          });
-        } else {
-          _this.fallbackBabyInfo(babyId);
-        }
-      },
-      fail: function () { _this.fallbackBabyInfo(babyId); },
+    babyApi.get(babyId).then(function (baby) {
+      _this.setData({
+        currentBaby: baby,
+        babyAgeText: baby.birthDate ? _this.calcAge(baby.birthDate) + ' · ' + (baby.gender === 'male' ? '男宝' : '女宝') : '',
+        isLoading: false,
+      });
+    }).catch(function () {
+      _this.fallbackBabyInfo(babyId);
     });
   },
 
@@ -138,35 +122,35 @@ Page({
 
   fetchMediaList: function (babyId, page) {
     var _this = this;
-    var token = this.getToken();
-    if (!babyId || !token) { this.fallbackMediaList(); return; }
+    if (!babyId) { this.fallbackMediaList(); return; }
 
-    wx.request({
-      url: API_CONFIG.baseURL + '/media/',
-      method: 'GET',
-      data: { babyId: babyId, page: page },
-      header: { 'Authorization': 'Bearer ' + token },
-      timeout: 8000,
-      success: function (res) {
-        if (res.statusCode === 200 && res.data && res.data.length > 0) {
-          var items = res.data.map(function (m) {
-            return {
-              id: m.id, title: m.title || '', url: m.cosUrl || '',
-              thumbnailUrl: m.thumbnailUrl || m.cosUrl || '',
-              cardColor: _this.getCardColor(m.id),
-              captureDate: m.captureDate,
-            };
-          });
-          _this.setData({
-            mediaList: items,
-            isEmpty: items.length === 0,
-            isLoading: false,
-          });
-        } else {
-          _this.fallbackMediaList();
-        }
-      },
-      fail: function () { _this.fallbackMediaList(); },
+    mediaApi.list(babyId, page).then(function (items) {
+      if (Array.isArray(items) && items.length > 0) {
+        var mapped = items.map(function (m) {
+          return {
+            id: m.id, title: m.title || '', url: m.cosUrl || '',
+            thumbnailUrl: m.thumbnailUrl || m.cosUrl || '',
+            cardColor: _this.getCardColor(m.id),
+            captureDate: m.captureDate,
+          };
+        });
+        // 分页合并：如果是第一页直接替换，否则追加
+        var list = page === 1 ? mapped : _this.data.mediaList.concat(mapped);
+        _this.setData({
+          mediaList: list,
+          isEmpty: list.length === 0,
+          isLoading: false,
+          isLoadingMore: false,
+          hasMore: items.length >= _this.data.pageSize,
+          page: page,
+        });
+      } else {
+        if (page === 1) { _this.fallbackMediaList(); }
+        else { _this.setData({ isLoadingMore: false, hasMore: false }); }
+      }
+    }).catch(function () {
+      if (page === 1) { _this.fallbackMediaList(); }
+      else { _this.setData({ isLoadingMore: false }); }
     });
   },
 
@@ -198,42 +182,40 @@ Page({
     ];
   },
 
+  loadMoreMedia: function () {
+    if (this.data.isLoadingMore || !this.data.hasMore || !this.data.currentBabyId) return;
+    this.setData({ isLoadingMore: true });
+    this.fetchMediaList(this.data.currentBabyId, this.data.page + 1);
+  },
+
   loadBabies: function () {
     var _this = this;
-    var token = this.getToken();
-
-    wx.request({
-      url: API_CONFIG.baseURL + '/babies/',
-      method: 'GET',
-      header: { 'Authorization': 'Bearer ' + token },
-      timeout: 8000,
-      success: function (res) {
-        if (res.statusCode === 200 && Array.isArray(res.data)) {
-          var babies = res.data;
-          _this.setData({ babies: babies, isEmpty: babies.length === 0 });
-          // 缓存到本地
-          if (babies.length > 0) {
-            try { wx.setStorageSync('album_babies', babies); } catch (e) {}
-            // 如果当前没有选中的宝宝，或选中的宝宝不在列表中，自动选第一个
-            var currentId = _this.data.currentBabyId;
-            var found = false;
-            for (var i = 0; i < babies.length; i++) {
-              if (babies[i].id === currentId) { found = true; break; }
-            }
-            if (!currentId || !found) {
-              var firstBaby = babies[0];
-              _this.setData({ currentBabyId: firstBaby.id, currentBaby: firstBaby });
-              try { wx.setStorageSync(STORAGE_KEYS.currentBabyId, firstBaby.id); } catch (e) {}
-              // 加载第一个宝宝的媒体
-              _this.fetchBabyInfo(firstBaby.id);
-              _this.fetchMediaList(firstBaby.id, 1);
-            }
+    babyApi.list().then(function (babies) {
+      if (Array.isArray(babies)) {
+        _this.setData({ babies: babies, isEmpty: babies.length === 0 });
+        // 缓存到本地
+        if (babies.length > 0) {
+          try { wx.setStorageSync('album_babies', babies); } catch (e) {}
+          // 如果当前没有选中的宝宝，或选中的宝宝不在列表中，自动选第一个
+          var currentId = _this.data.currentBabyId;
+          var found = false;
+          for (var i = 0; i < babies.length; i++) {
+            if (babies[i].id === currentId) { found = true; break; }
           }
-        } else {
-          _this.fallbackBabies();
+          if (!currentId || !found) {
+            var firstBaby = babies[0];
+            _this.setData({ currentBabyId: firstBaby.id, currentBaby: firstBaby });
+            try { wx.setStorageSync(STORAGE_KEYS.currentBabyId, firstBaby.id); } catch (e) {}
+            // 加载第一个宝宝的媒体
+            _this.fetchBabyInfo(firstBaby.id);
+            _this.fetchMediaList(firstBaby.id, 1);
+          }
         }
-      },
-      fail: function () { _this.fallbackBabies(); },
+      } else {
+        _this.fallbackBabies();
+      }
+    }).catch(function () {
+      _this.fallbackBabies();
     });
   },
 
@@ -283,6 +265,16 @@ Page({
     var collapsed = scrollTop > 60;
     if (collapsed !== this.data.headerCollapsed) {
       this.setData({ headerCollapsed: collapsed });
+    }
+    // 分页触发：距底部 < 300px 且不在加载中
+    var detail = e.detail || {};
+    var threshold = 300;
+    var scrollHeight = detail.scrollHeight || 0;
+    var clientHeight = detail.clientHeight || 0;
+    if (scrollHeight > 0 && clientHeight > 0 &&
+        scrollTop + clientHeight >= scrollHeight - threshold &&
+        !this.data.isLoadingMore && this.data.hasMore) {
+      this.loadMoreMedia();
     }
   },
 
