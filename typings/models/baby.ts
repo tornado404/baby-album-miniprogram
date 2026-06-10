@@ -25,6 +25,13 @@ export interface Baby {
   birthDate?: string;            // 出生日期 (YYYY-MM-DD)，首次登录可选
   gender?: BabyGender;           // 性别，首次登录可选
   avatar?: string;              // 头像URL
+  dueDate?: string;              // 预产期 // 新增
+  weight?: string;               // 体重 // 新增
+  height?: string;               // 身高 // 新增
+  order?: number;                // 排序 // 新增
+  photoCount?: number;           // 照片数量 // 新增
+  videoCount?: number;           // 视频数量 // 新增
+  recordDays?: number;           // 记录天数 // 新增
   createdAt: string;            // 创建时间 ISO8601
   updatedAt?: string;           // 更新时间 ISO8601
 }

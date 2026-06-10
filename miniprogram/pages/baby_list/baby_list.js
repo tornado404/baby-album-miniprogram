@@ -1,7 +1,9 @@
 "use strict";
 // @ts-nocheck
 // baby_list.ts - 宝宝列表页，对接后端 API
-var API_BASE = 'http://101.126.41.146:8000/api/v1';
+Object.defineProperty(exports, "__esModule", { value: true });
+var api_1 = require("../../config/api");
+var storage_keys_1 = require("../../constants/storage_keys");
 Page({
     data: {
         safeTop: 44,
@@ -26,7 +28,7 @@ Page({
         }
         catch (e) { }
         wx.request({
-            url: API_BASE + '/babies/',
+            url: api_1.API_CONFIG.baseURL + '/babies/',
             method: 'GET',
             header: { 'Authorization': 'Bearer ' + token },
             timeout: 8000,
@@ -61,7 +63,7 @@ Page({
     onBabyTap: function (e) {
         var id = e.currentTarget.dataset.id;
         try {
-            wx.setStorageSync('baby_diary_current_baby_id', id);
+            wx.setStorageSync(storage_keys_1.STORAGE_KEYS.currentBabyId, id);
         }
         catch (e) { }
         wx.navigateTo({ url: '/pages/baby_profile/baby_profile?id=' + id });

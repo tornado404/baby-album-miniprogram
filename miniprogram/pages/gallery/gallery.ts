@@ -1,7 +1,7 @@
 // @ts-nocheck
 // gallery.ts - 素材库页面
 
-const API_BASE = 'http://101.126.41.146:8000/api/v1';
+import { API_CONFIG } from '../../config/api';
 
 Page({
   data: {
@@ -38,7 +38,7 @@ Page({
     else if (filterIdx === 1) params['archived'] = 'false';
 
     wx.request({
-      url: API_BASE + '/media/',
+      url: API_CONFIG.baseURL + '/media/',
       method: 'GET',
       data: params,
       header: { 'Authorization': 'Bearer ' + token },
@@ -104,7 +104,7 @@ Page({
     if (ids.length === 0) { wx.showToast({ title: '请先选择照片', icon: 'none' }); return; }
     var _this = this;
     wx.request({
-      url: API_BASE + '/media/batch-archive',
+      url: API_CONFIG.baseURL + '/media/batch-archive',
       method: 'PUT',
       header: { 'Authorization': 'Bearer ' + this.getToken(), 'Content-Type': 'application/json' },
       data: { ids: ids, archived: true },
@@ -133,7 +133,7 @@ Page({
         var done = 0;
         for (var i = 0; i < ids.length; i++) {
           wx.request({
-            url: API_BASE + '/media/' + ids[i],
+            url: API_CONFIG.baseURL + '/media/' + ids[i],
             method: 'DELETE',
             header: { 'Authorization': 'Bearer ' + token },
             success: function () { done++; if (done >= ids.length) { wx.showToast({ title: '已删除', icon: 'success' }); _this.exitSelectMode(); _this.loadMedia(); } },

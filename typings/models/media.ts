@@ -22,6 +22,13 @@ export interface Media {
   width?: number;                // 原始宽度
   height?: number;               // 原始高度
   size: number;                  // 文件大小(bytes)
+  cosUrl?: string;               // COS/MinIO URL // 新增
+  cosKey?: string;               // COS/MinIO key // 新增
+  fileSize?: number;             // 文件大小（与后端 file_size 对应）// 新增
+  locationName?: string;         // 位置名称 // 新增
+  moment?: string;               // 精彩瞬间描述 // 新增
+  milestone?: string;            // 里程碑标签 // 新增
+  isArchived?: boolean;          // 是否归档 // 新增
   title?: string;                // 标题/描述
   captureDate: string;           // 拍摄日期 (YYYY-MM-DD)
   babyAge?: BabyAge;             // 拍摄时宝宝月龄

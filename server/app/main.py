@@ -1,8 +1,29 @@
 """宝宝成长相册 API — FastAPI 应用入口"""
+import os
+import subprocess
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
+
+# 读取部署时的 commit hash
+COMMIT_HASH = "unknown"
+_version_file = os.path.join(os.path.dirname(__file__), "VERSION")
+if os.path.isfile(_version_file):
+    try:
+        v = open(_version_file).read().strip()
+        if v:
+            COMMIT_HASH = v
+    except Exception:
+        pass
+else:
+    try:
+        COMMIT_HASH = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            capture_output=True, text=True, timeout=5,
+        ).stdout.strip()
+    except Exception:
+        pass
 
 
 @asynccontextmanager
@@ -29,7 +50,7 @@ app.add_middleware(
 
 @app.get("/health")
 async def health_check():
-    return {"status": "ok", "app": settings.APP_NAME}
+    return {"status": "ok", "app": settings.APP_NAME, "commit": COMMIT_HASH}
 
 
 from app.routers import auth as auth_router

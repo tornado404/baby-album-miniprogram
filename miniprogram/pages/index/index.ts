@@ -2,9 +2,10 @@
 // index.ts - 登录引导页
 // 对接后端 API：wx.login → POST /auth/login → JWT
 
+import { API_CONFIG } from '../../config/api';
+
 const AUTH_KEY = 'baby_diary_authed';
 const BABY_KEY = 'baby_diary_baby_profile';
-const API_BASE = 'http://101.126.41.146:8000/api/v1';
 
 Page({
   data: {
@@ -36,7 +37,7 @@ Page({
   verifyAndRoute(token) {
     var _this = this;
     wx.request({
-      url: API_BASE + '/auth/me',
+      url: API_CONFIG.baseURL + '/auth/me',
       method: 'GET',
       header: { 'Authorization': 'Bearer ' + token },
       success: function (res) {
@@ -66,7 +67,7 @@ Page({
     if (!refreshToken) { this.setData({ authState: 'idle' }); return; }
 
     wx.request({
-      url: API_BASE + '/auth/refresh',
+      url: API_CONFIG.baseURL + '/auth/refresh',
       method: 'POST',
       data: { refreshToken: refreshToken },
       success: function (res) {
@@ -93,7 +94,7 @@ Page({
       success: function (loginRes) {
         if (loginRes.code) {
           wx.request({
-            url: API_BASE + '/auth/login',
+            url: API_CONFIG.baseURL + '/auth/login',
             method: 'POST',
             data: { code: loginRes.code },
             timeout: 15000,

@@ -1,7 +1,9 @@
 // @ts-nocheck
 // album_home.ts - 首页，对接后端 API
+// 使用统一配置中心 API_CONFIG
 
-const API_BASE = 'http://101.126.41.146:8000/api/v1';
+import { API_CONFIG } from '../../config/api';
+import { STORAGE_KEYS } from '../../constants/storage_keys';
 
 Page({
   data: {
@@ -36,12 +38,34 @@ Page({
 
     // Read currentBabyId from storage
     try {
-      var storedId = wx.getStorageSync('baby_diary_current_baby_id') || '';
+      var storedId = wx.getStorageSync(STORAGE_KEYS.currentBabyId) || '';
       this.setData({ currentBabyId: storedId });
     } catch (e) {}
 
     this.initPage();
     this.loadBabies();
+  },
+
+  onShow: function () {
+    // 从其他页面返回时刷新数据（如上传完成后返回）
+    var babyId = '';
+    try {
+      babyId = wx.getStorageSync(STORAGE_KEYS.currentBabyId) || '';
+    } catch (e) {}
+
+    if (babyId && babyId !== this.data.currentBabyId) {
+      this.setData({ currentBabyId: babyId });
+      this.loadBabies();
+      this.fetchBabyInfo(babyId);
+      this.fetchMediaList(babyId, 1);
+    } else if (babyId) {
+      // babyId 没变但也刷新数据（确保最新）
+      this.fetchBabyInfo(babyId);
+      this.fetchMediaList(babyId, 1);
+    } else {
+      // 没有当前宝宝 ID，显示空状态引导
+      this.setData({ isEmpty: true });
+    }
   },
 
   initPage: function () {
@@ -71,7 +95,7 @@ Page({
     }
 
     wx.request({
-      url: API_BASE + '/babies/' + babyId,
+      url: API_CONFIG.baseURL + '/babies/' + babyId,
       method: 'GET',
       header: { 'Authorization': 'Bearer ' + token },
       timeout: 8000,
@@ -118,7 +142,7 @@ Page({
     if (!babyId || !token) { this.fallbackMediaList(); return; }
 
     wx.request({
-      url: API_BASE + '/media/',
+      url: API_CONFIG.baseURL + '/media/',
       method: 'GET',
       data: { babyId: babyId, page: page },
       header: { 'Authorization': 'Bearer ' + token },
@@ -179,16 +203,32 @@ Page({
     var token = this.getToken();
 
     wx.request({
-      url: API_BASE + '/babies/',
+      url: API_CONFIG.baseURL + '/babies/',
       method: 'GET',
       header: { 'Authorization': 'Bearer ' + token },
       timeout: 8000,
       success: function (res) {
         if (res.statusCode === 200 && Array.isArray(res.data)) {
           var babies = res.data;
-          _this.setData({ babies: babies });
+          _this.setData({ babies: babies, isEmpty: babies.length === 0 });
           // 缓存到本地
-          try { wx.setStorageSync('album_babies', babies); } catch (e) {}
+          if (babies.length > 0) {
+            try { wx.setStorageSync('album_babies', babies); } catch (e) {}
+            // 如果当前没有选中的宝宝，或选中的宝宝不在列表中，自动选第一个
+            var currentId = _this.data.currentBabyId;
+            var found = false;
+            for (var i = 0; i < babies.length; i++) {
+              if (babies[i].id === currentId) { found = true; break; }
+            }
+            if (!currentId || !found) {
+              var firstBaby = babies[0];
+              _this.setData({ currentBabyId: firstBaby.id, currentBaby: firstBaby });
+              try { wx.setStorageSync(STORAGE_KEYS.currentBabyId, firstBaby.id); } catch (e) {}
+              // 加载第一个宝宝的媒体
+              _this.fetchBabyInfo(firstBaby.id);
+              _this.fetchMediaList(firstBaby.id, 1);
+            }
+          }
         } else {
           _this.fallbackBabies();
         }
@@ -198,19 +238,27 @@ Page({
   },
 
   fallbackBabies: function () {
+    var _this = this;
     try {
       var stored = wx.getStorageSync('album_babies');
       if (Array.isArray(stored) && stored.length > 0) {
-        this.setData({ babies: stored });
+        _this.setData({ babies: stored, isEmpty: false });
+        // auto-select if needed
+        var currentId = _this.data.currentBabyId;
+        var found = false;
+        for (var i = 0; i < stored.length; i++) {
+          if (stored[i].id === currentId) { found = true; break; }
+        }
+        if (!currentId || !found) {
+          var firstBaby = stored[0];
+          _this.setData({ currentBabyId: firstBaby.id, currentBaby: firstBaby });
+          try { wx.setStorageSync(STORAGE_KEYS.currentBabyId, firstBaby.id); } catch (e) {}
+        }
         return;
       }
     } catch (e) {}
-    this.setData({
-      babies: [
-        { id: 'demo-1', name: '小星星', avatar: '👶', gender: 'female' },
-        { id: 'demo-2', name: '小月亮', avatar: '👧', gender: 'male' },
-      ],
-    });
+    // 无任何宝宝数据，显示空状态
+    this.setData({ babies: [], isEmpty: true });
   },
 
   calcAge: function (birthDate) {
@@ -249,13 +297,13 @@ Page({
       this.setData({
         currentBabyId: babyId, currentBaby: currentBaby, headerCollapsed: false
       });
-      try { wx.setStorageSync('baby_diary_current_baby_id', babyId); } catch (e) {}
+      try { wx.setStorageSync(STORAGE_KEYS.currentBabyId, babyId); } catch (e) {}
       // 重新加载媒体列表
       this.fetchMediaList(babyId, 1);
     }
   },
 
-  onAddBabyTap: function () { wx.navigateTo({ url: '/pages/baby_list/baby_list' }); },
+  onAddBabyTap: function () { wx.navigateTo({ url: '/pages/baby_onboarding/baby_onboarding' }); },
   onFilterSelect: function (e) {
     var value = e.currentTarget.dataset.value;
     var opts = this.data.filterOptions.map(function (o) { o.active = o.value === value; return o; });

@@ -19,7 +19,7 @@ exports.STORAGE_KEYS = {
     /** 存储版本 */
     version: "".concat(exports.STORAGE_PREFIX, "version"),
     /** 当前宝宝ID */
-    currentBabyId: "".concat(exports.STORAGE_PREFIX, "current_baby_id"),
+    currentBabyId: 'baby_diary_current_baby_id',
     /** 用户偏好设置 */
     userPreferences: "".concat(exports.STORAGE_PREFIX, "user_preferences")
 };
