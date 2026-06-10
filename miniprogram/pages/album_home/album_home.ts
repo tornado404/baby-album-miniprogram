@@ -58,6 +58,9 @@ Page({
     }
     if (babyId) {
       this.fetchMediaList(babyId, 1);
+    } else {
+      // 没有当前宝宝 ID，显示空状态引导
+      this.setData({ isEmpty: true });
     }
   },
 
@@ -203,9 +206,11 @@ Page({
       success: function (res) {
         if (res.statusCode === 200 && Array.isArray(res.data)) {
           var babies = res.data;
-          _this.setData({ babies: babies });
+          _this.setData({ babies: babies, isEmpty: babies.length === 0 });
           // 缓存到本地
-          try { wx.setStorageSync('album_babies', babies); } catch (e) {}
+          if (babies.length > 0) {
+            try { wx.setStorageSync('album_babies', babies); } catch (e) {}
+          }
         } else {
           _this.fallbackBabies();
         }

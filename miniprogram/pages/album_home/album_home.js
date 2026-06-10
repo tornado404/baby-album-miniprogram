@@ -58,6 +58,9 @@ Page({
         if (babyId) {
             this.fetchMediaList(babyId, 1);
         }
+        else {
+            this.setData({ isEmpty: true });
+        }
     },
     initPage: function () {
         var _this = this;
@@ -202,12 +205,13 @@ Page({
             success: function (res) {
                 if (res.statusCode === 200 && Array.isArray(res.data)) {
                     var babies = res.data;
-                    _this.setData({ babies: babies });
-                    // 缓存到本地
-                    try {
-                        wx.setStorageSync('album_babies', babies);
+                    _this.setData({ babies: babies, isEmpty: babies.length === 0 });
+                    if (babies.length > 0) {
+                        try {
+                            wx.setStorageSync('album_babies', babies);
+                        }
+                        catch (e) { }
                     }
-                    catch (e) { }
                 }
                 else {
                     _this.fallbackBabies();
