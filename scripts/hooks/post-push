@@ -1,0 +1,40 @@
+#!/bin/bash
+# =============================================================================
+# post-push — git push 后自动部署到 ARM 测试服务器
+#
+# 安装:
+#   cd /mnt/d/code/yuanBabyGrowthDiary/.git/worktrees/feat+arm-test-server
+#   ln -sf ../../../../scripts/hooks/post-push hooks/post-push
+#
+# 工作原理:
+#   1. 仅对 worktree-feat* 分支生效
+#   2. 检测是否有 server/ 目录变更 (无变更则跳过部署)
+#   3. 调用 deploy-arm.sh 进行远程部署
+#   4. hook 在 push 成功后运行，失败不阻塞 push
+# =============================================================================
+
+# 仅对 worktree 分支生效
+BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")
+if [[ "$BRANCH" != "worktree-"* ]]; then
+    exit 0
+fi
+
+# 检查是否有 server/ 目录变更（无 server/ 变更时跳过部署）
+UPSTREAM=$(git rev-parse "@{upstream}" 2>/dev/null || echo "")
+if [ -z "$UPSTREAM" ]; then
+    echo "[post-push] 未设置上游分支，跳过 ARM 部署检查"
+    exit 0
+fi
+
+if ! git diff --name-only "@{upstream}..HEAD" 2>/dev/null | grep -q "^server/"; then
+    echo "[post-push] 无 server/ 目录变更，跳过 ARM 部署"
+    echo "[post-push] 如需强制部署，运行: ./scripts/deploy-arm.sh"
+    exit 0
+fi
+
+echo "[post-push] 检测到 server/ 变更，开始部署到 ARM 服务器..."
+SCRIPT_DIR="$(cd "$(dirname "$0")/../.." && pwd)"
+"${SCRIPT_DIR}/scripts/deploy-arm.sh" &
+
+echo "[post-push] 部署已在后台启动 (PID: $!)"
+echo "[post-push] 查看日志: ./scripts/deploy-arm.sh"
