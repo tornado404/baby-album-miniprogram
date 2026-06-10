@@ -4,6 +4,7 @@
 
 import { API_CONFIG } from '../../config/api';
 import { mediaApi } from '../../services/media_api';
+import { STORAGE_KEYS } from '../../constants/storage_keys';
 
 Page({
   data: {
@@ -27,7 +28,7 @@ Page({
   },
 
   getBabyId() {
-    try { return wx.getStorageSync('baby_diary_current_baby_id') || ''; } catch (e) { return ''; }
+    try { return wx.getStorageSync(STORAGE_KEYS.currentBabyId) || ''; } catch (e) { return ''; }
   },
 
   onTakePhoto() {

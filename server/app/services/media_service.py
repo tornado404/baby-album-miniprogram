@@ -1,4 +1,5 @@
 """媒体服务"""
+from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, desc
 from app.models.media import Media
@@ -8,6 +9,12 @@ from app.services.file_service import get_file_url
 class MediaService:
     def __init__(self, db: AsyncSession):
         self.db = db
+
+    async def get_media(self, media_id: str, user_id: str) -> Optional[Media]:
+        r = await self.db.execute(
+            select(Media).where(Media.id == media_id, Media.user_id == user_id, Media.is_deleted == False)
+        )
+        return r.scalar_one_or_none()
 
     async def list_media(self, baby_id: str, page: int = 1, page_size: int = 20):
         q = (

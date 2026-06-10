@@ -60,6 +60,7 @@ class MediaOut(BaseModel):
     moment: Optional[str] = None
     milestone: Optional[str] = None
     isArchived: bool = False
+    babyAge: Optional[dict] = None  # { years, months, days }
 
 
 @router.get("/", response_model=list[MediaOut])
@@ -198,3 +199,28 @@ async def delete_media(
         return {"message": "Deleted"}
     except ValueError as e:
         raise HTTPException(404, str(e))
+
+
+@router.get("/{media_id}", response_model=MediaOut)
+async def get_media(
+    media_id: str,
+    user_id: str = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+):
+    m = await MediaService(db).get_media(media_id, user_id)
+    if not m:
+        raise HTTPException(404, "Media not found")
+    return MediaOut(
+        id=m.id, type=m.type.value, title=m.title,
+        thumbnailUrl=m.thumbnail_url, cosUrl=m.cos_url,
+        captureDate=m.capture_date, fileSize=m.file_size or 0,
+        width=m.width, height=m.height,
+        locationName=m.location_name, tags=m.tags,
+        moment=m.moment, milestone=m.milestone,
+        isArchived=m.is_archived,
+        babyAge={
+            "years": m.baby_age_yrs or 0,
+            "months": m.baby_age_mos or 0,
+            "days": m.baby_age_days or 0,
+        } if m.baby_age_yrs is not None else None,
+    )

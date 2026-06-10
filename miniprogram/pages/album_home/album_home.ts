@@ -3,6 +3,7 @@
 // 使用统一配置中心 API_CONFIG
 
 import { API_CONFIG } from '../../config/api';
+import { STORAGE_KEYS } from '../../constants/storage_keys';
 
 Page({
   data: {
@@ -37,7 +38,7 @@ Page({
 
     // Read currentBabyId from storage
     try {
-      var storedId = wx.getStorageSync('baby_diary_current_baby_id') || '';
+      var storedId = wx.getStorageSync(STORAGE_KEYS.currentBabyId) || '';
       this.setData({ currentBabyId: storedId });
     } catch (e) {}
 
@@ -49,10 +50,11 @@ Page({
     // 从其他页面返回时刷新数据（如上传完成后返回）
     var babyId = '';
     try {
-      babyId = wx.getStorageSync('baby_diary_current_baby_id') || '';
+      babyId = wx.getStorageSync(STORAGE_KEYS.currentBabyId) || '';
     } catch (e) {}
     if (babyId && babyId !== this.data.currentBabyId) {
       this.setData({ currentBabyId: babyId });
+      this.loadBabies();
     }
     if (babyId) {
       this.fetchMediaList(babyId, 1);
@@ -264,7 +266,7 @@ Page({
       this.setData({
         currentBabyId: babyId, currentBaby: currentBaby, headerCollapsed: false
       });
-      try { wx.setStorageSync('baby_diary_current_baby_id', babyId); } catch (e) {}
+      try { wx.setStorageSync(STORAGE_KEYS.currentBabyId, babyId); } catch (e) {}
       // 重新加载媒体列表
       this.fetchMediaList(babyId, 1);
     }

@@ -1,7 +1,10 @@
 "use strict";
 // @ts-nocheck
 // album_home.ts - 首页，对接后端 API
-var API_BASE = 'http://101.126.41.146:8000/api/v1';
+// 使用统一配置中心 API_CONFIG
+Object.defineProperty(exports, "__esModule", { value: true });
+var api_1 = require("../../config/api");
+var storage_keys_1 = require("../../constants/storage_keys");
 Page({
     data: {
         safeTop: 44,
@@ -34,23 +37,23 @@ Page({
         catch (e) { }
         // Read currentBabyId from storage
         try {
-            var storedId = wx.getStorageSync('baby_diary_current_baby_id') || '';
+            var storedId = wx.getStorageSync(storage_keys_1.STORAGE_KEYS.currentBabyId) || '';
             this.setData({ currentBabyId: storedId });
         }
         catch (e) { }
         this.initPage();
         this.loadBabies();
     },
-
     onShow: function () {
         // 从其他页面返回时刷新数据（如上传完成后返回）
         var babyId = '';
         try {
-            babyId = wx.getStorageSync('baby_diary_current_baby_id') || '';
+            babyId = wx.getStorageSync(storage_keys_1.STORAGE_KEYS.currentBabyId) || '';
         }
         catch (e) { }
         if (babyId && babyId !== this.data.currentBabyId) {
             this.setData({ currentBabyId: babyId });
+            this.loadBabies();
         }
         if (babyId) {
             this.fetchMediaList(babyId, 1);
@@ -81,7 +84,7 @@ Page({
             return;
         }
         wx.request({
-            url: API_BASE + '/babies/' + babyId,
+            url: api_1.API_CONFIG.baseURL + '/babies/' + babyId,
             method: 'GET',
             header: { 'Authorization': 'Bearer ' + token },
             timeout: 8000,
@@ -134,7 +137,7 @@ Page({
             return;
         }
         wx.request({
-            url: API_BASE + '/media/',
+            url: api_1.API_CONFIG.baseURL + '/media/',
             method: 'GET',
             data: { babyId: babyId, page: page },
             header: { 'Authorization': 'Bearer ' + token },
@@ -192,7 +195,7 @@ Page({
         var _this = this;
         var token = this.getToken();
         wx.request({
-            url: API_BASE + '/babies/',
+            url: api_1.API_CONFIG.baseURL + '/babies/',
             method: 'GET',
             header: { 'Authorization': 'Bearer ' + token },
             timeout: 8000,
@@ -248,7 +251,7 @@ Page({
         }
         return colors[Math.abs(hash) % colors.length];
     },
-    onPageScroll: function (e) {
+    onContentScroll: function (e) {
         var scrollTop = e.scrollTop || 0;
         var collapsed = scrollTop > 60;
         if (collapsed !== this.data.headerCollapsed) {
@@ -270,7 +273,7 @@ Page({
                 currentBabyId: babyId, currentBaby: currentBaby, headerCollapsed: false
             });
             try {
-                wx.setStorageSync('baby_diary_current_baby_id', babyId);
+                wx.setStorageSync(storage_keys_1.STORAGE_KEYS.currentBabyId, babyId);
             }
             catch (e) { }
             // 重新加载媒体列表

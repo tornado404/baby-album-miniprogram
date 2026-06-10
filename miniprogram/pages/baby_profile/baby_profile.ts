@@ -1,6 +1,8 @@
 // baby_profile.ts - 宝宝档案编辑页面
 // Claymorphism 设计风格，支持头像上传
 
+import { STORAGE_KEYS } from '../../constants/storage_keys';
+
 Page({
   data: {
     safeTop: 44,
@@ -23,7 +25,7 @@ Page({
     // Load baby profile from storage if editing existing
     var babyId = '';
     try {
-      babyId = wx.getStorageSync('baby_diary_current_baby_id') || '';
+      babyId = wx.getStorageSync(STORAGE_KEYS.currentBabyId) || '';
     } catch (e) {}
 
     if (babyId) {
@@ -102,7 +104,7 @@ Page({
     };
 
     try {
-      var babyId = wx.getStorageSync('baby_diary_current_baby_id') || '';
+      var babyId = wx.getStorageSync(STORAGE_KEYS.currentBabyId) || '';
       var storedBabies = wx.getStorageSync('album_babies') || [];
 
       // Try to find and update existing baby

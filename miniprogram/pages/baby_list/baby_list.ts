@@ -2,6 +2,7 @@
 // baby_list.ts - 宝宝列表页，对接后端 API
 
 import { API_CONFIG } from '../../config/api';
+import { STORAGE_KEYS } from '../../constants/storage_keys';
 
 Page({
   data: {
@@ -62,7 +63,7 @@ Page({
 
   onBabyTap(e) {
     var id = e.currentTarget.dataset.id;
-    try { wx.setStorageSync('baby_diary_current_baby_id', id); } catch (e) {}
+    try { wx.setStorageSync(STORAGE_KEYS.currentBabyId, id); } catch (e) {}
     wx.navigateTo({ url: '/pages/baby_profile/baby_profile?id=' + id });
   },
 
