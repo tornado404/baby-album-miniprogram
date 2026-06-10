@@ -24,16 +24,16 @@ const CONFIGS: Record<Env, ApiConfig> = {
     desc: '本地 Docker Compose 环境',
   },
   testing: {
-    baseURL: 'http://101.126.41.146:8000/api/v1',
+    baseURL: 'http://192.168.50.126:8000/api/v1',
     timeout: 15000,
     name: '测试服务器',
-    desc: '云服务器测试环境',
+    desc: 'ARM 局域网测试环境',
   },
   production: {
-    baseURL: 'https://api.baby-album.com/api/v1',
+    baseURL: 'http://101.126.41.146:8000/api/v1',
     timeout: 20000,
     name: '生产环境',
-    desc: '正式上线环境',
+    desc: '云服务器正式环境',
   },
 };
 
