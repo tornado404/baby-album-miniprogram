@@ -52,11 +52,15 @@ Page({
     try {
       babyId = wx.getStorageSync(STORAGE_KEYS.currentBabyId) || '';
     } catch (e) {}
+
     if (babyId && babyId !== this.data.currentBabyId) {
       this.setData({ currentBabyId: babyId });
       this.loadBabies();
-    }
-    if (babyId) {
+      this.fetchBabyInfo(babyId);
+      this.fetchMediaList(babyId, 1);
+    } else if (babyId) {
+      // babyId 没变但也刷新数据（确保最新）
+      this.fetchBabyInfo(babyId);
       this.fetchMediaList(babyId, 1);
     } else {
       // 没有当前宝宝 ID，显示空状态引导
@@ -210,6 +214,20 @@ Page({
           // 缓存到本地
           if (babies.length > 0) {
             try { wx.setStorageSync('album_babies', babies); } catch (e) {}
+            // 如果当前没有选中的宝宝，或选中的宝宝不在列表中，自动选第一个
+            var currentId = _this.data.currentBabyId;
+            var found = false;
+            for (var i = 0; i < babies.length; i++) {
+              if (babies[i].id === currentId) { found = true; break; }
+            }
+            if (!currentId || !found) {
+              var firstBaby = babies[0];
+              _this.setData({ currentBabyId: firstBaby.id, currentBaby: firstBaby });
+              try { wx.setStorageSync(STORAGE_KEYS.currentBabyId, firstBaby.id); } catch (e) {}
+              // 加载第一个宝宝的媒体
+              _this.fetchBabyInfo(firstBaby.id);
+              _this.fetchMediaList(firstBaby.id, 1);
+            }
           }
         } else {
           _this.fallbackBabies();
@@ -220,19 +238,27 @@ Page({
   },
 
   fallbackBabies: function () {
+    var _this = this;
     try {
       var stored = wx.getStorageSync('album_babies');
       if (Array.isArray(stored) && stored.length > 0) {
-        this.setData({ babies: stored });
+        _this.setData({ babies: stored, isEmpty: false });
+        // auto-select if needed
+        var currentId = _this.data.currentBabyId;
+        var found = false;
+        for (var i = 0; i < stored.length; i++) {
+          if (stored[i].id === currentId) { found = true; break; }
+        }
+        if (!currentId || !found) {
+          var firstBaby = stored[0];
+          _this.setData({ currentBabyId: firstBaby.id, currentBaby: firstBaby });
+          try { wx.setStorageSync(STORAGE_KEYS.currentBabyId, firstBaby.id); } catch (e) {}
+        }
         return;
       }
     } catch (e) {}
-    this.setData({
-      babies: [
-        { id: 'demo-1', name: '小星星', avatar: '👶', gender: 'female' },
-        { id: 'demo-2', name: '小月亮', avatar: '👧', gender: 'male' },
-      ],
-    });
+    // 无任何宝宝数据，显示空状态
+    this.setData({ babies: [], isEmpty: true });
   },
 
   calcAge: function (birthDate) {
@@ -277,7 +303,7 @@ Page({
     }
   },
 
-  onAddBabyTap: function () { wx.navigateTo({ url: '/pages/baby_list/baby_list' }); },
+  onAddBabyTap: function () { wx.navigateTo({ url: '/pages/baby_onboarding/baby_onboarding' }); },
   onFilterSelect: function (e) {
     var value = e.currentTarget.dataset.value;
     var opts = this.data.filterOptions.map(function (o) { o.active = o.value === value; return o; });
