@@ -45,10 +45,16 @@ services:
     image: baby-api-base:latest
     container_name: baby-api
     depends_on:
-      - postgres
-      - redis
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     env_file:
       - .env
+    environment:
+      # Docker 容器内使用服务名连接，覆盖 .env 中的 localhost
+      DATABASE_URL: postgresql+asyncpg://app:Cs516%402026@postgres:5432/baby_album
+      REDIS_URL: redis://redis:6379/0
     ports:
       - "8000:8000"
     volumes:
