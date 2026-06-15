@@ -59,6 +59,18 @@ class AuthService:
         if not u: raise ValueError("Not found")
         return {"userId": u.id, "nickName": u.nick_name, "avatarUrl": u.avatar_url or "", "recordDays": u.record_days, "totalPhotos": u.total_photos, "totalVideos": u.total_videos}
 
+    async def update_profile(self, user_id: str, nick_name: str | None = None, avatar_url: str | None = None) -> dict:
+        r = await self.db.execute(select(User).where(User.id == user_id))
+        u = r.scalar_one_or_none()
+        if not u: raise ValueError("Not found")
+        if nick_name is not None:
+            u.nick_name = nick_name
+        if avatar_url is not None:
+            u.avatar_url = avatar_url
+        await self.db.commit()
+        await self.db.refresh(u)
+        return {"userId": u.id, "nickName": u.nick_name, "avatarUrl": u.avatar_url or "", "recordDays": u.record_days, "totalPhotos": u.total_photos, "totalVideos": u.total_videos}
+
     def _sign(self, uid: str, exp: int) -> str:
         return jwt.encode({"sub": uid, "iat": int(time.time()), "exp": int(time.time()) + exp}, settings.JWT_SECRET, algorithm="HS256")
 

@@ -19,6 +19,11 @@ class TokenRefreshRequest(BaseModel):
     refreshToken: str
 
 
+class UpdateProfileRequest(BaseModel):
+    nickName: Optional[str] = None
+    avatarUrl: Optional[str] = None
+
+
 class UserProfileResponse(BaseModel):
     userId: str
     nickName: str = ""
