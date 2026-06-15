@@ -4,7 +4,14 @@ import subprocess
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.exceptions import HTTPException as StarletteHTTPException
 from app.config import settings
+from app.middleware.error_handler import (
+    value_error_handler,
+    http_exception_handler,
+    ExceptionCatchMiddleware,
+)
+from app.middleware.rate_limiter import RateLimitMiddleware
 
 # 读取部署时的 commit hash
 COMMIT_HASH = "unknown"
@@ -39,6 +46,8 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+app.add_middleware(RateLimitMiddleware)
+app.add_middleware(ExceptionCatchMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -46,6 +55,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# 注册全局异常处理器（ValueError / HTTPException）
+# 未捕获的 Exception 由 ExceptionCatchMiddleware 中间件兜底
+app.add_exception_handler(ValueError, value_error_handler)
+app.add_exception_handler(StarletteHTTPException, http_exception_handler)
 
 
 @app.get("/health")
