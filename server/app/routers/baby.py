@@ -1,10 +1,13 @@
 """宝宝路由"""
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_db
 from app.middleware.auth import get_current_user_id
 from app.services.baby_service import BabyService
 from app.schemas.baby import BabyCreate, BabyUpdate, BabyResponse
+from app.utils.milestones import get_recommended_milestones
+from app.services.file_service import minio_client, get_file_url, generate_file_path
+from app.config import settings
 
 router = APIRouter()
 
@@ -81,3 +84,71 @@ async def delete_baby(
         return {"message": "Deleted"}
     except ValueError as e:
         raise HTTPException(404, str(e))
+
+
+@router.get("/{baby_id}/milestones")
+async def get_baby_milestones(
+    baby_id: str,
+    user_id: str = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+):
+    """根据宝宝月龄返回推荐里程碑列表"""
+    svc = BabyService(db)
+    baby = await svc.get_baby(baby_id, user_id)
+    if not baby:
+        raise HTTPException(404, "Baby not found")
+    milestones = get_recommended_milestones(baby.birth_date)
+    return {"code": 0, "data": {"milestones": milestones}}
+
+
+@router.put("/{baby_id}/avatar")
+async def upload_baby_avatar(
+    baby_id: str,
+    file: UploadFile = File(...),
+    user_id: str = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+):
+    """上传宝宝头像到 MinIO"""
+    import uuid
+
+    svc = BabyService(db)
+    baby = await svc.get_baby(baby_id, user_id)
+    if not baby:
+        raise HTTPException(404, "Baby not found")
+
+    # 读取文件内容
+    content = await file.read()
+    if len(content) > settings.UPLOAD_MAX_SIZE:
+        raise HTTPException(400, "文件大小超过限制")
+
+    # 确定扩展名
+    filename = file.filename or "avatar.jpg"
+    ext = filename.rsplit(".", 1)[-1] if "." in filename else "jpg"
+    if ext.lower() not in ("jpg", "jpeg", "png", "gif", "webp"):
+        ext = "jpg"
+
+    # 上传到 MinIO
+    object_path = f"avatars/{baby_id}/{uuid.uuid4().hex}.{ext}"
+    content_type = file.content_type or "image/jpeg"
+    minio_client.put_object(
+        settings.MINIO_BUCKET,
+        object_path,
+        data=content,
+        length=len(content),
+        content_type=content_type,
+    )
+
+    # 更新 Baby.avatar
+    avatar_url = get_file_url(object_path)
+    baby.avatar = avatar_url
+    await db.commit()
+    await db.refresh(baby)
+
+    return {
+        "code": 0,
+        "data": {
+            "id": baby.id,
+            "name": baby.name,
+            "avatar": baby.avatar,
+        },
+    }

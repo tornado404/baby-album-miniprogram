@@ -101,12 +101,12 @@ Page({
       achievements: '',
       storage: '',
       share: '',
-      about: '',
+      about: '/pages/about/about',
     };
 
     var url = routes[key];
     if (url) {
-      if (key === 'baby_manage') {
+      if (key === 'baby_manage' || key === 'about') {
         wx.navigateTo({ url: url });
       } else {
         wx.showToast({ title: '功能开发中', icon: 'none' });

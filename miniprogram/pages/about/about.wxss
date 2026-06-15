@@ -1,0 +1,212 @@
+/* about.wxss - 关于页面 Claymorphism 风格 */
+
+.page-about {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--clay-bg, #fffbf8);
+}
+
+.status-bar {
+  flex-shrink: 0;
+}
+
+/* Navigation Bar */
+.about-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 104rpx;
+  padding: 0 40rpx 0 24rpx;
+  flex-shrink: 0;
+}
+
+.nav-btn-circle {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 36rpx;
+  background: #f9f0e9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.nav-btn-circle text {
+  font-size: 40rpx;
+  color: #4a4a4a;
+  font-weight: 600;
+}
+
+.nav-title {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #4a4a4a;
+}
+
+.nav-spacer-right {
+  width: 28px;
+  height: 36px;
+  flex-shrink: 0;
+}
+
+/* Content Area */
+.content-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 40rpx;
+  padding: 40rpx 0 160rpx;
+  width: 750rpx;
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+
+/* App Header */
+.app-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16rpx;
+  padding: 40rpx 0;
+  flex-shrink: 0;
+}
+
+.app-icon {
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: 48rpx;
+  background: #f1dce2;
+  box-shadow: 0px 8px 20px 0px rgba(241, 220, 226, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.app-icon text {
+  font-size: 80rpx;
+}
+
+.app-name {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #4a4a4a;
+}
+
+.app-version {
+  font-size: 28rpx;
+  color: #999999;
+  font-weight: 500;
+}
+
+/* Info Card */
+.info-card {
+  width: 670rpx;
+  background: #ffffff;
+  border-radius: 36rpx;
+  box-shadow: 0px 6px 16px 0px rgba(230, 198, 179, 0.35);
+  padding: 32rpx;
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12rpx 0;
+}
+
+.info-label {
+  font-size: 28rpx;
+  color: #808080;
+  font-weight: 500;
+}
+
+.info-value {
+  font-size: 28rpx;
+  color: #4a4a4a;
+  font-weight: 600;
+}
+
+.info-value-mono {
+  font-size: 24rpx;
+  color: #999999;
+  font-family: monospace;
+  max-width: 380rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.info-divider {
+  height: 2rpx;
+  background: #f0ebe5;
+  margin: 4rpx 0;
+}
+
+/* Changelog Section */
+.changelog-section {
+  width: 670rpx;
+  flex-shrink: 0;
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #4a4a4a;
+  margin-bottom: 24rpx;
+  display: block;
+}
+
+.changelog-item {
+  background: #ffffff;
+  border-radius: 36rpx;
+  box-shadow: 0px 3px 8px 0px rgba(230, 198, 179, 0.18);
+  padding: 28rpx 32rpx;
+  margin-bottom: 20rpx;
+}
+
+.changelog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+
+.changelog-version {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #ffa87a;
+}
+
+.changelog-date {
+  font-size: 24rpx;
+  color: #b3b3b3;
+}
+
+.changelog-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.changelog-entry {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.changelog-dot {
+  width: 10rpx;
+  height: 10rpx;
+  border-radius: 5rpx;
+  background: #ffa87a;
+  flex-shrink: 0;
+}
+
+.changelog-text {
+  font-size: 26rpx;
+  color: #4a4a4a;
+}
