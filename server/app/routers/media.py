@@ -172,6 +172,14 @@ async def update_media(
     if not m:
         raise HTTPException(404, "Media not found")
     updates = data.dict(exclude_unset=True, exclude_none=True)
+    # camelCase → snake_case 字段映射
+    field_map = {
+        "locationName": "location_name",
+        "isArchived": "is_archived",
+    }
+    for camel, snake in field_map.items():
+        if camel in updates:
+            updates[snake] = updates.pop(camel)
     for k, v in updates.items():
         setattr(m, k, v)
     m.updated_at = datetime.utcnow()

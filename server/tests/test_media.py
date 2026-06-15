@@ -1,4 +1,4 @@
-"""媒体模块测试 — CRUD + Batch Archive + Batch Tag"""
+"""媒体模块测试 — CRUD + GET single + PUT update + Batch Archive + Batch Tag"""
 
 from httpx import AsyncClient
 
@@ -76,6 +76,42 @@ class TestMediaAPI:
         assert len(body) == 2
         assert body[0]["captureDate"] == "2026-06-02"
 
+    # ── GET single media ──────────────────────────────
+
+    async def test_get_media_by_id(self, client: AsyncClient, auth_headers: dict, test_baby_id: str):
+        """通过媒体 ID 查询单条详情"""
+        created = await self._create_media(client, auth_headers, test_baby_id)
+        resp = await client.get(f"{self.BASE}{created['id']}", headers=auth_headers)
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["id"] == created["id"]
+        assert body["type"] == "image"
+        assert body["title"] == "测试照片"
+        assert body["captureDate"] == "2026-06-01"
+        assert body["tags"] == ["日常", "第一次"]
+        assert body["locationName"] == "家里"
+        assert body["moment"] == "第一次自己吃饭"
+        assert body["milestone"] == "6个月"
+
+    async def test_get_media_by_id_not_found(self, client: AsyncClient, auth_headers: dict):
+        """查询不存在的媒体 → 404"""
+        resp = await client.get(f"{self.BASE}nonexistent-id", headers=auth_headers)
+        assert resp.status_code == 404
+
+    async def test_get_media_includes_baby_age(self, client: AsyncClient, auth_headers: dict, test_baby_id: str):
+        """GET 单条媒体返回 babyAge 字段（若模型已计算）"""
+        created = await self._create_media(client, auth_headers, test_baby_id)
+        resp = await client.get(f"{self.BASE}{created['id']}", headers=auth_headers)
+        assert resp.status_code == 200
+        body = resp.json()
+        # babyAge 字段应存在（可为 None 或 dict）
+        assert "babyAge" in body
+
+    async def test_get_media_requires_auth(self, client: AsyncClient, test_baby_id: str):
+        """未认证 GET 单条 → 401"""
+        resp = await client.get(f"{self.BASE}some-id")
+        assert resp.status_code == 401
+
     # ── Update ────────────────────────────────────────
 
     async def test_update_media(self, client: AsyncClient, auth_headers: dict, test_baby_id: str):
@@ -92,6 +128,43 @@ class TestMediaAPI:
         assert body["tags"] == ["更新标签"]
         assert body["captureDate"] == "2026-06-01"  # 未更新字段不变
 
+    async def test_update_media_location_name(self, client: AsyncClient, auth_headers: dict, test_baby_id: str):
+        """更新 locationName 字段（camelCase → snake_case 映射）"""
+        created = await self._create_media(client, auth_headers, test_baby_id)
+        resp = await client.put(
+            f"{self.BASE}{created['id']}",
+            json={"locationName": "公园"},
+            headers=auth_headers,
+        )
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["locationName"] == "公园"
+
+    async def test_update_media_archive(self, client: AsyncClient, auth_headers: dict, test_baby_id: str):
+        """更新 isArchived 字段（camelCase → snake_case 映射）"""
+        created = await self._create_media(client, auth_headers, test_baby_id)
+        resp = await client.put(
+            f"{self.BASE}{created['id']}",
+            json={"isArchived": True},
+            headers=auth_headers,
+        )
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["isArchived"] is True
+
+    async def test_update_media_moment_and_milestone(self, client: AsyncClient, auth_headers: dict, test_baby_id: str):
+        """更新 moment 和 milestone 字段"""
+        created = await self._create_media(client, auth_headers, test_baby_id)
+        resp = await client.put(
+            f"{self.BASE}{created['id']}",
+            json={"moment": "学会翻身", "milestone": "12个月"},
+            headers=auth_headers,
+        )
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["moment"] == "学会翻身"
+        assert body["milestone"] == "12个月"
+
     async def test_update_media_not_found(self, client: AsyncClient, auth_headers: dict):
         """更新不存在的媒体 → 404"""
         resp = await client.put(
@@ -100,6 +173,11 @@ class TestMediaAPI:
             headers=auth_headers,
         )
         assert resp.status_code == 404
+
+    async def test_update_media_requires_auth(self, client: AsyncClient, test_baby_id: str):
+        """未认证 PUT → 401"""
+        resp = await client.put(f"{self.BASE}some-id", json={"title": "x"})
+        assert resp.status_code == 401
 
     # ── Delete ────────────────────────────────────────
 
@@ -215,13 +293,3 @@ class TestMediaAPI:
         # 用户 B 的 baby 媒体列表应为空
         resp = await client.get(self.BASE, params={"babyId": baby_b_id}, headers=headers_b)
         assert resp.json() == []
-
-    # ── 额外：GET single media ────────────────────────
-    # 注意：路由器中没有 GET /{id} 端点，用 list 验证存在
-
-    async def test_get_media_by_id(self, client: AsyncClient, auth_headers: dict, test_baby_id: str):
-        """通过媒体 ID 查询（list 过滤）"""
-        created = await self._create_media(client, auth_headers, test_baby_id)
-        resp = await client.get(f"{self.BASE}{created['id']}", headers=auth_headers)
-        # 目前路由没有 GET /{id} 端点，期望 405
-        assert resp.status_code in (200, 405), resp.text
