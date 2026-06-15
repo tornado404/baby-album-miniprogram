@@ -350,7 +350,7 @@ class TestPermissionMiddleware:
         )
         assert resp.status_code == 403
         body = resp.json()
-        assert body["detail"]["code"] == 40301
+        assert body["code"] == 40301
 
     async def test_editor_has_access(self, client: AsyncClient):
         """Editor 有访问权限"""

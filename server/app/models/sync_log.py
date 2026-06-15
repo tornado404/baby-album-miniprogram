@@ -1,8 +1,9 @@
 """同步日志模型"""
 
+import uuid
 import enum
 from datetime import datetime
-from sqlalchemy import String, BigInteger, DateTime, Index, ForeignKey
+from sqlalchemy import String, DateTime, Index, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -17,8 +18,8 @@ class SyncAction(str, enum.Enum):
 class SyncLog(Base):
     __tablename__ = "sync_logs"
 
-    id: Mapped[int] = mapped_column(
-        BigInteger, primary_key=True, autoincrement=True
+    id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
     )
     user_id: Mapped[str] = mapped_column(
         String(36), ForeignKey("users.id"), index=True

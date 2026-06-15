@@ -20,18 +20,12 @@ from sqlalchemy.pool import NullPool
 # ── SQLite ARRAY 兼容 ──────────────────────────────────
 # Media.tags 在 PG 中为 ARRAY(String)，SQLite 不原生支持。
 # 将 Media.tags 替换为 JSON 类型（SQLAlchemy JSON 自动序列化 list ↔ TEXT）。
-from sqlalchemy import JSON as SA_JSON, Integer as SA_Integer
+from sqlalchemy import JSON as SA_JSON
 from app.models.media import Media
 
 # Media.tags 在 PG 中为 ARRAY(String)，SQLite 不原生支持 list 参数绑定。
 # 在创建表前替换列类型为 JSON，让 SA 自动处理 list ↔ TEXT 序列化。
 Media.__table__.columns["tags"].type = SA_JSON()
-
-# ── SQLite BigInteger 自增兼容 ───────────────────────────
-# SyncLog.id 在 PG 中为 BigInteger autoincrement，但 SQLite 要求
-# 自增主键必须是 INTEGER 类型。替换为 Integer 以兼容 SQLite 测试。
-from app.models.sync_log import SyncLog
-SyncLog.__table__.columns["id"].type = SA_Integer()
 
 from app.database import Base, get_db
 from app.main import app
@@ -67,6 +61,8 @@ async def db_session() -> AsyncGenerator[AsyncSession, None]:
         yield session
     finally:
         await session.close()
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.drop_all)
         await engine.dispose()
 
 

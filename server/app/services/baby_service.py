@@ -28,8 +28,8 @@ class BabyService:
         """获取单个宝宝的媒体统计数据"""
         r = await self.db.execute(
             select(
-                func.count().filter(Media.type == MediaType.IMAGE).label("photos"),
-                func.count().filter(Media.type == MediaType.VIDEO).label("videos"),
+                func.count().filter(Media.type == MediaType.image).label("photos"),
+                func.count().filter(Media.type == MediaType.video).label("videos"),
             ).where(Media.baby_id == baby_id, Media.user_id == user_id, Media.is_deleted == False)
         )
         row = r.one_or_none()
@@ -51,8 +51,8 @@ class BabyService:
         r = await self.db.execute(
             select(
                 Media.baby_id,
-                func.count().filter(Media.type == MediaType.IMAGE).label("photos"),
-                func.count().filter(Media.type == MediaType.VIDEO).label("videos"),
+                func.count().filter(Media.type == MediaType.image).label("photos"),
+                func.count().filter(Media.type == MediaType.video).label("videos"),
                 func.count(func.distinct(Media.capture_date)).label("record_days"),
             ).where(
                 Media.baby_id.in_(baby_ids),
