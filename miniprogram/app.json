@@ -1,6 +1,7 @@
 {
   "pages": [
     "pages/index/index",
+    "pages/onboarding/onboarding",
     "pages/album_home/album_home",
     "pages/logs/logs",
     "pages/tech_validate/tech_validate",
