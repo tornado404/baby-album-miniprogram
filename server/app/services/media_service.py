@@ -3,6 +3,8 @@ from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, desc
 from app.models.media import Media
+from app.models.sync_log import SyncAction
+from app.services.sync_service import record_sync_log
 from app.services.file_service import get_file_url
 
 
@@ -30,6 +32,8 @@ class MediaService:
         cos_url = get_file_url(cos_key) if cos_key else ""
         m = Media(user_id=user_id, cos_url=cos_url, **data)
         self.db.add(m)
+        await self.db.flush()
+        await record_sync_log(self.db, user_id, "media", m.id, SyncAction.create)
         await self.db.commit()
         await self.db.refresh(m)
         return m
@@ -42,4 +46,5 @@ class MediaService:
         if not m:
             raise ValueError("Media not found")
         m.is_deleted = True
+        await record_sync_log(self.db, user_id, "media", media_id, SyncAction.delete)
         await self.db.commit()
