@@ -1,6 +1,7 @@
 {
-  "name": "miniprogram-ts-less-quickstart",
+  "name": "baby-album-miniprogram",
   "version": "1.0.0",
+  "description": "宝宝成长相册微信小程序 — 记录宝宝成长的每一刻",
   "scripts": {
     "test": "jest",
     "test:watch": "jest --watch",
@@ -22,8 +23,8 @@
     "build:test": "node scripts/build.js testing",
     "build:prod": "node scripts/build.js production"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": ["wechat", "miniprogram", "baby", "album", "growth", "diary"],
+  "author": "Baby Album Team",
   "license": "ISC",
   "devDependencies": {
     "@babel/core": "^7.29.7",

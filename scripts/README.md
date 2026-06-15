@@ -143,7 +143,7 @@ scripts\capture-with-window.bat
 npm run capture:full
 ```
 
-详细指南见 [E2E 测试指南](../docs/E2E-Testing-Guide.md)。
+详细指南见 [E2E 测试指南](../docs/05-testing/E2E-Testing-Guide.md)。
 
 ## npm 构建修复
 
@@ -174,7 +174,7 @@ npm run ci:upload   # 上传
 
 ## 参考
 
-- [E2E 测试指南](../docs/E2E-Testing-Guide.md)
-- [截屏自动化指南](../docs/Automation-Screenshot-Guide.md)
+- [E2E 测试指南](../docs/05-testing/E2E-Testing-Guide.md)
+- [截屏自动化指南](../docs/05-testing/Automation-Screenshot-Guide.md)
 - [微信自动化测试文档](https://developers.weixin.qq.com/miniprogram/dev/devtools/auto/)
 - [miniprogram-ci 文档](https://developers.weixin.qq.com/miniprogram/dev/devtools/ci.html)

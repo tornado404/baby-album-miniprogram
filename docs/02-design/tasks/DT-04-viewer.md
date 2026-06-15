@@ -1,6 +1,9 @@
 # DT-04: 全屏媒体查看器
 
-> 优先级：P0 | 关联 PRD：第 4 章 | 路由：`/pages/media_detail/media_detail`
+> **版本**: v1.0 | **最后更新**: 2026-06-15
+> **状态**: 📝 设计阶段
+> **配套**: `docs/PRD-v2.md`（产品需求文档）、`docs/02-design/tasks/README.md`（任务索引）
+> **优先级**: P0 | **关联 PRD**: 第 4 章 | **路由**: `/pages/media_detail/media_detail`
 
 ## 当前问题
 

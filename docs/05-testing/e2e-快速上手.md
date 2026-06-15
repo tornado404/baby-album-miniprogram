@@ -1,6 +1,9 @@
 # E2E 快速截图上手指南
 
-> 目标：在 WSL 中运行 miniprogram-automator，连接 Windows 上的微信开发者工具，截取小程序画面。
+> **版本**: v1.0 | **最后更新**: 2026-06-15
+> **状态**: ✅ 已定稿 | **配套**: `docs/05-testing/E2E-Testing-Guide.md`（完整指南）
+
+目标：在 WSL 中运行 miniprogram-automator，连接 Windows 上的微信开发者工具，截取小程序画面。
 
 ## 前置条件
 

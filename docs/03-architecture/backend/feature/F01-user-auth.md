@@ -1,6 +1,8 @@
 # F01 - 用户认证与账户系统
 
-> Feature ID: F01 | 优先级: P0 | 版本: v3.0 | 状态: 📝 设计阶段
+> **Feature ID**: F01 | **优先级**: P0 | **版本**: v3.0 | **最后更新**: 2026-06-15
+> **状态**: 📝 设计阶段
+> **配套**: `docs/03-architecture/backend/README.md`（后端总览）、`docs/03-architecture/backend/story/S01-auth-stories.md`（用户故事）
 
 ---
 

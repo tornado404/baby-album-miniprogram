@@ -1,6 +1,8 @@
 # F02 - 云存储与媒体管理
 
-> Feature ID: F02 | 优先级: P0 | 版本: v3.0 | 状态: 📝 设计阶段
+> **Feature ID**: F02 | **优先级**: P0 | **版本**: v3.0 | **最后更新**: 2026-06-15
+> **状态**: 📝 设计阶段
+> **配套**: `docs/03-architecture/backend/README.md`（后端总览）、`docs/03-architecture/backend/story/S02-upload-stories.md`（用户故事）
 
 ---
 

@@ -3,6 +3,10 @@ miniprogram/miniprogram_npm/
 .worktrees/
 *.bak
 
+# Security - private keys
+*.key
+*.pem
+
 # Python
 __pycache__/
 *.pyc

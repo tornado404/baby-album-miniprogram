@@ -2,7 +2,7 @@
 
 > **版本**: v1.0 | **最后更新**: 2026-06-09
 > **状态**: ✅ 已完成
-> **配套**: `docs/01-requirements/switchable-config-PRD.md`（需求文档）、`docs/plans/2026-06-09-001-feat-switchable-api-config-plan.md`（实现计划）
+> **配套**: `docs/01-requirements/switchable-config-PRD.md`（需求文档）、`docs/07-plans/plan/2026-06-09-001-feat-switchable-api-config-plan.md`（实现计划）
 
 ---
 

@@ -1,7 +1,7 @@
 # 相册数据存储服务设计文档
 
-> 版本：v2.0 | 最后更新：2026-06-06 | 状态：📝 设计阶段
-> 配套：`docs/03-architecture/backend/architecture.md`（后端架构）、`docs/01-requirements/integration-PRD.md`（联调方案）
+> **版本**: v2.0 | **最后更新**: 2026-06-06 | **状态**: 📝 设计阶段
+> **配套**: `docs/03-architecture/backend/architecture.md`（后端架构）、`docs/01-requirements/integration-PRD.md`（联调方案）
 
 ---
 
