@@ -4,6 +4,7 @@
 
 interface ApiConfig {
   baseURL: string;
+  minioURL: string;
   timeout: number;
   name: string;
   desc: string;
@@ -19,18 +20,21 @@ type Env = 'development' | 'testing' | 'production';
 const CONFIGS: Record<Env, ApiConfig> = {
   development: {
     baseURL: 'http://localhost:8000/api/v1',
+    minioURL: 'http://localhost:9000',
     timeout: 15000,
     name: '本地开发',
     desc: '本地 Docker Compose 环境',
   },
   testing: {
     baseURL: 'http://192.168.50.126:8000/api/v1',
+    minioURL: 'http://192.168.50.126:9000',
     timeout: 15000,
     name: '测试服务器',
     desc: 'ARM 局域网测试环境',
   },
   production: {
     baseURL: 'http://101.126.41.146:8000/api/v1',
+    minioURL: 'http://101.126.41.146:9000',
     timeout: 20000,
     name: '生产环境',
     desc: '云服务器正式环境',

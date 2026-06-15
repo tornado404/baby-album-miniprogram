@@ -5,8 +5,18 @@ from datetime import timedelta
 from minio import Minio
 from app.config import settings
 
+# 内部通信客户端（用于删除等后端操作）
 minio_client = Minio(
     settings.MINIO_ENDPOINT,
+    access_key=settings.MINIO_ACCESS_KEY,
+    secret_key=settings.MINIO_SECRET_KEY,
+    secure=False,
+)
+
+# 外部 URL 生成客户端（用于生成客户端可访问的预签名 URL）
+# 关键：预签名 URL 的 host 必须与客户端实际请求的 host 一致，否则签名会 403
+minio_url_client = Minio(
+    settings.MINIO_EXTERNAL_ENDPOINT,
     access_key=settings.MINIO_ACCESS_KEY,
     secret_key=settings.MINIO_SECRET_KEY,
     secure=False,
@@ -30,7 +40,8 @@ def get_upload_url(user_id: str, file_name: str, file_type: str) -> dict:
     """生成预签名 PUT URL（15 分钟有效）"""
     ext = file_name.rsplit(".", 1)[-1] if "." in file_name else "bin"
     object_path = generate_file_path(user_id, file_type, ext)
-    url = minio_client.presigned_put_object(
+    # 使用外部 endpoint 客户端生成预签名 URL，确保客户端可达
+    url = minio_url_client.presigned_put_object(
         settings.MINIO_BUCKET,
         object_path,
         expires=timedelta(minutes=15),

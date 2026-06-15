@@ -12,7 +12,7 @@ services:
     environment:
       MINIO_ROOT_USER: Cs516@2026
       MINIO_ROOT_PASSWORD: Cs516@2026
-      MINIO_DOMAIN: 101.126.41.146
+      MINIO_DOMAIN: ${MINIO_DOMAIN:-101.126.41.146}
     volumes:
       - /opt/baby-minio/data:/data
     ports:

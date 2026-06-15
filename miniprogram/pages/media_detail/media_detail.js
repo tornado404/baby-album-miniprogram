@@ -1,7 +1,8 @@
 "use strict";
 // @ts-nocheck
 // media_detail.ts - 内容详情页，对接后端 API (Figma 精确还原)
-var API_BASE = 'http://101.126.41.146:8000/api/v1';
+Object.defineProperty(exports, "__esModule", { value: true });
+var api_1 = require("../../config/api");
 Page({
     data: {
         safeTop: 44,
@@ -36,7 +37,7 @@ Page({
         }
         catch (e) { }
         wx.request({
-            url: API_BASE + '/media/' + id,
+            url: api_1.API_CONFIG.baseURL + '/media/' + id,
             method: 'GET',
             header: { 'Authorization': 'Bearer ' + token },
             timeout: 10000,

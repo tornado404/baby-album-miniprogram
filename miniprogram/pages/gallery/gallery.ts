@@ -33,7 +33,11 @@ Page({
     var _this = this;
     var token = this.getToken();
     var filterIdx = this.data.filterIndex;
-    var params = { page: this.data.page };
+    var babyId = '';
+    try { babyId = wx.getStorageSync('baby_diary_current_baby_id') || ''; } catch (e) {}
+    if (!babyId || !token) { this.loadFallback(); return; }
+
+    var params = { babyId: babyId, page: this.data.page };
     if (filterIdx === 2) params['archived'] = 'true';
     else if (filterIdx === 1) params['archived'] = 'false';
 

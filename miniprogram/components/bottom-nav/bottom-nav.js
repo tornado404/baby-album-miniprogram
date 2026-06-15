@@ -1,17 +1,18 @@
 "use strict";
+// @ts-nocheck
 // bottom-nav.ts - 底部导航组件
-// Claymorphism 风格 4个Tab: 首页 / 相册 / 上传 / 我的
+// Figma Bottom Nav v2: 👶成长历程 / 📦素材库 / ➕上传 / 👤我的
 Component({
     properties: {
         current: {
             type: String,
-            value: 'home'
+            value: 'journey'
         }
     },
     data: {
         tabs: [
-            { key: 'home', icon: '🏠', label: '首页' },
-            { key: 'album', icon: '📖', label: '相册' },
+            { key: 'journey', icon: '👶', label: '成长历程' },
+            { key: 'gallery', icon: '📦', label: '素材库' },
             { key: 'upload', icon: '➕', label: '上传' },
             { key: 'profile', icon: '👤', label: '我的' }
         ]
@@ -21,13 +22,13 @@ Component({
             var key = e.currentTarget.dataset.key;
             if (key === this.properties.current)
                 return;
-            var pages = {
-                home: '/pages/album_home/album_home',
-                album: '/pages/album_home/album_home',
+            var routes = {
+                journey: '/pages/journey/journey',
+                gallery: '/pages/gallery/gallery',
                 upload: '/pages/upload/upload',
                 profile: '/pages/settings/settings'
             };
-            var url = pages[key];
+            var url = routes[key];
             if (url) {
                 wx.redirectTo({ url: url });
             }

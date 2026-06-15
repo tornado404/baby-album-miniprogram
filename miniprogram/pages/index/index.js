@@ -2,9 +2,10 @@
 // @ts-nocheck
 // index.ts - 登录引导页
 // 对接后端 API：wx.login → POST /auth/login → JWT
+Object.defineProperty(exports, "__esModule", { value: true });
+var api_1 = require("../../config/api");
 var AUTH_KEY = 'baby_diary_authed';
 var BABY_KEY = 'baby_diary_baby_profile';
-var API_BASE = 'http://101.126.41.146:8000/api/v1';
 Page({
     data: {
         safeTop: 44,
@@ -34,7 +35,7 @@ Page({
     verifyAndRoute: function (token) {
         var _this = this;
         wx.request({
-            url: API_BASE + '/auth/me',
+            url: api_1.API_CONFIG.baseURL + '/auth/me',
             method: 'GET',
             header: { 'Authorization': 'Bearer ' + token },
             success: function (res) {
@@ -71,7 +72,7 @@ Page({
             return;
         }
         wx.request({
-            url: API_BASE + '/auth/refresh',
+            url: api_1.API_CONFIG.baseURL + '/auth/refresh',
             method: 'POST',
             data: { refreshToken: refreshToken },
             success: function (res) {
@@ -97,7 +98,7 @@ Page({
             success: function (loginRes) {
                 if (loginRes.code) {
                     wx.request({
-                        url: API_BASE + '/auth/login',
+                        url: api_1.API_CONFIG.baseURL + '/auth/login',
                         method: 'POST',
                         data: { code: loginRes.code },
                         timeout: 15000,

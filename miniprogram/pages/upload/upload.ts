@@ -120,6 +120,12 @@ Page({
         var uploadUrl = signRes.data.uploadUrl;
         var cosKey = signRes.data.cosKey;
 
+        // 修复：后端 MinIO 预签名 URL 可能包含 Docker 内网域名，替换为外部可访问地址
+        if (uploadUrl && uploadUrl.indexOf('minio:9000') !== -1) {
+          uploadUrl = uploadUrl.replace('http://minio:9000', API_CONFIG.minioURL);
+          uploadUrl = uploadUrl.replace('https://minio:9000', API_CONFIG.minioURL);
+        }
+
         // Step 2: 读取文件为 ArrayBuffer，用 PUT 直传 MinIO
         var fs = wx.getFileSystemManager();
         try {
