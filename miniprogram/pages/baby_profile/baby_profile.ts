@@ -117,10 +117,43 @@ Page({
                 avatarUrl: tempFile.tempFilePath || '',
                 avatarEmoji: ''
               });
+              // 上传头像到服务器
+              _this.uploadAvatar(tempFile.tempFilePath);
             }
           }
         });
       }
+    });
+  },
+
+  uploadAvatar: function (filePath) {
+    if (!filePath) return;
+    var babyId = '';
+    try { babyId = wx.getStorageSync(STORAGE_KEYS.currentBabyId) || ''; } catch (e) {}
+    if (!babyId) return;
+
+    var token = '';
+    try { token = wx.getStorageSync('baby_diary_access_token') || ''; } catch (e) {}
+
+    wx.uploadFile({
+      url: API_CONFIG.baseURL + '/babies/' + babyId + '/avatar',
+      filePath: filePath,
+      name: 'file',
+      header: { 'Authorization': 'Bearer ' + token },
+      success: function (res) {
+        if (res.statusCode === 200) {
+          try {
+            var data = JSON.parse(res.data);
+            if (data && data.data && data.data.avatar) {
+              // 更新为服务器返回的永久 URL
+              // (不立即更新 UI，避免闪烁，下次加载时自动获取)
+            }
+          } catch (e) {}
+        }
+      },
+      fail: function () {
+        // 上传失败，本地预览仍然生效
+      },
     });
   },
 

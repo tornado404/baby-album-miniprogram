@@ -1,0 +1,63 @@
+<view class="page page-about">
+
+  <!-- Status Bar -->
+  <view class="status-bar" style="height: {{safeTop}}px;"></view>
+
+  <!-- Navigation Bar -->
+  <view class="about-nav">
+    <view class="nav-btn-circle" bindtap="onBack">
+      <text>←</text>
+    </view>
+    <text class="nav-title">关于</text>
+    <view class="nav-spacer-right"></view>
+  </view>
+
+  <!-- Content Area -->
+  <scroll-view class="content-area" scroll-y enable-flex>
+
+    <!-- App Icon + Name -->
+    <view class="app-header anim-scale-in">      <view class="app-icon">
+        <text>👶</text>
+      </view>
+      <text class="app-name">宝宝成长相册</text>
+      <text class="app-version">v{{version}}</text>
+    </view>
+
+    <!-- Info Card -->
+    <view class="info-card anim-fade-in anim-delay-1">
+      <view class="info-row">
+        <text class="info-label">版本号</text>
+        <text class="info-value">{{version}}</text>
+      </view>
+      <view class="info-divider"></view>
+      <view class="info-row" wx:if="{{commit}}">
+        <text class="info-label">Commit</text>
+        <text class="info-value info-value-mono">{{commit}}</text>
+      </view>
+      <view class="info-divider" wx:if="{{commit}}"></view>
+      <view class="info-row" wx:if="{{buildTime}}">
+        <text class="info-label">构建时间</text>
+        <text class="info-value info-value-mono">{{buildTime}}</text>
+      </view>
+    </view>
+
+    <!-- Changelog -->
+    <view class="changelog-section anim-slide-up anim-delay-2">
+      <text class="section-title">更新日志</text>
+
+      <view class="changelog-item" wx:for="{{changelog}}" wx:key="version">
+        <view class="changelog-header">
+          <text class="changelog-version">v{{item.version}}</text>
+          <text class="changelog-date">{{item.date}}</text>
+        </view>
+        <view class="changelog-list">
+          <view class="changelog-entry" wx:for="{{item.items}}" wx:for-item="entry" wx:key="*this">
+            <view class="changelog-dot"></view>
+            <text class="changelog-text">{{entry}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+  </scroll-view>
+</view>

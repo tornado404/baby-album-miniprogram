@@ -16,15 +16,14 @@
   <scroll-view class="content-area" scroll-y enable-flex>
 
     <!-- Avatar Card -->
-    <view class="avatar-card">
-      <view class="avatar-circle" bindtap="onAvatarTap">
+    <view class="avatar-card anim-scale-in">      <view class="avatar-circle" bindtap="onAvatarTap">
         <image wx:if="{{avatarUrl}}" class="profile-avatar-image" src="{{avatarUrl}}" mode="aspectFill"></image>
         <text wx:else>{{avatarEmoji}}</text>
       </view>
     </view>
 
     <!-- Fields -->
-    <view class="fields-wrapper">
+    <view class="fields-wrapper anim-slide-up anim-delay-1">
 
       <!-- 宝宝昵称 -->
       <view class="field-item">

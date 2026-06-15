@@ -1,6 +1,7 @@
 """宝宝成长相册 API — FastAPI 应用入口"""
 import os
 import subprocess
+from datetime import datetime
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -24,6 +25,11 @@ else:
         ).stdout.strip()
     except Exception:
         pass
+
+# 启动时间戳
+BUILD_TIME = datetime.utcnow().isoformat() + "Z"
+
+APP_VERSION = "1.1.0"
 
 
 @asynccontextmanager
@@ -51,6 +57,19 @@ app.add_middleware(
 @app.get("/health")
 async def health_check():
     return {"status": "ok", "app": settings.APP_NAME, "commit": COMMIT_HASH}
+
+
+@app.get("/api/v1/version")
+async def get_version():
+    """返回应用版本信息"""
+    return {
+        "code": 0,
+        "data": {
+            "version": APP_VERSION,
+            "commit": COMMIT_HASH,
+            "buildTime": BUILD_TIME,
+        },
+    }
 
 
 from app.routers import auth as auth_router
