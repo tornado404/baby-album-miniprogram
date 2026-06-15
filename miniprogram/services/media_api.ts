@@ -35,20 +35,6 @@ const mediaApi = {
       babyId: babyId,
     });
   },
-
-  /**
-   * 获取媒体详情
-   */
-  get: function (mediaId: string): Promise<any> {
-    return request.get('/media/' + mediaId);
-  },
-
-  /**
-   * 更新媒体信息
-   */
-  update: function (mediaId: string, data: any): Promise<any> {
-    return request.put('/media/' + mediaId, data);
-  },
 };
 
 export { mediaApi };

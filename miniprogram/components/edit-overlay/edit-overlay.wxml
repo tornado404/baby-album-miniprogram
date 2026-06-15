@@ -1,3 +1,10 @@
+<wxs module="util">
+var exports = {};
+exports.hasTag = function(tags, name) {
+  return tags && tags.indexOf(name) >= 0;
+};
+module.exports = exports;
+</wxs>
 <view wx:if="{{show}}" class="overlay-mask" bindtap="onClose"></view>
 <view wx:if="{{show}}" class="overlay-sheet">
 
@@ -26,8 +33,8 @@
     <text class="section-label">🏷️ 标签</text>
     <view class="tags-grid">
       <view wx:for="{{presetTags}}" wx:key="name"
-        class="tag-chip {{tags.indexOf(item.name) >= 0 ? 'active' : ''}}"
-        style="{{tags.indexOf(item.name) >= 0 ? 'background:' + item.color : ''}}"
+        class="tag-chip {{util.hasTag(tags, item.name) ? 'active' : ''}}"
+        style="{{util.hasTag(tags, item.name) ? 'background:' + item.color : ''}}"
         data-tag="{{item.name}}"
         bindtap="onTagTap"
       >

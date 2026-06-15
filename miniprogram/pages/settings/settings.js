@@ -2,7 +2,7 @@
 // settings.ts - 我的/设置页面，对接后端 API
 // 使用统一配置中心 API_CONFIG，支持运行时环境切换
 Object.defineProperty(exports, "__esModule", { value: true });
-var request_1 = require("../../services/request");
+var api_1 = require("../../config/api");
 var config_service_1 = require("../../services/config_service");
 Page({
     data: {
@@ -34,25 +34,44 @@ Page({
     // ========== 数据加载 ==========
     loadStats: function () {
         var _this = this;
+        var token = '';
+        try {
+            token = wx.getStorageSync('baby_diary_access_token') || '';
+        }
+        catch (e) { }
         // 加载统计数据
-        request_1.request.get('/analytics/stats').then(function (result) {
-            if (result && result.data) {
-                var d = result.data;
-                _this.setData({
-                    photoCount: d.photoCount || 0,
-                    videoCount: d.videoCount || 0,
-                    modelCount: d.modelCount || 0,
-                    recordDays: d.recordDays || 0,
-                });
-            }
-        }).catch(function () { });
+        wx.request({
+            url: api_1.API_CONFIG.baseURL + '/analytics/stats',
+            method: 'GET',
+            header: { 'Authorization': 'Bearer ' + token },
+            timeout: 8000,
+            success: function (res) {
+                if (res.statusCode === 200 && res.data && res.data.data) {
+                    var d = res.data.data;
+                    _this.setData({
+                        photoCount: d.photoCount || 0,
+                        videoCount: d.videoCount || 0,
+                        modelCount: d.modelCount || 0,
+                        recordDays: d.recordDays || 0,
+                    });
+                }
+            },
+            fail: function () { },
+        });
         // 加载成就
-        request_1.request.get('/analytics/achievements').then(function (result) {
-            if (result && result.data) {
-                var unlocked = (result.data.badges || []).filter(function (b) { return b.unlocked; });
-                _this.setData({ achievementCount: unlocked.length });
-            }
-        }).catch(function () { });
+        wx.request({
+            url: api_1.API_CONFIG.baseURL + '/analytics/achievements',
+            method: 'GET',
+            header: { 'Authorization': 'Bearer ' + token },
+            timeout: 8000,
+            success: function (res) {
+                if (res.statusCode === 200 && res.data && res.data.data) {
+                    var unlocked = (res.data.data.badges || []).filter(function (b) { return b.unlocked; });
+                    _this.setData({ achievementCount: unlocked.length });
+                }
+            },
+            fail: function () { },
+        });
     },
     loadEnvInfo: function () {
         var currentEnv = config_service_1.configService.getCurrentEnv();

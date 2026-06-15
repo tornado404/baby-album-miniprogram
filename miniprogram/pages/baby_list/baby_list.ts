@@ -1,7 +1,7 @@
 // @ts-nocheck
 // baby_list.ts - 宝宝列表页，对接后端 API
 
-import { babyApi } from '../../services/baby_api';
+import { API_CONFIG } from '../../config/api';
 import { STORAGE_KEYS } from '../../constants/storage_keys';
 
 Page({
@@ -24,14 +24,22 @@ Page({
   loadBabies() {
     this.setData({ isLoading: true });
     var _this = this;
-    babyApi.list().then(function (babies) {
-      if (Array.isArray(babies)) {
-        _this.setData({ babies: babies, isLoading: false });
-      } else {
-        _this.fallbackBabies();
-      }
-    }).catch(function () {
-      _this.fallbackBabies();
+    var token = '';
+    try { token = wx.getStorageSync('baby_diary_access_token') || ''; } catch (e) {}
+
+    wx.request({
+      url: API_CONFIG.baseURL + '/babies/',
+      method: 'GET',
+      header: { 'Authorization': 'Bearer ' + token },
+      timeout: 8000,
+      success: function (res) {
+        if (res.statusCode === 200 && Array.isArray(res.data)) {
+          _this.setData({ babies: res.data, isLoading: false });
+        } else {
+          _this.fallbackBabies();
+        }
+      },
+      fail: function () { _this.fallbackBabies(); },
     });
   },
 

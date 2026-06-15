@@ -1,3 +1,10 @@
+<wxs module="util">
+var exports = {};
+exports.isSelected = function(selectedIds, id) {
+  return selectedIds && selectedIds.indexOf(id) >= 0;
+};
+module.exports = exports;
+</wxs>
 <view class="page-gallery">
 
   <!-- Status Bar -->
@@ -47,8 +54,8 @@
         bindlongpress="onLongPress"
       >
         <!-- Checkbox in select mode -->
-        <view wx:if="{{selectMode}}" class="card-checkbox {{selectedIds.indexOf(item.id) >= 0 ? 'checked' : ''}}">
-          <text wx:if="{{selectedIds.indexOf(item.id) >= 0}}">✓</text>
+        <view wx:if="{{selectMode}}" class="card-checkbox {{util.isSelected(selectedIds, item.id) ? 'checked' : ''}}">
+          <text wx:if="{{util.isSelected(selectedIds, item.id)}}">✓</text>
         </view>
 
         <!-- Thumbnail -->

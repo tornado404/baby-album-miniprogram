@@ -1,4 +1,14 @@
 <!-- album_home.wxml - Claymorphism 首页 -->
+<wxs module="util">
+var exports = {};
+exports.avatarUrl = function(baby) {
+  if (baby && baby.avatar && baby.avatar.indexOf('http') === 0) {
+    return baby.avatar;
+  }
+  return '';
+};
+module.exports = exports;
+</wxs>
 <view class="page-home">
 
   <!-- Status Bar Spacer -->
@@ -19,7 +29,7 @@
       <!-- 展开态：完整信息卡片 -->
       <view class="baby-header-expanded {{headerCollapsed ? 'fade-out' : ''}}">
         <view class="baby-header-avatar">
-          <image wx:if="{{currentBaby && currentBaby.avatar && currentBaby.avatar.indexOf('http') === 0}}" class="header-avatar-image" src="{{currentBaby.avatar}}" mode="aspectFill"></image>
+          <image wx:if="{{util.avatarUrl(currentBaby)}}" class="header-avatar-image" src="{{util.avatarUrl(currentBaby)}}" mode="aspectFill"></image>
           <text wx:else>{{currentBaby ? (currentBaby.avatar || '👶') : '👶'}}</text>
         </view>
         <view class="baby-header-info">

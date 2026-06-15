@@ -2,7 +2,7 @@
 // @ts-nocheck
 // baby_list.ts - 宝宝列表页，对接后端 API
 Object.defineProperty(exports, "__esModule", { value: true });
-var baby_api_1 = require("../../services/baby_api");
+var api_1 = require("../../config/api");
 var storage_keys_1 = require("../../constants/storage_keys");
 Page({
     data: {
@@ -22,15 +22,25 @@ Page({
     loadBabies: function () {
         this.setData({ isLoading: true });
         var _this = this;
-        baby_api_1.babyApi.list().then(function (babies) {
-            if (Array.isArray(babies)) {
-                _this.setData({ babies: babies, isLoading: false });
-            }
-            else {
-                _this.fallbackBabies();
-            }
-        }).catch(function () {
-            _this.fallbackBabies();
+        var token = '';
+        try {
+            token = wx.getStorageSync('baby_diary_access_token') || '';
+        }
+        catch (e) { }
+        wx.request({
+            url: api_1.API_CONFIG.baseURL + '/babies/',
+            method: 'GET',
+            header: { 'Authorization': 'Bearer ' + token },
+            timeout: 8000,
+            success: function (res) {
+                if (res.statusCode === 200 && Array.isArray(res.data)) {
+                    _this.setData({ babies: res.data, isLoading: false });
+                }
+                else {
+                    _this.fallbackBabies();
+                }
+            },
+            fail: function () { _this.fallbackBabies(); },
         });
     },
     fallbackBabies: function () {

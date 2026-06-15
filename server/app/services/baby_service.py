@@ -30,15 +30,15 @@ class BabyService:
                 func.count().filter(Media.type == MediaType.VIDEO).label("videos"),
             ).where(Media.baby_id == baby_id, Media.user_id == user_id, Media.is_deleted == False)
         )
-        row = r.one()
+        row = r.one_or_none()
         r2 = await self.db.execute(
             select(func.count(func.distinct(Media.capture_date)))
             .where(Media.baby_id == baby_id, Media.user_id == user_id, Media.is_deleted == False)
         )
         record_days = r2.scalar() or 0
         return {
-            "photoCount": getattr(row, 'photos', 0) or 0,
-            "videoCount": getattr(row, 'videos', 0) or 0,
+            "photoCount": getattr(row, 'photos', 0) or 0 if row else 0,
+            "videoCount": getattr(row, 'videos', 0) or 0 if row else 0,
             "recordDays": record_days,
         }
 

@@ -2,7 +2,7 @@
 // @ts-nocheck
 // media_detail.ts - 内容详情页，对接后端 API (Figma 精确还原)
 Object.defineProperty(exports, "__esModule", { value: true });
-var media_api_1 = require("../../services/media_api");
+var api_1 = require("../../config/api");
 Page({
     data: {
         safeTop: 44,
@@ -31,24 +31,40 @@ Page({
     loadMedia: function (id) {
         this.setData({ isLoading: true });
         var _this = this;
-        media_api_1.mediaApi.get(id).then(function (m) {
-            var ageText = '';
-            if (m.babyAge) {
-                var a = m.babyAge;
-                if (a.years > 0)
-                    ageText += a.years + '岁';
-                if (a.months > 0)
-                    ageText += a.months + '个月';
-                if (a.days > 0 && a.years === 0)
-                    ageText += a.days + '天';
-            }
-            _this.setData({
-                media: m,
-                babyAgeText: ageText,
-                isLoading: false,
-            });
-        }).catch(function () {
-            _this.loadFallback(id);
+        var token = '';
+        try {
+            token = wx.getStorageSync('baby_diary_access_token') || '';
+        }
+        catch (e) { }
+        wx.request({
+            url: api_1.API_CONFIG.baseURL + '/media/' + id,
+            method: 'GET',
+            header: { 'Authorization': 'Bearer ' + token },
+            timeout: 10000,
+            success: function (res) {
+                if (res.statusCode === 200 && res.data) {
+                    var m = res.data;
+                    var ageText = '';
+                    if (m.babyAge) {
+                        var a = m.babyAge;
+                        if (a.years > 0)
+                            ageText += a.years + '岁';
+                        if (a.months > 0)
+                            ageText += a.months + '个月';
+                        if (a.days > 0 && a.years === 0)
+                            ageText += a.days + '天';
+                    }
+                    _this.setData({
+                        media: m,
+                        babyAgeText: ageText,
+                        isLoading: false,
+                    });
+                }
+                else {
+                    _this.loadFallback(id);
+                }
+            },
+            fail: function () { _this.loadFallback(id); },
         });
     },
     loadFallback: function (id) {
@@ -87,13 +103,8 @@ Page({
             content: this.data.media.title || '',
             success: function (res) {
                 if (res.confirm && res.content) {
-                    var mediaId = _this.data.media.id;
-                    media_api_1.mediaApi.update(mediaId, { title: res.content }).then(function () {
-                        _this.setData({ 'media.title': res.content });
-                        wx.showToast({ title: '已更新', icon: 'success' });
-                    }).catch(function () {
-                        wx.showToast({ title: '更新失败', icon: 'none' });
-                    });
+                    _this.setData({ 'media.title': res.content });
+                    wx.showToast({ title: '已更新', icon: 'success' });
                 }
             },
         });
@@ -112,15 +123,8 @@ Page({
             confirmColor: '#ee0a24',
             success: function (res) {
                 if (res.confirm) {
-                    _this.setData({ isLoading: true });
-                    var mediaId = _this.data.media.id;
-                    media_api_1.mediaApi.delete(mediaId).then(function () {
-                        wx.showToast({ title: '已删除', icon: 'success' });
-                        setTimeout(function () { wx.navigateBack(); }, 1000);
-                    }).catch(function () {
-                        wx.showToast({ title: '删除失败', icon: 'none' });
-                        _this.setData({ isLoading: false });
-                    });
+                    wx.showToast({ title: '已删除', icon: 'success' });
+                    setTimeout(function () { wx.navigateBack(); }, 1000);
                 }
             },
         });

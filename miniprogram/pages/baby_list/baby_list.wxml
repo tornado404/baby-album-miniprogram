@@ -1,3 +1,13 @@
+<wxs module="util">
+var exports = {};
+exports.avatarUrl = function(baby) {
+  if (baby && baby.avatar && baby.avatar.indexOf('http') === 0) {
+    return baby.avatar;
+  }
+  return '';
+};
+module.exports = exports;
+</wxs>
 <view class="page page-baby-list">
 
   <!-- Status Bar -->
@@ -30,7 +40,7 @@
       <!-- Baby Cards -->
       <view wx:for="{{babies}}" wx:key="id" class="baby-card" data-id="{{item.id}}" bindtap="onBabyTap">
         <view class="baby-card-avatar" style="background-color: {{item.gender === 'male' ? '#dceaf1' : '#f1dce2'}};">
-          <image wx:if="{{item.avatar && item.avatar.indexOf('http') === 0}}" class="card-avatar-image" src="{{item.avatar}}" mode="aspectFill"></image>
+          <image wx:if="{{util.avatarUrl(item)}}" class="card-avatar-image" src="{{util.avatarUrl(item)}}" mode="aspectFill"></image>
           <text wx:else>{{item.avatar || '👶'}}</text>
         </view>
         <view class="baby-card-info">

@@ -32,18 +32,6 @@ var mediaApi = {
             babyId: babyId,
         });
     },
-    /**
-     * 获取媒体详情
-     */
-    get: function (mediaId) {
-        return request_1.request.get('/media/' + mediaId);
-    },
-    /**
-     * 更新媒体信息
-     */
-    update: function (mediaId, data) {
-        return request_1.request.put('/media/' + mediaId, data);
-    },
 };
 exports.mediaApi = mediaApi;
 exports.default = mediaApi;

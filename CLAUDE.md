@@ -24,6 +24,15 @@ This is a WeChat Mini Program (微信小程序) for tracking baby growth and dev
 - AppID: `wx3db22b5d6da5d38a` (in `project.config.json`，不可移除)
 - 微信小程序基础库版本：`3.16.1`
 
+### 后端测试环境
+- **ARM 测试服务器**: `ssh linaro@192.168.50.126`（局域网免密开发环境）
+- 后端代码（`server/`）和依赖服务（如数据库、MinIO）均部署在该服务器上
+- 如果后端代码或依赖服务需要更新，直接进入该服务器操作即可（`git pull` 后重启服务）
+
+### 后端开发环境（ARM 测试服务器）
+- **本地免密开发环境**：`ssh linaro@192.168.50.126`
+- 如果后端代码或依赖服务（如数据库、MinIO、Redis 等）需要更新，直接 SSH 进入服务器操作即可，无需额外配置
+
 ## Common Commands
 
 ```bash

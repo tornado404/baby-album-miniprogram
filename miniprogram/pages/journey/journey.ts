@@ -76,9 +76,14 @@ Page({
   loadMedia() {
     var _this = this;
     var token = this.getToken();
+    var babyId = '';
+    try { babyId = wx.getStorageSync('baby_diary_current_baby_id') || ''; } catch (e) {}
+    if (!babyId || !token) { this.loadFallback(); return; }
+
     wx.request({
-      url: API_CONFIG.baseURL + '/media/?archived=true',
+      url: API_CONFIG.baseURL + '/media/',
       method: 'GET',
+      data: { babyId: babyId, archived: 'true' },
       header: { 'Authorization': 'Bearer ' + token },
       success: function (res) {
         if (res.statusCode === 200 && Array.isArray(res.data)) {
