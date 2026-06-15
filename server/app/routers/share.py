@@ -39,3 +39,27 @@ async def accept_invitation(
         return {"code": 0, "data": result}
     except ValueError as e:
         raise HTTPException(400, str(e))
+
+
+@router.get("/relations")
+async def list_relations(
+    user_id: str = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+):
+    """列出当前用户发起的所有共享关系"""
+    relations = await ShareService(db).list_relations(user_id)
+    return {"code": 0, "data": relations}
+
+
+@router.delete("/relations/{relation_id}")
+async def revoke_relation(
+    relation_id: str,
+    user_id: str = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+):
+    """取消共享关系"""
+    try:
+        await ShareService(db).revoke(relation_id, user_id)
+        return {"code": 0, "data": {"message": "Revoked"}}
+    except ValueError as e:
+        raise HTTPException(404, str(e))

@@ -47,6 +47,26 @@ class ShareService:
         await self.db.commit()
         return {"message": "Accepted", "babyId": inv.baby_id}
 
+    async def list_relations(self, owner_id: str) -> list:
+        """列出当前用户发起的所有共享关系"""
+        r = await self.db.execute(
+            select(ShareRelation).where(
+                ShareRelation.owner_user_id == owner_id,
+            )
+        )
+        relations = r.scalars().all()
+        return [
+            {
+                "id": rel.id,
+                "ownerUserId": rel.owner_user_id,
+                "viewerUserId": rel.viewer_user_id,
+                "babyId": rel.baby_id,
+                "permission": rel.permission,
+                "createdAt": rel.created_at.isoformat() if rel.created_at else None,
+            }
+            for rel in relations
+        ]
+
     async def revoke(self, relation_id: str, owner_id: str):
         r = await self.db.execute(
             select(ShareRelation).where(

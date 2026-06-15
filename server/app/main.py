@@ -61,6 +61,7 @@ from app.routers import sync as sync_router
 from app.routers import share as share_router
 from app.routers import analytics as analytics_router
 from app.routers import export as export_router
+from app.routers import storage as storage_router
 
 app.include_router(auth_router.router, prefix="/api/v1/auth", tags=["认证"])
 app.include_router(baby_router.router, prefix="/api/v1/babies", tags=["宝宝"])
@@ -70,3 +71,4 @@ app.include_router(sync_router.router, prefix="/api/v1/sync", tags=["同步"])
 app.include_router(share_router.router, prefix="/api/v1/share", tags=["共享"])
 app.include_router(analytics_router.router, prefix="/api/v1/analytics", tags=["分析"])
 app.include_router(export_router.router, prefix="/api/v1/export", tags=["导出"])
+app.include_router(storage_router.router, prefix="/api/v1/storage", tags=["存储"])
