@@ -33,10 +33,14 @@ class Settings(BaseSettings):
     COS_REGION: str = "ap-guangzhou"
 
     # MinIO 对象存储
+    # 内部通信地址（后端容器与 MinIO 容器之间通信）
     MINIO_ENDPOINT: str = "101.126.41.146:9000"
+    # 外部访问地址（用于生成客户端预签名 URL，必须客户端可达）
+    MINIO_EXTERNAL_ENDPOINT: str = "101.126.41.146:9000"
     MINIO_ACCESS_KEY: str = "Cs516@2026"
     MINIO_SECRET_KEY: str = "Cs516@2026"
     MINIO_BUCKET: str = "baby-album"
+    # MinIO 公网访问地址（用于拼接公开文件 URL）
     MINIO_PUBLIC_URL: str = "http://101.126.41.146:9000"
 
     # 上传限制
