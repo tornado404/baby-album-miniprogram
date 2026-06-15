@@ -3,7 +3,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from app.models.baby import Baby
 from app.models.media import Media, MediaType
+from app.models.sync_log import SyncAction
 from app.schemas.baby import BabyCreate, BabyUpdate
+from app.services.sync_service import record_sync_log
 
 
 class BabyService:
@@ -78,6 +80,8 @@ class BabyService:
             birth_date=data.birthDate, avatar=data.avatar
         )
         self.db.add(baby)
+        await self.db.flush()
+        await record_sync_log(self.db, user_id, "baby", baby.id, SyncAction.create)
         await self.db.commit()
         await self.db.refresh(baby)
         return baby
@@ -89,6 +93,7 @@ class BabyService:
         for k, v in data.dict(exclude_unset=True).items():
             if v is not None:
                 setattr(baby, k, v)
+        await record_sync_log(self.db, user_id, "baby", baby_id, SyncAction.update)
         await self.db.commit()
         await self.db.refresh(baby)
         return baby
@@ -98,4 +103,5 @@ class BabyService:
         if not baby:
             raise ValueError("Baby not found")
         baby.is_deleted = True
+        await record_sync_log(self.db, user_id, "baby", baby_id, SyncAction.delete)
         await self.db.commit()

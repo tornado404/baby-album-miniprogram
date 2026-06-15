@@ -33,3 +33,12 @@ async def delta_sync(
 ):
     result = await SyncService(db).delta_sync(user_id, since)
     return {"code": 0, "data": result}
+
+
+@router.get("/status")
+async def sync_status(
+    user_id: str = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+):
+    result = await SyncService(db).get_sync_status(user_id)
+    return {"code": 0, "data": result}
