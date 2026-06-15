@@ -86,3 +86,119 @@ page {
   --clay-spacing-xl: 32rpx;
   --clay-spacing-xxl: 40rpx;
 }
+
+/* ========== Dark Mode ========== */
+
+@media (prefers-color-scheme: dark) {
+  page {
+    /* Claymorphism 暗色主色调 */
+    --clay-bg: #1a1a2e;
+    --clay-primary: #e0885a;
+    --clay-primary-shadow: rgba(224, 136, 90, 0.25);
+    --clay-primary-shadow-heavy: rgba(224, 136, 90, 0.35);
+
+    /* 文字颜色 */
+    --clay-text-primary: #e8e8e8;
+    --clay-text-secondary: #a0a0a0;
+    --clay-text-light: #909090;
+    --clay-text-muted: #707070;
+    --clay-text-accent: #b898b8;
+    --clay-text-warm: #c0a080;
+    --clay-text-pink: #b88080;
+    --clay-text-dark-warm: #a09090;
+
+    /* 卡片背景色 */
+    --clay-card-pink: #3d2a32;
+    --clay-card-blue: #2a353d;
+    --clay-card-beige: #3d352a;
+    --clay-card-mint: #2a3d30;
+    --clay-card-white: #252540;
+
+    /* UI 元素色 */
+    --clay-icon-bg: #2a2a45;
+    --clay-avatar-lavender: #3a3350;
+    --clay-white-overlay: rgba(255, 255, 255, 0.08);
+    --clay-stat-dot-pink: #3d2a32;
+    --clay-stat-dot-blue: #2a353d;
+    --clay-stat-dot-lavender: #3a3350;
+
+    /* 阴影 - 通用 */
+    --clay-shadow-card: 0px 6px 16px 0px rgba(0, 0, 0, 0.4);
+    --clay-shadow-card-light: 0px 3px 8px 0px rgba(0, 0, 0, 0.3);
+    --clay-shadow-card-lighter: 0px 2px 4px 0px rgba(0, 0, 0, 0.25);
+    --clay-shadow-card-soft: 0px 6px 20px 0px rgba(0, 0, 0, 0.35);
+    --clay-shadow-nav: 0px -3px 10px 0px rgba(0, 0, 0, 0.25);
+
+    /* 阴影 - 彩色卡片 */
+    --clay-shadow-pink: 0px 5px 12px 0px rgba(61, 42, 50, 0.5);
+    --clay-shadow-blue: 0px 5px 12px 0px rgba(42, 53, 61, 0.5);
+    --clay-shadow-beige: 0px 5px 12px 0px rgba(61, 53, 42, 0.5);
+    --clay-shadow-mint: 0px 5px 12px 0px rgba(42, 61, 48, 0.5);
+    --clay-shadow-lavender: 0px 4px 10px 0px rgba(58, 51, 80, 0.5);
+    --clay-shadow-beige-heavy: 0px 4px 8px 0px rgba(61, 53, 42, 0.5);
+    --clay-shadow-upload-icon: 0px 6px 14px 0px rgba(61, 42, 50, 0.5);
+    --clay-shadow-avatar: 0px 8px 20px 0px rgba(61, 42, 50, 0.5);
+    --clay-shadow-save: 0px 3px 6px 0px rgba(224, 136, 90, 0.25);
+
+    /* 阴影 - 3D 页面 */
+    --clay-shadow-3d-viewer: 0px 8px 24px 0px rgba(0, 0, 0, 0.5);
+    --clay-shadow-3d-control: 0px 3px 6px 0px rgba(0, 0, 0, 0.3);
+    --clay-shadow-3d-info: 0px 4px 10px 0px rgba(0, 0, 0, 0.3);
+  }
+}
+
+/* ========== Manual Dark Mode Override ========== */
+/* Applied when data-theme="dark" is set on page root */
+page[data-theme="dark"] {
+  --clay-bg: #1a1a2e;
+  --clay-primary: #e0885a;
+  --clay-primary-shadow: rgba(224, 136, 90, 0.25);
+  --clay-primary-shadow-heavy: rgba(224, 136, 90, 0.35);
+
+  --clay-text-primary: #e8e8e8;
+  --clay-text-secondary: #a0a0a0;
+  --clay-text-light: #909090;
+  --clay-text-muted: #707070;
+  --clay-text-accent: #b898b8;
+  --clay-text-warm: #c0a080;
+  --clay-text-pink: #b88080;
+  --clay-text-dark-warm: #a09090;
+
+  --clay-card-pink: #3d2a32;
+  --clay-card-blue: #2a353d;
+  --clay-card-beige: #3d352a;
+  --clay-card-mint: #2a3d30;
+  --clay-card-white: #252540;
+
+  --clay-icon-bg: #2a2a45;
+  --clay-avatar-lavender: #3a3350;
+  --clay-white-overlay: rgba(255, 255, 255, 0.08);
+  --clay-stat-dot-pink: #3d2a32;
+  --clay-stat-dot-blue: #2a353d;
+  --clay-stat-dot-lavender: #3a3350;
+
+  --clay-shadow-card: 0px 6px 16px 0px rgba(0, 0, 0, 0.4);
+  --clay-shadow-card-light: 0px 3px 8px 0px rgba(0, 0, 0, 0.3);
+  --clay-shadow-card-lighter: 0px 2px 4px 0px rgba(0, 0, 0, 0.25);
+  --clay-shadow-card-soft: 0px 6px 20px 0px rgba(0, 0, 0, 0.35);
+  --clay-shadow-nav: 0px -3px 10px 0px rgba(0, 0, 0, 0.25);
+
+  --clay-shadow-pink: 0px 5px 12px 0px rgba(61, 42, 50, 0.5);
+  --clay-shadow-blue: 0px 5px 12px 0px rgba(42, 53, 61, 0.5);
+  --clay-shadow-beige: 0px 5px 12px 0px rgba(61, 53, 42, 0.5);
+  --clay-shadow-mint: 0px 5px 12px 0px rgba(42, 61, 48, 0.5);
+  --clay-shadow-lavender: 0px 4px 10px 0px rgba(58, 51, 80, 0.5);
+  --clay-shadow-beige-heavy: 0px 4px 8px 0px rgba(61, 53, 42, 0.5);
+  --clay-shadow-upload-icon: 0px 6px 14px 0px rgba(61, 42, 50, 0.5);
+  --clay-shadow-avatar: 0px 8px 20px 0px rgba(61, 42, 50, 0.5);
+  --clay-shadow-save: 0px 3px 6px 0px rgba(224, 136, 90, 0.25);
+
+  --clay-shadow-3d-viewer: 0px 8px 24px 0px rgba(0, 0, 0, 0.5);
+  --clay-shadow-3d-control: 0px 3px 6px 0px rgba(0, 0, 0, 0.3);
+  --clay-shadow-3d-info: 0px 4px 10px 0px rgba(0, 0, 0, 0.3);
+}
+
+/* ========== Manual Light Mode Override ========== */
+page[data-theme="light"] {
+  /* All values inherit from the default page block above */
+}

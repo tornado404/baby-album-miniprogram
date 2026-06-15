@@ -1,11 +1,11 @@
-<view class="page page-settings">
+<view class="page page-settings" data-theme="{{themeAttr}}">
 
   <!-- Status Bar -->
   <view class="status-bar" style="height: {{safeTop}}px;"></view>
 
   <!-- Navigation Bar -->
   <view class="settings-nav">
-    <text class="nav-title-centered">我的</text>
+    <text class="nav-title-centered">{{i18n.title || '我的'}}</text>
   </view>
 
   <!-- Content Area -->
@@ -30,17 +30,17 @@
       <view class="stat-item">
         <view class="stat-dot stat-dot-pink"></view>
         <text class="stat-value">{{photoCount}}</text>
-        <text class="stat-label">照片</text>
+        <text class="stat-label">{{i18n.photos || '照片'}}</text>
       </view>
       <view class="stat-item">
         <view class="stat-dot stat-dot-blue"></view>
         <text class="stat-value">{{videoCount}}</text>
-        <text class="stat-label">视频</text>
+        <text class="stat-label">{{i18n.videos || '视频'}}</text>
       </view>
       <view class="stat-item">
         <view class="stat-dot stat-dot-lavender"></view>
         <text class="stat-value">{{modelCount}}</text>
-        <text class="stat-label">3D模型</text>
+        <text class="stat-label">{{i18n.models || '3D模型'}}</text>
       </view>
     </view>
 
@@ -50,8 +50,8 @@
           <text>👶</text>
         </view>
         <view class="menu-text-area">
-          <text class="menu-title">宝宝管理</text>
-          <text class="menu-desc">管理宝宝档案</text>
+          <text class="menu-title">{{i18n.babyManage || '宝宝管理'}}</text>
+          <text class="menu-desc">{{i18n.babyManageDesc || '管理宝宝档案'}}</text>
         </view>
         <text class="menu-arrow">›</text>
       </view>
@@ -61,8 +61,8 @@
           <text>📊</text>
         </view>
         <view class="menu-text-area">
-          <text class="menu-title">成长对比</text>
-          <text class="menu-desc">照片前后对比</text>
+          <text class="menu-title">{{i18n.growthCompare || '成长对比'}}</text>
+          <text class="menu-desc">{{i18n.growthCompareDesc || '照片前后对比'}}</text>
         </view>
         <text class="menu-arrow">›</text>
       </view>
@@ -72,8 +72,8 @@
           <text>🏆</text>
         </view>
         <view class="menu-text-area">
-          <text class="menu-title">成就徽章</text>
-          <text class="menu-desc">查看已获得的徽章</text>
+          <text class="menu-title">{{i18n.achievements || '成就徽章'}}</text>
+          <text class="menu-desc">{{i18n.achievementsDesc || '查看已获得的徽章'}}</text>
         </view>
         <text class="menu-arrow">›</text>
       </view>
@@ -83,8 +83,8 @@
           <text>💾</text>
         </view>
         <view class="menu-text-area">
-          <text class="menu-title">存储管理</text>
-          <text class="menu-desc">管理本地和云端存储</text>
+          <text class="menu-title">{{i18n.storage || '存储管理'}}</text>
+          <text class="menu-desc">{{i18n.storageDesc || '管理本地和云端存储'}}</text>
         </view>
         <text class="menu-arrow">›</text>
       </view>
@@ -94,8 +94,52 @@
           <text>🔗</text>
         </view>
         <view class="menu-text-area">
-          <text class="menu-title">分享设置</text>
-          <text class="menu-desc">家人共享设置</text>
+          <text class="menu-title">{{i18n.share || '分享设置'}}</text>
+          <text class="menu-desc">{{i18n.shareDesc || '家人共享设置'}}</text>
+        </view>
+        <text class="menu-arrow">›</text>
+      </view>
+
+      <view class="menu-item" bindtap="onThemeTap">
+        <view class="menu-icon">
+          <text>🌙</text>
+        </view>
+        <view class="menu-text-area">
+          <text class="menu-title">{{i18n.theme || '外观模式'}}</text>
+          <text class="menu-desc">{{themeMode === 'auto' ? (i18n.themeAuto || '跟随系统') : themeMode === 'dark' ? (i18n.themeDark || '暗黑模式') : (i18n.themeLight || '浅色模式')}}</text>
+        </view>
+        <text class="menu-arrow">›</text>
+      </view>
+
+      <view class="menu-item" bindtap="onLocaleTap">
+        <view class="menu-icon">
+          <text>🌐</text>
+        </view>
+        <view class="menu-text-area">
+          <text class="menu-title">Language / 语言</text>
+          <text class="menu-desc">{{currentLocale === 'zh-CN' ? '中文' : 'English'}}</text>
+        </view>
+        <text class="menu-arrow">›</text>
+      </view>
+
+      <view class="menu-item" bindtap="onMenuTap" data-key="export_data">
+        <view class="menu-icon">
+          <text>📤</text>
+        </view>
+        <view class="menu-text-area">
+          <text class="menu-title">{{i18n.exportData || '导出数据'}}</text>
+          <text class="menu-desc">{{i18n.exportDataDesc || '导出所有数据为 JSON'}}</text>
+        </view>
+        <text class="menu-arrow">›</text>
+      </view>
+
+      <view class="menu-item" bindtap="onMenuTap" data-key="export_report">
+        <view class="menu-icon">
+          <text>📋</text>
+        </view>
+        <view class="menu-text-area">
+          <text class="menu-title">{{i18n.exportReport || '成长报告'}}</text>
+          <text class="menu-desc">{{i18n.exportReportDesc || '生成宝宝成长报告'}}</text>
         </view>
         <text class="menu-arrow">›</text>
       </view>
@@ -105,8 +149,8 @@
           <text>ℹ️</text>
         </view>
         <view class="menu-text-area">
-          <text class="menu-title">关于</text>
-          <text class="menu-desc">版本 1.0.0</text>
+          <text class="menu-title">{{i18n.about || '关于'}}</text>
+          <text class="menu-desc">{{i18n.aboutDesc || '版本 1.0.0'}}</text>
         </view>
         <text class="menu-arrow">›</text>
       </view>
@@ -161,4 +205,30 @@
 
   <!-- Bottom Navigation -->
   <bottom-nav current="profile"></bottom-nav>
+
+  <!-- Locale Picker Popup -->
+  <t-popup visible="{{showLocalePicker}}" placement="bottom" bind:visible-change="onLocalePickerClose">
+    <view class="locale-picker-container">
+      <view class="locale-picker-header">
+        <text class="locale-picker-title">Language / 语言</text>
+      </view>
+      <view class="locale-list">
+        <view
+          class="locale-item {{currentLocale === item.key ? 'locale-item-active' : ''}}"
+          wx:for="{{availableLocales}}"
+          wx:key="key"
+          data-locale="{{item.key}}"
+          bindtap="onLocaleSelect"
+        >
+          <text class="locale-name">{{item.name}}</text>
+          <view class="locale-check {{currentLocale === item.key ? 'locale-check-active' : ''}}">
+            <text wx:if="{{currentLocale === item.key}}">✓</text>
+          </view>
+        </view>
+      </view>
+      <view class="locale-picker-actions">
+        <view class="locale-btn locale-btn-cancel" bindtap="onLocalePickerClose">取消</view>
+      </view>
+    </view>
+  </t-popup>
 </view>

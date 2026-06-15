@@ -98,13 +98,19 @@ module.exports = exports;
       <!-- 2-column card grid -->
       <view class="card-grid">
         <view wx:for="{{mediaList}}" wx:key="id"
-          class="media-card clay-card-{{item.cardColor || 'pink'}}"
+          class="media-card clay-card-{{item.cardColor || 'pink'}} lazy-media-card"
           style="min-height: {{item._height || 250}}rpx;"
           data-id="{{item.id}}"
           bindtap="onMediaTap"
         >
+          <!-- Lazy loaded image: placeholder until visible -->
           <view class="media-card-image" style="height: {{item._imgHeight || 180}}rpx;">
-            <image mode="aspectFill" src="{{item.thumbnailUrl || item.url}}" lazy-load></image>
+            <view wx:if="{{visibleIds[item.id]}}" class="media-card-img-wrapper">
+              <image mode="aspectFill" src="{{item.thumbnailUrl || item.url}}"></image>
+            </view>
+            <view wx:else class="media-card-placeholder">
+              <view class="placeholder-shimmer"></view>
+            </view>
           </view>
           <text class="media-card-title">{{item.title || '无标题'}}</text>
         </view>
