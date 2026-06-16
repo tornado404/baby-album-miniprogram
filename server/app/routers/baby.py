@@ -6,7 +6,7 @@ from app.middleware.auth import get_current_user_id
 from app.services.baby_service import BabyService
 from app.schemas.baby import BabyCreate, BabyUpdate, BabyResponse
 from app.utils.milestones import get_recommended_milestones
-from app.services.file_service import minio_client, get_file_url, generate_file_path
+from app.services.file_service import get_file_url, generate_file_path, _sign_request_headers
 from app.config import settings
 
 router = APIRouter()
@@ -127,16 +127,21 @@ async def upload_baby_avatar(
     if ext.lower() not in ("jpg", "jpeg", "png", "gif", "webp"):
         ext = "jpg"
 
-    # 上传到 MinIO
+    # 上传到 MinIO（使用 httpx + AWS Sig V4）
     object_path = f"avatars/{baby_id}/{uuid.uuid4().hex}.{ext}"
     content_type = file.content_type or "image/jpeg"
-    minio_client.put_object(
-        settings.MINIO_BUCKET,
-        object_path,
-        data=content,
-        length=len(content),
-        content_type=content_type,
+    headers = _sign_request_headers("PUT", settings.MINIO_BUCKET, object_path)
+    headers["Content-Type"] = content_type
+    headers["Content-Length"] = str(len(content))
+    import httpx
+    resp = httpx.put(
+        f"http://{settings.MINIO_ENDPOINT}/{settings.MINIO_BUCKET}/{object_path}",
+        content=content,
+        headers=headers,
+        timeout=30.0,
     )
+    if resp.status_code not in (200, 204):
+        raise HTTPException(500, f"MinIO upload failed: {resp.status_code}")
 
     # 更新 Baby.avatar
     avatar_url = get_file_url(object_path)
