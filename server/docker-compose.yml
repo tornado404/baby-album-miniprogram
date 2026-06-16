@@ -63,6 +63,29 @@ services:
     networks:
       - baby-network
 
+  celery_worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: baby-api-base:latest
+    container_name: baby-celery-worker
+    depends_on:
+      - redis
+      - postgres
+    env_file:
+      - .env
+    command: >
+      celery -A app.tasks.celery_app:celery_app worker
+      --loglevel=info
+      --queues=thumbnails,celery
+      --concurrency=2
+      --without-heartbeat
+    volumes:
+      - ./app:/app/app
+    restart: unless-stopped
+    networks:
+      - baby-network
+
   nginx:
     image: nginx:alpine
     container_name: baby-nginx

@@ -1,8 +1,8 @@
 # 产品需求文档 v2.0 — 相册增强版
 
-> 版本：v2.0 | 最后更新：2026-06-06
-> 状态：📝 设计阶段
-> 配套：`docs/PRD.md`（v1.x 基础版）、`docs/storage-PRD.md`（存储方案）
+> **版本**: v2.0 | **最后更新**: 2026-06-06
+> **状态**: 📝 设计阶段
+> **配套**: `docs/archive/PRD.md`（v1.x 基础版）、`docs/01-requirements/storage-PRD.md`（存储方案）
 
 ---
 

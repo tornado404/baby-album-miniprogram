@@ -1,8 +1,13 @@
 # Design 文档 — 设计规范
 
-## 宝宝成长相册 — 微信小程序前台设计规范
+> **版本**: v1.2 | **最后更新**: 2026-06-15
+> **状态**: ✅ 已定稿
+> **设计稿**: https://www.figma.com/design/KcqY6GUSvdn24Ur1qKkcim
+> **配套**: `docs/02-design/Spec.md`（功能规格）、`docs/02-design/Tech.md`（技术栈）
 
-> 版本：v1.2 | 最后更新：2026-06-04 | 设计稿：https://www.figma.com/design/KcqY6GUSvdn24Ur1qKkcim
+---
+
+## 宝宝成长相册 — 微信小程序前台设计规范
 
 ---
 

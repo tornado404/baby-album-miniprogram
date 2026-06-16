@@ -1,6 +1,7 @@
 {
   "pages": [
     "pages/index/index",
+    "pages/onboarding/onboarding",
     "pages/album_home/album_home",
     "pages/logs/logs",
     "pages/tech_validate/tech_validate",
@@ -12,7 +13,9 @@
     "pages/baby_list/baby_list",
     "pages/gallery/gallery",
     "pages/journey/journey",
-    "pages/3d_viewer/3d_viewer"
+    "pages/3d_viewer/3d_viewer",
+    "pages/about/about",
+    "pages/share_settings/share_settings"
   ],
   "window": {
     "navigationBarTextStyle": "black",

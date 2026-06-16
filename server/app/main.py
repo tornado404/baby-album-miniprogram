@@ -1,10 +1,18 @@
 """宝宝成长相册 API — FastAPI 应用入口"""
 import os
 import subprocess
+from datetime import datetime
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.exceptions import HTTPException as StarletteHTTPException
 from app.config import settings
+from app.middleware.error_handler import (
+    value_error_handler,
+    http_exception_handler,
+    ExceptionCatchMiddleware,
+)
+from app.middleware.rate_limiter import RateLimitMiddleware
 
 # 读取部署时的 commit hash
 COMMIT_HASH = "unknown"
@@ -25,6 +33,11 @@ else:
     except Exception:
         pass
 
+# 启动时间戳
+BUILD_TIME = datetime.utcnow().isoformat() + "Z"
+
+APP_VERSION = "1.1.0"
+
 
 @asynccontextmanager
 async def lifespan(app_: FastAPI):
@@ -39,6 +52,8 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+app.add_middleware(RateLimitMiddleware)
+app.add_middleware(ExceptionCatchMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -47,10 +62,28 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# 注册全局异常处理器（ValueError / HTTPException）
+# 未捕获的 Exception 由 ExceptionCatchMiddleware 中间件兜底
+app.add_exception_handler(ValueError, value_error_handler)
+app.add_exception_handler(StarletteHTTPException, http_exception_handler)
+
 
 @app.get("/health")
 async def health_check():
     return {"status": "ok", "app": settings.APP_NAME, "commit": COMMIT_HASH}
+
+
+@app.get("/api/v1/version")
+async def get_version():
+    """返回应用版本信息"""
+    return {
+        "code": 0,
+        "data": {
+            "version": APP_VERSION,
+            "commit": COMMIT_HASH,
+            "buildTime": BUILD_TIME,
+        },
+    }
 
 
 from app.routers import auth as auth_router
@@ -61,6 +94,7 @@ from app.routers import sync as sync_router
 from app.routers import share as share_router
 from app.routers import analytics as analytics_router
 from app.routers import export as export_router
+from app.routers import storage as storage_router
 
 app.include_router(auth_router.router, prefix="/api/v1/auth", tags=["认证"])
 app.include_router(baby_router.router, prefix="/api/v1/babies", tags=["宝宝"])
@@ -70,3 +104,4 @@ app.include_router(sync_router.router, prefix="/api/v1/sync", tags=["同步"])
 app.include_router(share_router.router, prefix="/api/v1/share", tags=["共享"])
 app.include_router(analytics_router.router, prefix="/api/v1/analytics", tags=["分析"])
 app.include_router(export_router.router, prefix="/api/v1/export", tags=["导出"])
+app.include_router(storage_router.router, prefix="/api/v1/storage", tags=["存储"])

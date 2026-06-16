@@ -1,6 +1,8 @@
 # F03 - 数据同步服务
 
-> Feature ID: F03 | 优先级: P0 | 版本: v3.0 | 状态: 📝 设计阶段
+> **Feature ID**: F03 | **优先级**: P0 | **版本**: v3.0 | **最后更新**: 2026-06-15
+> **状态**: 📝 设计阶段
+> **配套**: `docs/03-architecture/backend/README.md`（后端总览）、`docs/03-architecture/backend/story/S03-sync-stories.md`（用户故事）
 
 ---
 

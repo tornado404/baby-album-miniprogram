@@ -61,6 +61,8 @@ async def db_session() -> AsyncGenerator[AsyncSession, None]:
         yield session
     finally:
         await session.close()
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.drop_all)
         await engine.dispose()
 
 

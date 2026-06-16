@@ -2,7 +2,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_db
-from app.schemas.auth import LoginRequest, LoginResponse, TokenRefreshRequest, UserProfileResponse
+from app.schemas.auth import LoginRequest, LoginResponse, TokenRefreshRequest, UpdateProfileRequest, UserProfileResponse
 from app.services.auth_service import AuthService
 from app.middleware.auth import get_current_user_id
 
@@ -26,5 +26,20 @@ async def refresh(req: TokenRefreshRequest, db: AsyncSession = Depends(get_db)):
 async def get_profile(user_id: str = Depends(get_current_user_id), db: AsyncSession = Depends(get_db)):
     try:
         return await AuthService(db).get_profile(user_id)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+@router.put("/me", response_model=UserProfileResponse)
+async def update_profile(
+    req: UpdateProfileRequest,
+    user_id: str = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+):
+    try:
+        return await AuthService(db).update_profile(
+            user_id=user_id,
+            nick_name=req.nickName,
+            avatar_url=req.avatarUrl,
+        )
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))

@@ -1,10 +1,8 @@
 # 相册功能任务跟踪表
 
-## 项目信息
-- **项目名称**: 宝宝成长相册 (Baby Growth Album)
-- **所属模块**: 相册功能模块
-- **创建日期**: 2026-05-31
-- **版本**: v1.0
+> **版本**: v1.0 | **最后更新**: 2026-05-31
+> **状态**: 📋 任务追踪
+> **配套**: [`task_details.md`](./task_details.md)（任务规格）、[`iteration_assessment.md`](./iteration_assessment.md)（迭代评估）
 
 ---
 

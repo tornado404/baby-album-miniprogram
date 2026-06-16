@@ -1,6 +1,9 @@
 # S05 - 数据分析与导出故事 (Analytics & Export Stories)
 
-> 关联 Feature: F05 数据分析与导出 | 目标迭代: v2.0
+> **版本**: v1.0 | **最后更新**: 2026-06-15
+> **状态**: 📝 设计阶段
+> **配套**: `docs/03-architecture/backend/feature/F05-analytics-export.md`（关联 Feature）
+> **目标迭代**: v2.0
 
 ---
 

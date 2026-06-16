@@ -1,5 +1,9 @@
 # ARM 本地测试服务器搭建指南
 
+> **版本**: v1.0 | **最后更新**: 2026-06-15
+> **状态**: ✅ 已定稿
+> **配套**: [`03-architecture/backend/README.md`](../03-architecture/backend/README.md)（后端架构）
+
 ## 概述
 
 ARM 本地测试服务器 (192.168.50.126) 用于在局域网环境中运行后端服务，方便快速测试和持续集成。配合 git post-push hook，推送 `worktree-feat*` 分支代码后自动部署。

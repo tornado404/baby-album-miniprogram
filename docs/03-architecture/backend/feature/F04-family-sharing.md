@@ -1,6 +1,9 @@
 # F04 - 家人共享系统
 
-> Feature ID: F04 | 优先级: P1 | 版本: v3.0 | 状态: 📝 设计阶段 | 目标迭代: v2.0
+> **Feature ID**: F04 | **优先级**: P1 | **版本**: v3.0 | **最后更新**: 2026-06-15
+> **状态**: 📝 设计阶段
+> **配套**: `docs/03-architecture/backend/README.md`（后端总览）、`docs/03-architecture/backend/story/S04-sharing-stories.md`（用户故事）
+> **目标迭代**: v2.0
 
 ---
 

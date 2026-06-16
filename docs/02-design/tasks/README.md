@@ -1,7 +1,9 @@
 # Figma 交互设计任务书
 
-> 版本：v1.0 | 最后更新：2026-06-06
-> 设计稿：`https://www.figma.com/design/KcqY6GUSvdn24Ur1qKkcim/宝宝成长日记---Claymorphism-UI`
+> **版本**: v1.1 | **最后更新**: 2026-06-15
+> **状态**: 📝 设计阶段
+> **配套**: `docs/PRD-v2.md`（产品需求文档）、`docs/02-design/Design.md`（设计规范）
+> **设计稿**: `https://www.figma.com/design/KcqY6GUSvdn24Ur1qKkcim/宝宝成长日记---Claymorphism-UI`
 
 ## 任务列表
 

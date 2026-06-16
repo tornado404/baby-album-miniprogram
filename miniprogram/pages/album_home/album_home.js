@@ -27,7 +27,10 @@ Page({
         ],
         babyAgeText: '',
         headerCollapsed: false,
-        headerHeight: 136
+        headerHeight: 136,
+        // Lazy loading state
+        visibleIds: {},
+        _observer: null,
     },
     onLoad: function () {
         try {
@@ -41,7 +44,7 @@ Page({
             this.setData({ currentBabyId: storedId });
         }
         catch (e) { }
-        this.initPage();
+        // 优先由 loadBabies 驱动数据初始化，避免在 currentBabyId 无效时发重复请求
         this.loadBabies();
     },
     onShow: function () {
@@ -164,7 +167,10 @@ Page({
                         mediaList: items,
                         isEmpty: items.length === 0,
                         isLoading: false,
+                        visibleIds: {},
                     });
+                    // Setup lazy loading observer after data update
+                    setTimeout(function () { _this.setupLazyObserver(); }, 100);
                 }
                 else {
                     _this.fallbackMediaList();
@@ -217,7 +223,6 @@ Page({
                             wx.setStorageSync('album_babies', babies);
                         }
                         catch (e) { }
-                        // 如果当前没有选中的宝宝，或选中的宝宝不在列表中，自动选第一个
                         var currentId = _this.data.currentBabyId;
                         var found = false;
                         for (var i = 0; i < babies.length; i++) {
@@ -227,16 +232,24 @@ Page({
                             }
                         }
                         if (!currentId || !found) {
+                            // 没有当前宝宝或当前宝宝不在列表中，自动选第一个
                             var firstBaby = babies[0];
                             _this.setData({ currentBabyId: firstBaby.id, currentBaby: firstBaby });
                             try {
                                 wx.setStorageSync(storage_keys_1.STORAGE_KEYS.currentBabyId, firstBaby.id);
                             }
                             catch (e) { }
-                            // 加载第一个宝宝的媒体
-                            _this.fetchBabyInfo(firstBaby.id);
-                            _this.fetchMediaList(firstBaby.id, 1);
                         }
+                        // 加载当前选中宝宝的详情和媒体（无论是否刚切换）
+                        var targetId = _this.data.currentBabyId;
+                        if (targetId) {
+                            _this.fetchBabyInfo(targetId);
+                            _this.fetchMediaList(targetId, 1);
+                        }
+                    }
+                    else {
+                        // 没有宝宝数据，显示空状态
+                        _this.setData({ isEmpty: true, isLoading: false });
                     }
                 }
                 else {
@@ -334,4 +347,51 @@ Page({
     onMediaTap: function (e) { wx.navigateTo({ url: '/pages/media_detail/media_detail?id=' + e.currentTarget.dataset.id }); },
     goToSettings: function () { wx.redirectTo({ url: '/pages/settings/settings' }); },
     goToBabyProfile: function () { wx.navigateTo({ url: '/pages/baby_profile/baby_profile' }); },
+    // ========== Lazy Loading with IntersectionObserver ==========
+    setupLazyObserver: function () {
+        // Disconnect previous observer
+        this.disconnectLazyObserver();
+        var _this = this;
+        try {
+            var observer = wx.createIntersectionObserver(this, {
+                thresholds: [0.1],
+                observeAll: true,
+            });
+            observer.relativeToViewport({ bottom: 300 }).observe('.lazy-media-card', function (res) {
+                if (res.intersectionRatio > 0) {
+                    var id = res.id || res.dataset && res.dataset.id;
+                    if (id) {
+                        var visibleIds = _this.data.visibleIds;
+                        if (!visibleIds[id]) {
+                            visibleIds[id] = true;
+                            _this.setData({ visibleIds: visibleIds });
+                        }
+                    }
+                }
+            });
+            this.setData({ _observer: observer });
+        }
+        catch (e) {
+            // IntersectionObserver not supported, show all images
+            var allVisible = {};
+            var list = this.data.mediaList;
+            for (var i = 0; i < list.length; i++) {
+                allVisible[list[i].id] = true;
+            }
+            this.setData({ visibleIds: allVisible });
+        }
+    },
+    disconnectLazyObserver: function () {
+        var observer = this.data._observer;
+        if (observer) {
+            try {
+                observer.disconnect();
+            }
+            catch (e) { }
+            this.setData({ _observer: null });
+        }
+    },
+    onUnload: function () {
+        this.disconnectLazyObserver();
+    },
 });

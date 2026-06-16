@@ -1,5 +1,8 @@
 # 小程序首屏截图自动化指南
 
+> **版本**: v1.0 | **最后更新**: 2026-06-15
+> **状态**: ✅ 已定稿 | **配套**: `scripts/capture-automated.js`（实现脚本）
+
 ## 方案概述
 
 使用 `miniprogram-automator` 的 `mp.screenshot()` API 在单 Node.js 进程中完成：

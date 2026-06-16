@@ -1,9 +1,8 @@
 # 相册功能 Task 调整方案
 
-**文档版本**: v1.0
-**创建日期**: 2026-06-01
-**功能模块**: 宝宝成长相册 (ALBUM_V1)
-**状态**: 待评审
+> **版本**: v1.0 | **最后更新**: 2026-06-01
+> **状态**: 🔄 待评审
+> **配套**: `docs/04-features/album_v1/feature_design.md`（功能设计）、`docs/07-plans/task/album_feature/taskList.md`（任务跟踪表）
 
 ---
 

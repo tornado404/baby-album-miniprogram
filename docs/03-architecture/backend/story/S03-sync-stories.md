@@ -1,6 +1,9 @@
 # S03 - 数据同步故事 (Data Sync Stories)
 
-> 关联 Feature: F03 数据同步服务
+> **版本**: v1.0 | **最后更新**: 2026-06-15
+> **状态**: 📝 设计阶段
+> **配套**: `docs/03-architecture/backend/feature/F03-data-sync.md`（关联 Feature）
+> **目标迭代**: v1.1
 
 ---
 

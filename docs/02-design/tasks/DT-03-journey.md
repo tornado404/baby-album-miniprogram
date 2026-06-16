@@ -1,6 +1,9 @@
 # DT-03: 成长历程页面 (Journey)
 
-> 优先级：P0 | 关联 PRD：第 6 章 | 路由：`/pages/journey/journey`
+> **版本**: v1.0 | **最后更新**: 2026-06-15
+> **状态**: 📝 设计阶段
+> **配套**: `docs/PRD-v2.md`（产品需求文档）、`docs/02-design/tasks/README.md`（任务索引）
+> **优先级**: P0 | **关联 PRD**: 第 6 章 | **路由**: `/pages/journey/journey`
 
 ## 页面描述
 

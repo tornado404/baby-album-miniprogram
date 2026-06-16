@@ -1,7 +1,10 @@
 # Plan: ARM 本地测试服务器自动部署方案 (方案③)
 
-**Created:** 2026-06-09
-**Status:** active
+> **版本**: v1.0 | **最后更新**: 2026-06-09
+> **状态**: ✅ 活跃
+> **配套**: `docs/deployment/arm-server-setup.md`（服务器搭建指南）
+
+---
 
 ## Summary
 

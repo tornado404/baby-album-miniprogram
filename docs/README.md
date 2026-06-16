@@ -19,7 +19,8 @@ docs/
 ├── 05-testing/                    # 测试体系 — 怎么验证
 ├── 06-standards/                  # 开发规范 — 要遵守什么
 ├── 07-plans/                      # 项目计划 — 怎么做 & 做得怎样
-└── archive/                       # 历史归档
+├── deployment/                    # 部署指南 — 服务器搭建与运维
+└── archive/                       # 历史归档 — 旧版 & 废弃文档
 ```
 
 ---
@@ -39,6 +40,7 @@ docs/
 | [`Design.md`](./02-design/Design.md) | UI/UX 设计规范 — Claymorphism 粘土风格 | v1.2 ✅ |
 | [`Spec.md`](./02-design/Spec.md) | 功能规格说明书 — 开发任务明细 | v1.0 ✅ |
 | [`Tech.md`](./02-design/Tech.md) | 技术栈说明 — 微信小程序 + 后端全栈 | v1.0 ✅ |
+| [`tasks/`](./02-design/tasks/) | Figma 交互设计任务书（DT-01~07） | 📝 设计阶段 |
 
 ## 3️⃣ 系统架构 (03-architecture/)
 
@@ -66,6 +68,12 @@ docs/
 | [`Automation-Screenshot-Guide.md`](./05-testing/Automation-Screenshot-Guide.md) | 自动化截图测试指南 | 截图测试 |
 | [`arch.md`](./05-testing/arch.md) | E2E 测试框架架构原理 | 深入理解 |
 
+## 🚀 部署指南 (deployment/)
+
+| 文档 | 说明 |
+|------|------|
+| [`arm-server-setup.md`](./deployment/arm-server-setup.md) | ARM 本地测试服务器搭建指南 |
+
 ## 6️⃣ 开发规范 (06-standards/)
 
 | 文档 | 说明 |
@@ -75,9 +83,19 @@ docs/
 
 ## 7️⃣ 项目计划 (07-plans/)
 
+### 计划文档 (plan/)
+
+| 文档 | 说明 | 状态 |
+|------|------|------|
+| [`2026-06-01-miniprogram-e2e-ai-design.md`](./07-plans/plan/2026-06-01-miniprogram-e2e-ai-design.md) | E2E 自动化测试 AI 设计 | ✅ |
+| [`2026-06-09-001-deploy-arm-server-plan.md`](./07-plans/plan/2026-06-09-001-deploy-arm-server-plan.md) | ARM 本地测试服务器自动部署方案 | 📝 |
+| [`2026-06-09-001-feat-switchable-api-config-plan.md`](./07-plans/plan/2026-06-09-001-feat-switchable-api-config-plan.md) | 可切换 API 服务器配置功能 | ✅ |
+| [`2026-06-09-002-feat-multi-baby-support-plan.md`](./07-plans/plan/2026-06-09-002-feat-multi-baby-support-plan.md) | 多宝宝档案支持功能 | 📝 |
+
+### 其他目录
+
 | 目录 | 说明 |
 |------|------|
-| [`plan/`](./07-plans/plan/) | 实施策略与路线图 |
 | [`task/`](./07-plans/task/) | 任务追踪与迭代评估 |
 | [`superpowers/plans/`](./07-plans/superpowers/plans/) | AI 辅助实施计划 |
 | [`superpowers/specs/`](./07-plans/superpowers/specs/) | AI 辅助规格调整 |
@@ -104,4 +122,4 @@ docs/
 
 ---
 
-> 最后更新: 2026-06-06 | 文档结构规范 v2.0
+> 最后更新: 2026-06-15 | 文档结构规范 v2.0

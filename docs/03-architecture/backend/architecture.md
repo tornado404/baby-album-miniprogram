@@ -1,8 +1,8 @@
 # 后端架构深度设计
 
-> 版本：v3.0 | 最后更新：2026-06-04 | 配套：README.md（总览）
-> 技术栈：**Python 3.11+ / FastAPI / SQLAlchemy 2.0 / PostgreSQL**
-> 本文档涵盖工程项目结构、数据库模型、Docker 部署、安全设计
+> **版本**: v3.0 | **最后更新**: 2026-06-04 | **配套**: README.md（总览）
+> **技术栈**: Python 3.11+ / FastAPI / SQLAlchemy 2.0 / PostgreSQL
+> **内容**: 工程项目结构、数据库模型、Docker 部署、安全设计
 
 ---
 

@@ -1,6 +1,9 @@
 # S04 - 家人共享故事 (Family Sharing Stories)
 
-> 关联 Feature: F04 家人共享系统 | 目标迭代: v2.0
+> **版本**: v1.0 | **最后更新**: 2026-06-15
+> **状态**: 📝 设计阶段
+> **配套**: `docs/03-architecture/backend/feature/F04-family-sharing.md`（关联 Feature）
+> **目标迭代**: v2.0
 
 ---
 
