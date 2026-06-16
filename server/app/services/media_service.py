@@ -1,4 +1,5 @@
 """媒体服务"""
+import logging
 from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, desc
@@ -6,6 +7,8 @@ from app.models.media import Media
 from app.models.sync_log import SyncAction
 from app.services.sync_service import record_sync_log
 from app.services.file_service import get_file_url
+
+logger = logging.getLogger(__name__)
 
 
 class MediaService:
@@ -35,6 +38,15 @@ class MediaService:
         await self.db.flush()
         await record_sync_log(self.db, user_id, "media", m.id, SyncAction.create)
         await self.db.commit()
+
+        # 同步生成缩略图（图片类型），同时提取原图尺寸和文件大小
+        if cos_key and m.type.value == "image":
+            try:
+                from app.services.thumbnail_service import process_thumbnail
+                await process_thumbnail(str(m.id), cos_key, str(user_id), self.db)
+            except Exception:
+                logger.exception("Thumbnail generation failed for media_id=%s", m.id)
+
         await self.db.refresh(m)
         return m
 

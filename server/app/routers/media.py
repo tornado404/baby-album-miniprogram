@@ -7,10 +7,23 @@ from sqlalchemy import select, update as sa_update
 from app.database import get_db
 from app.middleware.auth import get_current_user_id
 from app.services.media_service import MediaService
+from app.services.file_service import get_presigned_file_url
 from app.models.media import Media
 from datetime import datetime
 
 router = APIRouter()
+
+
+def _resolve_media_urls(m: Media) -> dict:
+    """根据 cos_key 路径决定返回公开 URL 还是预签名 URL
+
+    thumbnails/ 和 avatars/ 在 MinIO 中为公开可读，直接用公开 URL。
+    photos/ 和 videos/ 非公开可读，使用预签名 URL（1 小时有效）。
+    """
+    cos_url = m.cos_url
+    if m.cos_key and m.cos_key.startswith(("photos/", "videos/")):
+        cos_url = get_presigned_file_url(m.cos_key)
+    return {"cosUrl": cos_url, "thumbnailUrl": m.thumbnail_url}
 
 
 class BatchArchiveRequest(BaseModel):
@@ -79,9 +92,10 @@ async def list_media(
     items = await svc.list_media(babyId, page)
     result = []
     for m in items:
+        urls = _resolve_media_urls(m)
         result.append(MediaOut(
             id=m.id, type=m.type.value, title=m.title,
-            thumbnailUrl=m.thumbnail_url, cosUrl=m.cos_url,
+            thumbnailUrl=urls["thumbnailUrl"], cosUrl=urls["cosUrl"],
             captureDate=m.capture_date, fileSize=m.file_size or 0,
             width=m.width, height=m.height,
             locationName=m.location_name, tags=m.tags,
@@ -112,9 +126,10 @@ async def create_media(
             create_data[snake] = create_data.pop(camel)
 
     m = await MediaService(db).create_media(user_id, create_data)
+    urls = _resolve_media_urls(m)
     return MediaOut(
         id=m.id, type=m.type.value, title=m.title,
-        thumbnailUrl=m.thumbnail_url, cosUrl=m.cos_url,
+        thumbnailUrl=urls["thumbnailUrl"], cosUrl=urls["cosUrl"],
         captureDate=m.capture_date, fileSize=m.file_size or 0,
         width=m.width, height=m.height,
         locationName=m.location_name, tags=m.tags,
@@ -185,9 +200,10 @@ async def update_media(
     m.updated_at = datetime.utcnow()
     await db.commit()
     await db.refresh(m)
+    urls = _resolve_media_urls(m)
     return MediaOut(
         id=m.id, type=m.type.value, title=m.title,
-        thumbnailUrl=m.thumbnail_url, cosUrl=m.cos_url,
+        thumbnailUrl=urls["thumbnailUrl"], cosUrl=urls["cosUrl"],
         captureDate=m.capture_date, fileSize=m.file_size or 0,
         width=m.width, height=m.height,
         locationName=m.location_name, tags=m.tags,
@@ -218,9 +234,10 @@ async def get_media(
     m = await MediaService(db).get_media(media_id, user_id)
     if not m:
         raise HTTPException(404, "Media not found")
+    urls = _resolve_media_urls(m)
     return MediaOut(
         id=m.id, type=m.type.value, title=m.title,
-        thumbnailUrl=m.thumbnail_url, cosUrl=m.cos_url,
+        thumbnailUrl=urls["thumbnailUrl"], cosUrl=urls["cosUrl"],
         captureDate=m.capture_date, fileSize=m.file_size or 0,
         width=m.width, height=m.height,
         locationName=m.location_name, tags=m.tags,

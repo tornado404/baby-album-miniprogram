@@ -96,7 +96,11 @@ async def process_thumbnail(
         response.close()
         response.release_conn()
 
-        # 2. Pillow 缩放
+        # 2. 提取原图尺寸
+        img = Image.open(BytesIO(image_data))
+        original_width, original_height = img.size
+
+        # 3. Pillow 缩放
         thumb_bytes = resize_image(
             image_data,
             width=settings.THUMBNAIL_WIDTH,
@@ -104,7 +108,7 @@ async def process_thumbnail(
             quality=settings.THUMBNAIL_QUALITY,
         )
 
-        # 3. 上传缩略图到 MinIO
+        # 4. 上传缩略图到 MinIO
         thumb_key = build_thumbnail_key(user_id)
         thumb_buffer = BytesIO(thumb_bytes)
         minio_client.put_object(
@@ -115,9 +119,13 @@ async def process_thumbnail(
             content_type="image/webp",
         )
 
-        # 4. 更新 Media 记录
+        # 5. 更新 Media 记录（含缩略图 + 原图尺寸 + 文件大小）
         thumb_url = build_thumbnail_url(thumb_key)
-        await _update_media_thumbnail(db, media_id, thumb_key, thumb_url)
+        await _update_media_thumbnail(
+            db, media_id, thumb_key, thumb_url,
+            width=original_width, height=original_height,
+            file_size=len(image_data),
+        )
 
         logger.info("Thumbnail generated: media_id=%s thumb_key=%s", media_id, thumb_key)
         return thumb_url
@@ -132,8 +140,11 @@ async def _update_media_thumbnail(
     media_id: str,
     thumb_key: str,
     thumb_url: str,
+    width: Optional[int] = None,
+    height: Optional[int] = None,
+    file_size: Optional[int] = None,
 ) -> None:
-    """更新 Media 记录的 thumbnail_key 和 thumbnail_url"""
+    """更新 Media 记录的缩略图信息及原图元数据"""
     from app.models.media import Media
 
     r = await db.execute(select(Media).where(Media.id == media_id))
@@ -141,6 +152,12 @@ async def _update_media_thumbnail(
     if m:
         m.thumbnail_key = thumb_key
         m.thumbnail_url = thumb_url
+        if width is not None:
+            m.width = width
+        if height is not None:
+            m.height = height
+        if file_size is not None:
+            m.file_size = file_size
         await db.commit()
 
 
