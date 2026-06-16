@@ -46,8 +46,6 @@ async def accept_invitation(
         raise HTTPException(400, str(e))
 
 
-<<<<<<< HEAD
-=======
 @router.get("/relations")
 async def list_relations(
     user_id: str = Depends(get_current_user_id),
@@ -58,14 +56,12 @@ async def list_relations(
     return {"code": 0, "data": relations}
 
 
->>>>>>> worktree-issue-8-p2-optimize
 @router.delete("/relations/{relation_id}")
 async def revoke_relation(
     relation_id: str,
     user_id: str = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db),
 ):
-<<<<<<< HEAD
     """取消共享 — 仅所有者可操作"""
     try:
         await ShareService(db).revoke(relation_id, user_id)
@@ -133,11 +129,3 @@ async def list_shared_baby_media(
             "isArchived": m.is_archived,
         })
     return {"code": 0, "data": media_list}
-=======
-    """取消共享关系"""
-    try:
-        await ShareService(db).revoke(relation_id, user_id)
-        return {"code": 0, "data": {"message": "Revoked"}}
-    except ValueError as e:
-        raise HTTPException(404, str(e))
->>>>>>> worktree-issue-8-p2-optimize
