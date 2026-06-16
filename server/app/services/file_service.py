@@ -127,7 +127,7 @@ def _sign_presigned_url(
         f"{canonical_querystring}\n"
         f"{canonical_headers}\n"
         f"{signed_headers}\n"
-        f"unsigned-payload"
+        f"UNSIGNED-PAYLOAD"
     )
 
     # 待签字符串
@@ -166,8 +166,8 @@ def _sign_request_headers(
     host = settings.MINIO_ENDPOINT
     object_path = f"/{bucket}/{key}"
 
-    # Payload hash（空 body 用空字符串的 hash）
-    payload_hash = hashlib.sha256(b"").hexdigest()
+    # Payload hash — UNSIGNED-PAYLOAD: 调用方需在请求头中带上此值
+    payload_hash = "UNSIGNED-PAYLOAD"
 
     # Canonical headers
     canonical_headers = f"host:{host}\nx-amz-content-sha256:{payload_hash}\nx-amz-date:{amz_date}\n"
