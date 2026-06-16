@@ -30,6 +30,7 @@ sshpass -p "$PASSWORD" rsync -avz --delete \
   --exclude='.env' \
   --exclude='node_modules/' \
   ../server/docker-compose.yml \
+  ../server/docker-compose-minio.yml \
   ../server/Dockerfile \
   ../server/nginx/ \
   ../server/scripts/ \
@@ -53,6 +54,18 @@ COS_SECRET_ID=placeholder
 COS_SECRET_KEY=placeholder
 COS_BUCKET=baby-album
 COS_REGION=ap-guangzhou
+# MinIO 对象存储（独立常驻服务，通过 IP:port 访问）
+# 部署到云服务器时替换为实际 IP
+MINIO_ENDPOINT=101.126.41.146:9000
+MINIO_EXTERNAL_ENDPOINT=101.126.41.146:9000
+MINIO_ACCESS_KEY=Cs516@2026
+MINIO_SECRET_KEY=Cs516@2026
+MINIO_BUCKET=baby-album
+MINIO_PUBLIC_URL=http://101.126.41.146:9000
+# 上传限制
+UPLOAD_MAX_SIZE=20971520
+# 限流
+RATE_LIMIT_PER_MINUTE=100
 ENVEOF
 "
 
@@ -60,6 +73,14 @@ ENVEOF
 echo "启动 Docker 容器..."
 sshpass -p "$PASSWORD" ssh "$SERVER" "
   cd $REMOTE_DIR
+
+  # 启动 MinIO（独立常驻服务）
+  if ! docker ps --format '{{.Names}}' | grep -q '^minio$'; then
+    echo '启动 MinIO...'
+    docker compose -f docker-compose-minio.yml up -d
+    sleep 3
+  fi
+
   docker compose pull
   docker compose up -d postgres redis
   echo '等待数据库就绪...'

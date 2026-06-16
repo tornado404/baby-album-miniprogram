@@ -122,8 +122,25 @@ log_info "构建 API 镜像 (ARM64 本地构建，约 5-10 分钟)..."
 cd "$SERVER_DIR"
 docker build -t baby-api-base:latest .
 
-# 2.7 重启服务
+# 2.7 启动 MinIO（独立常驻服务，通过 IP:9000 访问）
+log_info "检查 MinIO 服务..."
+if ! docker ps --format '{{.Names}}' | grep -q '^minio$'; then
+    log_info "启动 MinIO..."
+    cd "$SERVER_DIR"
+    docker run -d \
+      --name minio \
+      -p 9000:9000 -p 9001:9001 \
+      -e MINIO_ROOT_USER=Cs516@2026 \
+      -e MINIO_ROOT_PASSWORD=Cs516@2026 \
+      -v /opt/baby-minio/data:/data \
+      --restart unless-stopped \
+      minio/minio:latest server /data --console-address ':9001' 2>/dev/null || true
+    sleep 3
+fi
+
+# 2.8 重启业务服务
 log_info "启动服务栈 (PostgreSQL, Redis, API, Nginx)..."
+cd "$SERVER_DIR"
 docker-compose -f docker-compose.yml -f docker-compose.arm.yml up -d --remove-orphans
 
 # 2.8 健康检查

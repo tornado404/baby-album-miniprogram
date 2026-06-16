@@ -94,7 +94,21 @@ fi
 log_info "写入版本号: ${NEW_HASH}"
 echo "$NEW_HASH" > server/app/VERSION
 
-# ── 6. 重启 Docker 容器 ──────────────────────────────────────────────────────
+# ── 6. 确保 MinIO 常驻服务运行 ──────────────────────────────────────────────
+if ! docker ps --format '{{.Names}}' | grep -q '^minio$'; then
+    log_info "启动 MinIO 常驻服务..."
+    docker run -d \
+      --name minio \
+      -p 9000:9000 -p 9001:9001 \
+      -e MINIO_ROOT_USER=Cs516@2026 \
+      -e MINIO_ROOT_PASSWORD=Cs516@2026 \
+      -v /opt/baby-minio/data:/data \
+      --restart unless-stopped \
+      minio/minio:latest server /data --console-address ':9001' 2>/dev/null || true
+    sleep 3
+fi
+
+# ── 7. 重启 Docker 容器 ──────────────────────────────────────────────────────
 log_info "重启 API 容器..."
 cd "$REPO_DIR"
 
@@ -104,7 +118,7 @@ if ! docker compose -p baby-album -f "$COMPOSE_FILE" up -d --force-recreate api;
     exit 1
 fi
 
-# ── 7. 健康检查 ──────────────────────────────────────────────────────────────
+# ── 8. 健康检查 ──────────────────────────────────────────────────────────────
 log_info "健康检查中..."
 
 HEALTHY=false
@@ -118,7 +132,7 @@ for i in $(seq 1 $HEALTH_RETRIES); do
     sleep $HEALTH_INTERVAL
 done
 
-# ── 8. 回滚（如果健康检查失败）───────────────────────────────────────────────
+# ── 9. 回滚（如果健康检查失败）───────────────────────────────────────────────
 if [ "$HEALTHY" != "true" ]; then
     log_error "============================================"
     log_error "健康检查失败 — 启动自动回滚"
@@ -141,7 +155,7 @@ if [ "$HEALTHY" != "true" ]; then
     exit 1
 fi
 
-# ── 9. 清理 ──────────────────────────────────────────────────────────────────
+# ── 10. 清理 ──────────────────────────────────────────────────────────────────
 docker image prune -f 2>/dev/null || true
 log_info "============================================"
 log_info "部署成功完成"
