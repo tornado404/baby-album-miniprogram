@@ -40,6 +40,7 @@ docs/
 | [`Design.md`](./02-design/Design.md) | UI/UX 设计规范 — Claymorphism 粘土风格 | v1.2 ✅ |
 | [`Spec.md`](./02-design/Spec.md) | 功能规格说明书 — 开发任务明细 | v1.0 ✅ |
 | [`Tech.md`](./02-design/Tech.md) | 技术栈说明 — 微信小程序 + 后端全栈 | v1.0 ✅ |
+| [`baby-diary-navigation-product-analysis.md`](./02-design/baby-diary-navigation-product-analysis.md) | 核心页面产品分析 — 成长 / 整理 / 记录信息架构 | 📝 设计阶段 |
 | [`tasks/`](./02-design/tasks/) | Figma 交互设计任务书（DT-01~07） | 📝 设计阶段 |
 
 ## 3️⃣ 系统架构 (03-architecture/)
