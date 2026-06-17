@@ -359,7 +359,9 @@ Page({
             });
             observer.relativeToViewport({ bottom: 300 }).observe('.lazy-media-card', function (res) {
                 if (res.intersectionRatio > 0) {
-                    var id = res.id || res.dataset && res.dataset.id;
+                    // res.id 返回被观察节点的 id 属性，wxml 中 id="media-card-{itemId}"
+                    var rawId = res.id || (res.dataset && res.dataset.id) || '';
+                    var id = rawId.indexOf('media-card-') === 0 ? rawId.substring('media-card-'.length) : rawId;
                     if (id) {
                         var visibleIds = _this.data.visibleIds;
                         if (!visibleIds[id]) {

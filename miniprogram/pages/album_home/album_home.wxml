@@ -98,6 +98,7 @@ module.exports = exports;
       <!-- 2-column card grid -->
       <view class="card-grid">
         <view wx:for="{{mediaList}}" wx:key="id"
+          id="media-card-{{item.id}}"
           class="media-card clay-card-{{item.cardColor || 'pink'}} lazy-media-card"
           style="min-height: {{item._height || 250}}rpx;"
           data-id="{{item.id}}"
