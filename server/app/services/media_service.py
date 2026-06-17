@@ -40,7 +40,9 @@ class MediaService:
         await self.db.commit()
 
         # 同步生成缩略图（图片类型），同时提取原图尺寸和文件大小
-        if cos_key and m.type.value == "image":
+        # MediaType 继承 str，新建对象时 m.type 可能是字符串而非枚举，直接字符串比较更稳妥
+        media_type = m.type.value if hasattr(m.type, "value") else m.type
+        if cos_key and media_type == "image":
             try:
                 from app.services.thumbnail_service import process_thumbnail
                 await process_thumbnail(str(m.id), cos_key, str(user_id), self.db)
