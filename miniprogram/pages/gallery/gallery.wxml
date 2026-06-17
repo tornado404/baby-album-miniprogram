@@ -60,7 +60,8 @@ module.exports = exports;
 
         <!-- Thumbnail -->
         <view class="card-img" style="background: {{item.cardColor === 'blue' ? '#dceaf1' : '#f1dce2'}};">
-          <text class="card-img-text">📷</text>
+          <image wx:if="{{item.thumbnailUrl || item.cosUrl}}" class="card-img-el" src="{{item.thumbnailUrl || item.cosUrl}}" mode="aspectFill" lazy-load></image>
+          <text wx:else class="card-img-text">📷</text>
         </view>
 
         <!-- Info -->
