@@ -92,5 +92,5 @@ module.exports = exports;
   </view>
 
   <!-- Bottom Nav -->
-  <bottom-nav current="gallery"></bottom-nav>
+  <bottom-nav current="record"></bottom-nav>
 </view>
