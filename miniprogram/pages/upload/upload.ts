@@ -1,6 +1,5 @@
 // @ts-nocheck
-// upload.ts - 上传页面，对接 MinIO 直传 + 后端媒体 API
-// 上传流程：POST /upload/sign → PUT MinIO → POST /media/
+// upload.ts - 上传页面 v2 (4步渐进流程：选择来源→确认信息→上传中→完成反馈)
 
 import { API_CONFIG } from '../../config/api';
 import { mediaApi } from '../../services/media_api';
@@ -9,29 +8,79 @@ import { STORAGE_KEYS } from '../../constants/storage_keys';
 Page({
   data: {
     safeTop: 44,
+
+    // Step flow
+    currentStep: 1,
+    navTitle: '添加记录',
+    selectedFiles: [],
+    thumbColors: ['#f1dce2', '#dceaf1', '#f4e6d6', '#e2f1e6'],
+
+    // Form fields (Step 2)
+    babyName: '',
+    captureDate: '',
+    todayDate: '',
+    milestone: '',
+    description: '',
+
+    // Upload state (Step 3)
     isUploading: false,
     uploadProgress: 0,
+    uploadCurrentFile: 0,
     uploadStatus: '',
+
+    // For retry
+    _pendingFiles: [],
   },
 
-  onLoad() {
+  onLoad: function () {
     try {
       var info = wx.getWindowInfo();
       this.setData({ safeTop: info.statusBarHeight || 44 });
     } catch (e) {}
+
+    // Load baby name
+    this.loadBabyName();
+
+    // Set default date
+    var now = new Date();
+    var y = now.getFullYear();
+    var m = ('0' + (now.getMonth() + 1)).slice(-2);
+    var d = ('0' + now.getDate()).slice(-2);
+    this.setData({
+      todayDate: y + '-' + m + '-' + d,
+      captureDate: y + '-' + m + '-' + d,
+    });
   },
 
-  onBack() { wx.navigateBack(); },
+  loadBabyName: function () {
+    try {
+      var babyId = wx.getStorageSync(STORAGE_KEYS.currentBabyId) || '';
+      if (!babyId) return;
+      var babies = wx.getStorageSync('album_babies');
+      if (!Array.isArray(babies)) return;
+      for (var i = 0; i < babies.length; i++) {
+        if (babies[i].id === babyId) {
+          this.setData({ babyName: babies[i].name || '小星星 ✨' });
+          return;
+        }
+      }
+    } catch (e) {}
+    this.setData({ babyName: '小星星 ✨' });
+  },
 
-  getToken() {
+  onBack: function () { wx.navigateBack(); },
+
+  getToken: function () {
     try { return wx.getStorageSync('baby_diary_access_token') || ''; } catch (e) { return ''; }
   },
 
-  getBabyId() {
+  getBabyId: function () {
     try { return wx.getStorageSync(STORAGE_KEYS.currentBabyId) || ''; } catch (e) { return ''; }
   },
 
-  onTakePhoto() {
+  // ===== Step Transitions =====
+
+  onTakePhoto: function () {
     var _this = this;
     wx.chooseMedia({
       count: 1, mediaType: ['image'], sourceType: ['camera'],
@@ -39,7 +88,7 @@ Page({
     });
   },
 
-  onChooseFromAlbum() {
+  onChooseFromAlbum: function () {
     var _this = this;
     wx.chooseMedia({
       count: 9, mediaType: ['image', 'video'], sourceType: ['album'],
@@ -47,57 +96,134 @@ Page({
     });
   },
 
-  onUpload3D() {
-    wx.navigateTo({ url: '/pages/3d_viewer/3d_viewer' });
-  },
-
-  /**
-   * 完整上传流程：
-   * 1. POST /upload/sign 获取预签名 URL
-   * 2. wx.uploadFile 直传 MinIO
-   * 3. POST /media 创建媒体记录
-   */
-  handleMediaResult(res) {
+  handleMediaResult: function (res) {
     var files = res.tempFiles || [];
     if (files.length === 0) return;
 
-    // Save for retry
-    this.setData({ _pendingFiles: files, isUploading: true, uploadProgress: 0, uploadStatus: '获取上传凭证...' });
+    this.setData({
+      selectedFiles: files,
+      _pendingFiles: files,
+      currentStep: 2,
+      navTitle: '确认信息',
+    });
+  },
+
+  onPickDate: function () {
+    var _this = this;
+    var currentDate = this.data.captureDate || this.data.todayDate;
+    wx.showModal({
+      title: '选择日期',
+      content: '请在下方输入日期 (YYYY-MM-DD)',
+      editable: true,
+      placeholderText: currentDate,
+      success: function (res) {
+        if (res.confirm && res.content) {
+          _this.setData({ captureDate: res.content });
+        }
+      },
+    });
+  },
+
+  onPickMilestone: function () {
+    var _this = this;
+    var milestones = [
+      '第一次翻身', '会笑出声', '开始学坐',
+      '会爬行', '长牙了', '会走路',
+      '叫妈妈', '叫爸爸', '会拍手',
+      '自己吃饭', '会站立', '会跳舞',
+      '长第一颗牙', '独立行走',
+    ];
+    wx.showActionSheet({
+      itemList: milestones,
+      success: function (res) {
+        if (res.tapIndex >= 0 && res.tapIndex < milestones.length) {
+          _this.setData({ milestone: milestones[res.tapIndex] });
+        }
+      },
+    });
+  },
+
+  onInputDescription: function () {
+    var _this = this;
+    wx.showModal({
+      title: '描述',
+      content: '这一天的故事...',
+      editable: true,
+      placeholderText: '这一天的故事...（选填）',
+      success: function (res) {
+        if (res.confirm && res.content) {
+          _this.setData({ description: res.content });
+        }
+      },
+    });
+  },
+
+  // ===== Upload Flow =====
+
+  onConfirmUpload: function () {
+    var files = this.data.selectedFiles;
+    if (files.length === 0) {
+      wx.showToast({ title: '请选择文件', icon: 'none' });
+      return;
+    }
+
+    this.setData({
+      currentStep: 3,
+      navTitle: '上传中',
+      isUploading: true,
+      uploadProgress: 0,
+      uploadCurrentFile: 0,
+      uploadStatus: '获取上传凭证...',
+    });
+
+    this.startUpload(files);
+  },
+
+  startUpload: function (files) {
     var _this = this;
     var babyId = this.getBabyId();
     var token = this.getToken();
     var uploaded = 0;
     var total = files.length;
 
-    // 逐个上传
-    for (var i = 0; i < files.length; i++) {
-      this.uploadFile(files[i], babyId, token, function () {
+    // Upload one by one
+    var uploadNext = function (idx) {
+      if (idx >= total) {
+        // All done
+        _this.setData({
+          isUploading: false,
+          uploadProgress: 100,
+          uploadStatus: '',
+          currentStep: 4,
+          navTitle: '完成',
+        });
+        return;
+      }
+
+      _this.setData({ uploadCurrentFile: idx + 1 });
+
+      _this.uploadFile(files[idx], babyId, token, function () {
         uploaded++;
         var pct = Math.floor(uploaded / total * 100);
-        _this.setData({ uploadProgress: pct, uploadStatus: '上传中 ' + pct + '%' });
+        _this.setData({ uploadProgress: pct });
 
-        if (uploaded >= total) {
-          _this.setData({ isUploading: false, uploadStatus: '' });
-          wx.showToast({ title: '上传完成', icon: 'success', duration: 1500 });
-          // 上传完成后延迟返回首页，触发 onShow 刷新列表
-          setTimeout(function () { wx.navigateBack(); }, 1500);
-        }
+        // Wait a tick before next upload for UI update
+        setTimeout(function () { uploadNext(idx + 1); }, 100);
       });
-    }
+    };
+
+    uploadNext(0);
   },
 
   /**
-   * 单文件上传（sign → put → create）
-   * 注意：用 wx.request + ArrayBuffer 直传 MinIO（不用 wx.uploadFile，
-   *       因为 wx.uploadFile 只支持 POST multipart，而预签名 URL 需要 PUT 原始二进制）
+   * 单文件上传（sign → put ArrayBuffer → create media）
    */
-  uploadFile(file, babyId, token, callback) {
+  uploadFile: function (file, babyId, token, callback) {
     var _this = this;
     var fileName = (file.tempFilePath || 'photo.jpg').split('/').pop() || 'photo.jpg';
     var fileType = file.mediaType === 'video' ? 'video' : 'image';
-    var captureDate = new Date().toISOString().split('T')[0];
+    var captureDate = this.data.captureDate || new Date().toISOString().split('T')[0];
 
-    // Step 1: 获取预签名 URL
     if (!babyId) {
       console.warn('[upload] 未选择宝宝，跳过上传');
       wx.showToast({ title: '请先创建宝宝档案', icon: 'none', duration: 2000 });
@@ -121,13 +247,13 @@ Page({
         var uploadUrl = signRes.data.uploadUrl;
         var cosKey = signRes.data.cosKey;
 
-        // 修复：后端 MinIO 预签名 URL 可能包含 Docker 内网域名，替换为外部可访问地址
+        // Replace internal MinIO URL with external
         if (uploadUrl && uploadUrl.indexOf('minio:9000') !== -1) {
           uploadUrl = uploadUrl.replace('http://minio:9000', API_CONFIG.minioURL);
           uploadUrl = uploadUrl.replace('https://minio:9000', API_CONFIG.minioURL);
         }
 
-        // Step 2: 读取文件为 ArrayBuffer，用 PUT 直传 MinIO
+        // Read file as ArrayBuffer and PUT to MinIO
         var fs = wx.getFileSystemManager();
         try {
           var arrayBuf = fs.readFileSync(file.tempFilePath);
@@ -140,7 +266,6 @@ Page({
           url: uploadUrl,
           method: 'PUT',
           data: arrayBuf,
-          // 注意：预签名 URL 只签了 host 头，不能添加其他 Header
           header: {},
           timeout: 30000,
           success: function (uploadRes) {
@@ -149,29 +274,30 @@ Page({
               return;
             }
 
-            // Step 3: 创建媒体记录
+            // Create media record
             wx.request({
               url: API_CONFIG.baseURL + '/media/',
               method: 'POST',
               data: {
-                babyId: babyId, title: '', type: fileType,
-                cosKey: cosKey, captureDate: captureDate,
+                babyId: babyId,
+                title: _this.data.description || '',
+                type: fileType,
+                cosKey: cosKey,
+                captureDate: captureDate,
+                milestone: _this.data.milestone || '',
               },
               header: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
               timeout: 10000,
               success: function (mediaRes) {
                 if (mediaRes.statusCode === 200 || mediaRes.statusCode === 201) {
-                  // 同步到本地缓存
                   _this.syncToLocal(file, babyId, fileType, captureDate, cosKey);
                 } else {
                   console.warn('[upload] 创建媒体记录失败:', mediaRes.statusCode, mediaRes.data);
-                  _this.setData({ uploadStatus: '记录创建失败' });
                 }
                 if (callback) callback();
               },
               fail: function (err) {
                 console.warn('[upload] 创建媒体请求失败:', err);
-                _this.setData({ uploadStatus: '记录创建失败' });
                 if (callback) callback();
               },
             });
@@ -182,16 +308,12 @@ Page({
         });
       },
       fail: function () {
-        // 后端不可达，降级到本地 Mock
         _this.fallbackMockUpload(file, babyId, callback);
       },
     });
   },
 
-  /**
-   * 离线降级：本地 Mock 上传
-   */
-  fallbackMockUpload(file, babyId, callback) {
+  fallbackMockUpload: function (file, babyId, callback) {
     var mediaList = [];
     try {
       var stored = wx.getStorageSync('album_media');
@@ -205,13 +327,14 @@ Page({
 
     mediaList.unshift({
       id: 'media_' + Date.now(),
-      title: '新记录',
+      title: this.data.description || '新记录',
       url: file.tempFilePath || '',
       thumbnailUrl: file.tempFilePath || '',
-      captureDate: dateStr,
+      captureDate: this.data.captureDate || dateStr,
       type: file.mediaType === 'video' ? 'video' : 'image',
       babyId: babyId,
-      cardColor: ['pink', 'blue', 'beige', 'mint'][Math.floor(Math.random() * 4)],
+      milestone: this.data.milestone || '',
+      cardColor: ['#f1dce2', '#dceaf1', '#f4e6d6', '#e2f1e6'][Math.floor(Math.random() * 4)],
       createdAt: now.toISOString(),
     });
 
@@ -219,10 +342,7 @@ Page({
     if (callback) callback();
   },
 
-  /**
-   * 同步上传成功的文件到本地缓存
-   */
-  syncToLocal(file, babyId, fileType, captureDate, cosKey) {
+  syncToLocal: function (file, babyId, fileType, captureDate, cosKey) {
     var mediaList = [];
     try {
       var stored = wx.getStorageSync('album_media');
@@ -231,14 +351,15 @@ Page({
 
     mediaList.unshift({
       id: 'media_' + Date.now(),
-      title: '新记录',
+      title: this.data.description || '新记录',
       url: file.tempFilePath || '',
       thumbnailUrl: '',
       captureDate: captureDate,
       type: fileType,
       babyId: babyId,
       cosKey: cosKey,
-      cardColor: ['pink', 'blue', 'beige', 'mint'][Math.floor(Math.random() * 4)],
+      milestone: this.data.milestone || '',
+      cardColor: ['#f1dce2', '#dceaf1', '#f4e6d6', '#e2f1e6'][Math.floor(Math.random() * 4)],
       createdAt: new Date().toISOString(),
       synced: true,
     });
@@ -246,20 +367,56 @@ Page({
     try { wx.setStorageSync('album_media', mediaList); } catch (e) {}
   },
 
-  handleUploadError(callback) {
+  handleUploadError: function (callback) {
     wx.showToast({ title: '上传失败', icon: 'none', duration: 1500 });
     if (callback) callback();
   },
 
-  onCancelUpload() {
-    this.setData({ isUploading: false, uploadProgress: 0, uploadStatus: '' });
+  // ===== Cancel / Retry (Step 3) =====
+
+  onCancelUpload: function () {
+    // Reset to step 1
+    this.setData({
+      currentStep: 1,
+      navTitle: '添加记录',
+      isUploading: false,
+      uploadProgress: 0,
+      uploadCurrentFile: 0,
+      uploadStatus: '',
+      selectedFiles: [],
+    });
     wx.showToast({ title: '已取消', icon: 'none', duration: 1000 });
   },
 
-  onRetryUpload() {
-    // 重新触发上传
-    if (this.data._pendingFiles && this.data._pendingFiles.length > 0) {
-      this.handleMediaResult({ tempFiles: this.data._pendingFiles });
+  onRetryUpload: function () {
+    var pending = this.data._pendingFiles;
+    if (pending && pending.length > 0) {
+      this.setData({
+        uploadProgress: 0,
+        uploadCurrentFile: 0,
+      });
+      this.startUpload(pending);
     }
+  },
+
+  // ===== Step 4 Actions =====
+
+  onViewRecord: function () {
+    // Navigate to growth page (album_home)
+    wx.redirectTo({ url: '/pages/album_home/album_home' });
+  },
+
+  onContinueUpload: function () {
+    // Reset to step 1 for another upload
+    this.setData({
+      currentStep: 1,
+      navTitle: '添加记录',
+      selectedFiles: [],
+      milestone: '',
+      description: '',
+      uploadProgress: 0,
+      uploadCurrentFile: 0,
+      uploadStatus: '',
+    });
   },
 });

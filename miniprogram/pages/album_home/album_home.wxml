@@ -1,15 +1,4 @@
 <!-- album_home.wxml - 成长 v2 (瀑布流 + 年龄段筛选) -->
-<wxs module="util">
-var exports = {};
-exports.formatDate = function(dateStr) {
-  if (!dateStr) return '';
-  var parts = dateStr.split('-');
-  if (parts.length < 3) return dateStr;
-  return parts[1] + '.' + parts[2];
-};
-module.exports = exports;
-</wxs>
-
 <view class="page-home">
 
   <!-- Status Bar Spacer -->
@@ -21,8 +10,8 @@ module.exports = exports;
     <view class="home-nav-spacer"></view>
   </view>
 
-  <!-- Content Area -->
-  <scroll-view class="clay-content" scroll-y bindscroll="onContentScroll" enable-flex>
+  <!-- Content Area (Skyline: 不使用 enable-flex) -->
+  <scroll-view class="clay-content" scroll-y bindscroll="onContentScroll">
 
     <!-- Age Filter Chips -->
     <view class="age-filter">
@@ -65,34 +54,29 @@ module.exports = exports;
           <view class="milestone-separator"></view>
         </view>
 
-        <!-- 2-Column Waterfall -->
+        <!-- 2-Column Waterfall (Skyline: 使用 view wx:for 替代 block wx:for) -->
         <view class="waterfall-grid">
           <!-- Left Column -->
           <view class="waterfall-col">
-            <view wx:for="{{section.items}}" wx:key="id"
-              wx:if="{{item._col === 'left'}}"
+            <view
+              wx:for="{{section.leftItems}}"
+              wx:key="id"
+              wx:for-item="card"
               class="media-card"
-              style="height: {{item._height}}rpx; background-color: {{item.cardColor}};"
-              data-id="{{item.id}}"
+              style="height: {{card._height}}rpx; background-color: {{card.cardColor}};"
+              data-id="{{card.id}}"
               bindtap="onMediaTap"
             >
-              <!-- Media Placeholder -->
-              <view class="media-bg" style="background-color: {{item.cardColor}};"></view>
+              <image wx:if="{{card.thumbnailUrl}}" class="media-thumb" src="{{card.thumbnailUrl}}" mode="aspectFill"></image>
+              <text wx:else class="media-type-icon">{{card.mediaType === 'video' ? '🎬' : '📷'}}</text>
+              <text class="media-date">{{card.displayDate}}</text>
 
-              <!-- Media Type Icon -->
-              <text class="media-type-icon">{{item.mediaType === 'video' ? '🎬' : '📷'}}</text>
-
-              <!-- Date Overlay -->
-              <text class="media-date">{{util.formatDate(item.captureDate)}}</text>
-
-              <!-- Video Duration Badge -->
-              <view wx:if="{{item.mediaType === 'video' && item.duration}}" class="video-badge">
+              <view wx:if="{{card.mediaType === 'video' && card.duration}}" class="video-badge">
                 <text>▶</text>
-                <text>{{item.duration}}</text>
+                <text>{{card.duration}}</text>
               </view>
 
-              <!-- Menu Button (Author only) -->
-              <view wx:if="{{isAuthorMode}}" class="card-menu" data-id="{{item.id}}" catchtap="onMenuTap">
+              <view wx:if="{{isAuthorMode}}" class="card-menu" data-id="{{card.id}}" catchtap="onMenuTap">
                 <text>⋮</text>
               </view>
             </view>
@@ -100,23 +84,25 @@ module.exports = exports;
 
           <!-- Right Column -->
           <view class="waterfall-col">
-            <view wx:for="{{section.items}}" wx:key="id"
-              wx:if="{{item._col === 'right'}}"
+            <view
+              wx:for="{{section.rightItems}}"
+              wx:key="id"
+              wx:for-item="card"
               class="media-card"
-              style="height: {{item._height}}rpx; background-color: {{item.cardColor}};"
-              data-id="{{item.id}}"
+              style="height: {{card._height}}rpx; background-color: {{card.cardColor}};"
+              data-id="{{card.id}}"
               bindtap="onMediaTap"
             >
-              <view class="media-bg" style="background-color: {{item.cardColor}};"></view>
-              <text class="media-type-icon">{{item.mediaType === 'video' ? '🎬' : '📷'}}</text>
-              <text class="media-date">{{util.formatDate(item.captureDate)}}</text>
+              <image wx:if="{{card.thumbnailUrl}}" class="media-thumb" src="{{card.thumbnailUrl}}" mode="aspectFill"></image>
+              <text wx:else class="media-type-icon">{{card.mediaType === 'video' ? '🎬' : '📷'}}</text>
+              <text class="media-date">{{card.displayDate}}</text>
 
-              <view wx:if="{{item.mediaType === 'video' && item.duration}}" class="video-badge">
+              <view wx:if="{{card.mediaType === 'video' && card.duration}}" class="video-badge">
                 <text>▶</text>
-                <text>{{item.duration}}</text>
+                <text>{{card.duration}}</text>
               </view>
 
-              <view wx:if="{{isAuthorMode}}" class="card-menu" data-id="{{item.id}}" catchtap="onMenuTap">
+              <view wx:if="{{isAuthorMode}}" class="card-menu" data-id="{{card.id}}" catchtap="onMenuTap">
                 <text>⋮</text>
               </view>
             </view>

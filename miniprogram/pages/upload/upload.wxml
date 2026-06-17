@@ -8,93 +8,166 @@
     <view class="nav-btn-circle" bindtap="onBack">
       <text>←</text>
     </view>
-    <text class="nav-title">记录成长</text>
-    <view class="nav-spacer"></view>
+    <text class="nav-title">{{navTitle}}</text>
+    <view class="step-badge">
+      <text>步骤 {{currentStep}}/4</text>
+    </view>
   </view>
 
   <!-- Content Area -->
-  <scroll-view class="content-area" scroll-y enable-flex>
+  <scroll-view class="content-area" scroll-y>
 
-    <!-- Step Badge -->
-    <view class="step-badge">
-      <text>步骤 1/4</text>
-    </view>
+    <!-- ===== Step 1: 选择来源 ===== -->
+    <block wx:if="{{currentStep === 1}}">
+      <view class="step1-section">
+        <text class="step1-title">今天记录宝宝的一个瞬间</text>
 
-    <!-- Option: 拍照 -->
-    <view class="upload-option" bindtap="onTakePhoto">
-      <text class="option-big-icon">📷</text>
-      <view class="option-text">
-        <text class="option-title">拍照</text>
-        <text class="option-desc">用相机拍摄宝宝精彩瞬间</text>
+        <view class="upload-option" bindtap="onTakePhoto">
+          <text class="option-big-icon">📷</text>
+          <view class="option-text">
+            <text class="option-title">拍照</text>
+            <text class="option-desc">用相机拍摄宝宝精彩瞬间</text>
+          </view>
+          <text class="option-arrow">›</text>
+        </view>
+
+        <view class="upload-option" bindtap="onChooseFromAlbum">
+          <text class="option-big-icon">🖼️</text>
+          <view class="option-text">
+            <text class="option-title">相册</text>
+            <text class="option-desc">从手机相册中挑选照片和视频</text>
+          </view>
+          <text class="option-arrow">›</text>
+        </view>
       </view>
-      <text class="option-arrow">›</text>
-    </view>
+    </block>
 
-    <!-- Option: 相册 -->
-    <view class="upload-option" bindtap="onChooseFromAlbum">
-      <text class="option-big-icon">🖼️</text>
-      <view class="option-text">
-        <text class="option-title">相册</text>
-        <text class="option-desc">从手机相册中挑选照片和视频</text>
-      </view>
-      <text class="option-arrow">›</text>
-    </view>
+    <!-- ===== Step 2: 确认信息 ===== -->
+    <block wx:elif="{{currentStep === 2}}">
+      <view class="step2-section">
 
-    <!-- Step 2 Preview (step preview, dimmed) -->
-    <view class="step-preview">
-      <text class="step-preview-title">步骤 2/4: 确认信息</text>
-      <view class="step-preview-thumbs">
-        <text class="thumb-icon">📷</text>
-        <text class="thumb-icon">📷</text>
-        <text class="thumb-icon">🎬</text>
-      </view>
-      <text class="step-preview-hint">已选择 3 个文件 · 填写描述和里程碑</text>
-    </view>
+        <!-- File Count Badge -->
+        <view class="file-count-badge">
+          <text>已选择 {{selectedFiles.length}} 个文件</text>
+        </view>
 
-    <!-- Step 3 Preview -->
-    <view class="step-preview">
-      <text class="step-preview-title">步骤 3/4: 上传中</text>
-      <view class="progress-bar-bg">
-        <view class="progress-bar-fill" style="width: 50%;"></view>
-      </view>
-      <text class="step-preview-hint">第 3 张 / 共 6 张 · 50%</text>
-    </view>
+        <!-- Thumbnail Grid -->
+        <view class="thumb-grid">
+          <view
+            wx:for="{{selectedFiles}}"
+            wx:key="index"
+            class="thumb-item"
+            style="background-color: {{thumbColors[index % 4]}};"
+          >
+            <text>{{item.mediaType === 'video' ? '🎬' : '📷'}}</text>
+          </view>
+          <view wx:if="{{selectedFiles.length === 0}}" class="thumb-item thumb-empty">
+            <text>?</text>
+          </view>
+        </view>
 
-    <!-- Step 4 Preview -->
-    <view class="step-preview">
-      <text class="step-preview-title">步骤 4/4: ✅ 已加入成长相册</text>
-      <view class="step-preview-thumbs">
-        <text class="thumb-icon-sm">📷</text>
-        <text class="thumb-icon-sm">📷</text>
-        <text class="thumb-icon-sm">📷</text>
-        <text class="thumb-icon-sm">📷</text>
+        <!-- Form Fields -->
+        <view class="form-fields">
+
+          <!-- 宝宝 -->
+          <view class="form-field">
+            <text class="field-label">宝宝</text>
+            <text class="field-value">{{babyName || '选择宝宝'}}</text>
+          </view>
+
+          <!-- 日期 -->
+          <view class="form-field" bindtap="onPickDate">
+            <text class="field-label">日期</text>
+            <text class="field-value">{{captureDate || todayDate}}</text>
+          </view>
+
+          <!-- 里程碑 -->
+          <view class="form-field" bindtap="onPickMilestone">
+            <text class="field-label">里程碑</text>
+            <text class="field-value field-placeholder">{{milestone || '选择里程碑（选填）'}}</text>
+          </view>
+
+          <!-- 描述 -->
+          <view class="form-field form-field-desc" bindtap="onInputDescription">
+            <text class="field-label">描述</text>
+            <text class="field-value field-placeholder">{{description || '这一天的故事...（选填）'}}</text>
+          </view>
+
+        </view>
+
+        <!-- Confirm Button -->
+        <view class="confirm-btn" bindtap="onConfirmUpload">
+          <text>确认记录</text>
+        </view>
+
       </view>
-    </view>
+    </block>
+
+    <!-- ===== Step 3: 上传中 ===== -->
+    <block wx:elif="{{currentStep === 3}}">
+      <view class="step3-section">
+
+        <!-- Upload Card -->
+        <view class="upload-card">
+          <text class="upload-card-icon">📤</text>
+          <view class="progress-bar">
+            <view class="progress-bar-fill" style="width: {{uploadProgress}}%;"></view>
+          </view>
+          <text class="upload-card-pct">{{uploadProgress}}%</text>
+          <text class="upload-card-info">第 {{uploadCurrentFile}} 张 · 共 {{selectedFiles.length}} 张</text>
+        </view>
+
+        <!-- Action Buttons -->
+        <view class="step3-actions">
+          <view class="step3-btn step3-btn-cancel" bindtap="onCancelUpload">
+            <text>取消</text>
+          </view>
+          <view class="step3-btn step3-btn-retry" bindtap="onRetryUpload">
+            <text>重试</text>
+          </view>
+        </view>
+
+        <!-- Current File Preview -->
+        <view class="step3-preview" style="background-color: {{thumbColors[uploadCurrentFile % 4]}};">
+          <text>📷</text>
+        </view>
+
+      </view>
+    </block>
+
+    <!-- ===== Step 4: 完成反馈 ===== -->
+    <block wx:elif="{{currentStep === 4}}">
+      <view class="step4-section">
+
+        <text class="step4-checkmark">✅</text>
+        <text class="step4-title">已加入成长相册</text>
+
+        <!-- Thumbnails Row -->
+        <view class="step4-thumbs">
+          <view
+            wx:for="{{selectedFiles}}"
+            wx:key="index"
+            class="step4-thumb"
+            style="background-color: {{thumbColors[index % 4]}};"
+          >
+            <text>{{item.mediaType === 'video' ? '🎬' : '📷'}}</text>
+          </view>
+        </view>
+
+        <!-- Action Buttons -->
+        <view class="step4-actions">
+          <view class="step4-btn step4-btn-primary" bindtap="onViewRecord">
+            <text>查看记录</text>
+          </view>
+          <view class="step4-btn step4-btn-outline" bindtap="onContinueUpload">
+            <text>继续上传</text>
+          </view>
+        </view>
+
+      </view>
+    </block>
 
   </scroll-view>
-
-  <!-- Upload Progress Overlay -->
-  <view wx:if="{{isUploading}}" class="upload-progress-overlay">
-    <view class="upload-progress-card">
-      <text class="progress-emoji">📤</text>
-      <view class="progress-bar-bg big">
-        <view class="progress-bar-fill" style="width: {{uploadProgress}}%;"></view>
-      </view>
-      <text class="progress-pct">{{uploadProgress}}%</text>
-      <text class="progress-status">{{uploadStatus}}</text>
-      <view class="progress-actions">
-        <view class="progress-btn progress-btn-cancel" bindtap="onCancelUpload">
-          <text>取消</text>
-        </view>
-        <view class="progress-btn progress-btn-retry" bindtap="onRetryUpload">
-          <text>重试</text>
-        </view>
-      </view>
-      <view class="current-file-preview">
-        <text>📷</text>
-      </view>
-    </view>
-  </view>
 
   <!-- Bottom Navigation -->
   <bottom-nav current="record"></bottom-nav>

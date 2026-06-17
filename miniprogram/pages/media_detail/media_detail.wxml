@@ -21,7 +21,7 @@
   </view>
 
   <!-- Content Area -->
-  <scroll-view wx:else class="content-area" scroll-y>
+  <scroll-view wx:else class="content-area" scroll-y enable-flex>
 
     <!-- Main Image -->
     <view class="main-image-wrap">

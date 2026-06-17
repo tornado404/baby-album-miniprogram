@@ -37,7 +37,6 @@
     "t-loading": "miniprogram_npm/tdesign-miniprogram/loading/loading",
     "t-navbar": "miniprogram_npm/tdesign-miniprogram/navbar/navbar",
     "t-popup": "miniprogram_npm/tdesign-miniprogram/popup/popup",
-    "t-stepper": "miniprogram_npm/tdesign-miniprogram/stepper/stepper",
-    "bottom-nav": "/components/bottom-nav/bottom-nav"
+    "t-stepper": "miniprogram_npm/tdesign-miniprogram/stepper/stepper"
   }
 }

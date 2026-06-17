@@ -3,6 +3,12 @@ miniprogram/miniprogram_npm/
 .worktrees/
 *.bak
 
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+.secrets/
+
 # Security - private keys
 *.key
 *.pem

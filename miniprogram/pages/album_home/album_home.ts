@@ -101,14 +101,14 @@ Page({
   useMockData: function () {
     var mockItems = [
       // 第一次翻身
-      { id: 'm1', title: '自己翻身啦', url: '', thumbnailUrl: '', captureDate: '2026-05-20', mediaType: 'image', milestone: '第一次翻身 🎉', milestoneIcon: '⭐', monthAge: 5 },
-      { id: 'm2', title: '努力练习中', url: '', thumbnailUrl: '', captureDate: '2026-05-19', mediaType: 'image', milestone: '第一次翻身 🎉', milestoneIcon: '⭐', monthAge: 5 },
+      { id: 'm1', title: '自己翻身啦', url: '', thumbnailUrl: '', captureDate: '2026-05-20', displayDate: '05.20', mediaType: 'image', milestone: '第一次翻身 🎉', milestoneIcon: '⭐', monthAge: 5 },
+      { id: 'm2', title: '努力练习中', url: '', thumbnailUrl: '', captureDate: '2026-05-19', displayDate: '05.19', mediaType: 'image', milestone: '第一次翻身 🎉', milestoneIcon: '⭐', monthAge: 5 },
       // 开始学坐
-      { id: 'm3', title: '靠着沙发坐', url: '', thumbnailUrl: '', captureDate: '2026-04-15', mediaType: 'video', duration: '0:15', milestone: '开始学坐', milestoneIcon: '🧸', monthAge: 4 },
-      { id: 'm4', title: '需要扶着', url: '', thumbnailUrl: '', captureDate: '2026-04-10', mediaType: 'image', milestone: '开始学坐', milestoneIcon: '🧸', monthAge: 4 },
+      { id: 'm3', title: '靠着沙发坐', url: '', thumbnailUrl: '', captureDate: '2026-04-15', displayDate: '04.15', mediaType: 'video', duration: '0:15', milestone: '开始学坐', milestoneIcon: '🧸', monthAge: 4 },
+      { id: 'm4', title: '需要扶着', url: '', thumbnailUrl: '', captureDate: '2026-04-10', displayDate: '04.10', mediaType: 'image', milestone: '开始学坐', milestoneIcon: '🧸', monthAge: 4 },
       // 会笑出声
-      { id: 'm5', title: '咯咯笑', url: '', thumbnailUrl: '', captureDate: '2026-03-10', mediaType: 'image', milestone: '会笑出声 😊', milestoneIcon: '😊', monthAge: 3 },
-      { id: 'm6', title: '逗笑瞬间', url: '', thumbnailUrl: '', captureDate: '2026-03-08', mediaType: 'image', milestone: '会笑出声 😊', milestoneIcon: '😊', monthAge: 3 },
+      { id: 'm5', title: '咯咯笑', url: '', thumbnailUrl: '', captureDate: '2026-03-10', displayDate: '03.10', mediaType: 'image', milestone: '会笑出声 😊', milestoneIcon: '😊', monthAge: 3 },
+      { id: 'm6', title: '逗笑瞬间', url: '', thumbnailUrl: '', captureDate: '2026-03-08', displayDate: '03.08', mediaType: 'image', milestone: '会笑出声 😊', milestoneIcon: '😊', monthAge: 3 },
     ];
     var sections = this.groupByMilestone(mockItems);
     this.setData({
@@ -119,12 +119,21 @@ Page({
   },
 
   normalizeMedia: function (m) {
+    var captureDate = m.captureDate || '';
+    var displayDate = '';
+    if (captureDate) {
+      var parts = captureDate.split('-');
+      if (parts.length >= 3) {
+        displayDate = parts[1] + '.' + parts[2];
+      }
+    }
     return {
       id: m.id,
       title: m.title || '',
       url: m.cosUrl || '',
       thumbnailUrl: m.thumbnailUrl || m.cosUrl || '',
-      captureDate: m.captureDate || '',
+      captureDate: captureDate,
+      displayDate: displayDate,
       mediaType: m.mediaType || 'image',
       duration: m.duration || '',
       milestone: m.milestone || '',
@@ -146,12 +155,13 @@ Page({
           dateLabel: this.extractGroupDate(item.captureDate),
           ageLabel: this.extractGroupAge(item.monthAge),
           items: [],
+          leftItems: [],
+          rightItems: [],
         };
       }
       groups[key].items.push(item);
     }
 
-    // Determine left/right column assignment for waterfall
     var result = [];
     var keys = Object.keys(groups);
     for (var j = 0; j < keys.length; j++) {
@@ -159,7 +169,7 @@ Page({
       var leftItems = [];
       var rightItems = [];
       var gap = 20;
-      var cardWidth = 335; // 355-20
+      var cardWidth = 335;
       var leftCol = 0;
       var rightCol = 0;
 
@@ -168,10 +178,12 @@ Page({
         if (leftCol <= rightCol) {
           group.items[k]._col = 'left';
           group.items[k]._height = h;
+          leftItems.push(group.items[k]);
           leftCol += h + gap;
         } else {
           group.items[k]._col = 'right';
           group.items[k]._height = h;
+          rightItems.push(group.items[k]);
           rightCol += h + gap;
         }
       }
@@ -182,6 +194,8 @@ Page({
         dateLabel: group.dateLabel,
         ageLabel: group.ageLabel,
         items: group.items,
+        leftItems: leftItems,
+        rightItems: rightItems,
       });
     }
     return result;

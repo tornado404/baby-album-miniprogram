@@ -1,36 +1,28 @@
 "use strict";
 // @ts-nocheck
-// album_home.ts - 首页，对接后端 API
-// 使用统一配置中心 API_CONFIG
+// album_home.ts - 成长 v2 (瀑布流 + 年龄段筛选 + 里程碑分组)
 Object.defineProperty(exports, "__esModule", { value: true });
 var api_1 = require("../../config/api");
 var storage_keys_1 = require("../../constants/storage_keys");
 Page({
     data: {
         safeTop: 44,
-        currentMonthLabel: '全部',
+        isAuthorMode: true,
+        currentFilter: '全部',
         currentBabyId: '',
         currentBaby: null,
         babies: [],
-        mediaList: [],
+        sections: [],
         isEmpty: false,
-        uploaderVisible: false,
         isLoading: false,
-        hasMore: true,
-        isLoadingMore: false,
-        page: 1,
-        pageSize: 20,
-        filterMinAge: null,
-        filterMaxAge: null,
         filterOptions: [
-            { label: '全部', value: null, minAge: null, maxAge: null, active: true }
+            { label: '全部', value: null, minAge: null, maxAge: null },
+            { label: '0-1月', value: '0-1', minAge: 0, maxAge: 1 },
+            { label: '2-3月', value: '2-3', minAge: 2, maxAge: 3 },
+            { label: '4-6月', value: '4-6', minAge: 4, maxAge: 6 },
+            { label: '7-12月', value: '7-12', minAge: 7, maxAge: 12 },
+            { label: '1岁+', value: '1plus', minAge: 12, maxAge: 999 },
         ],
-        babyAgeText: '',
-        headerCollapsed: false,
-        headerHeight: 136,
-        // Lazy loading state
-        visibleIds: {},
-        _observer: null,
     },
     onLoad: function () {
         try {
@@ -38,17 +30,14 @@ Page({
             this.setData({ safeTop: info.statusBarHeight || 44 });
         }
         catch (e) { }
-        // Read currentBabyId from storage
         try {
             var storedId = wx.getStorageSync(storage_keys_1.STORAGE_KEYS.currentBabyId) || '';
             this.setData({ currentBabyId: storedId });
         }
         catch (e) { }
-        // 优先由 loadBabies 驱动数据初始化，避免在 currentBabyId 无效时发重复请求
         this.loadBabies();
     },
     onShow: function () {
-        // 从其他页面返回时刷新数据（如上传完成后返回）
         var babyId = '';
         try {
             babyId = wx.getStorageSync(storage_keys_1.STORAGE_KEYS.currentBabyId) || '';
@@ -57,27 +46,16 @@ Page({
         if (babyId && babyId !== this.data.currentBabyId) {
             this.setData({ currentBabyId: babyId });
             this.loadBabies();
-            this.fetchBabyInfo(babyId);
-            this.fetchMediaList(babyId, 1);
         }
         else if (babyId) {
-            // babyId 没变但也刷新数据（确保最新）
-            this.fetchBabyInfo(babyId);
-            this.fetchMediaList(babyId, 1);
-        }
-        else {
-            // 没有当前宝宝 ID，显示空状态引导
-            this.setData({ isEmpty: true });
+            this.loadData(babyId);
         }
     },
-    initPage: function () {
-        var _this = this;
-        var babyId = this.data.currentBabyId || '';
+    loadData: function (babyId) {
+        if (!babyId)
+            return;
         this.setData({ isLoading: true });
-        // 1. 尝试从 API 加载宝宝信息
-        this.fetchBabyInfo(babyId);
-        // 2. 尝试从 API 加载媒体列表
-        this.fetchMediaList(babyId, 1);
+        this.fetchGroups(babyId);
     },
     getToken: function () {
         try {
@@ -87,123 +65,164 @@ Page({
             return '';
         }
     },
-    fetchBabyInfo: function (babyId) {
+    fetchGroups: function (babyId) {
         var _this = this;
         var token = this.getToken();
         if (!babyId || !token) {
-            this.fallbackBabyInfo(babyId);
+            this.useMockData();
             return;
         }
+        // Try to fetch media list and group by milestone
         wx.request({
-            url: api_1.API_CONFIG.baseURL + '/babies/' + babyId,
+            url: api_1.API_CONFIG.baseURL + '/media/',
             method: 'GET',
+            data: { babyId: babyId },
             header: { 'Authorization': 'Bearer ' + token },
             timeout: 8000,
             success: function (res) {
                 if (res.statusCode === 200 && res.data) {
-                    var b = res.data;
+                    var items = res.data.map(function (m) {
+                        return _this.normalizeMedia(m);
+                    });
+                    var sections = _this.groupByMilestone(items);
                     _this.setData({
-                        currentBaby: b,
-                        babyAgeText: b.birthDate ? _this.calcAge(b.birthDate) + ' · ' + (b.gender === 'male' ? '男宝' : '女宝') : '',
+                        sections: sections,
+                        isEmpty: sections.length === 0,
                         isLoading: false,
                     });
                 }
                 else {
-                    _this.fallbackBabyInfo(babyId);
+                    _this.useMockData();
                 }
             },
-            fail: function () { _this.fallbackBabyInfo(babyId); },
+            fail: function () { _this.useMockData(); },
         });
     },
-    fallbackBabyInfo: function (babyId) {
-        // 从本地缓存读取
-        var babies = [];
-        try {
-            var stored = wx.getStorageSync('album_babies');
-            if (Array.isArray(stored))
-                babies = stored;
-        }
-        catch (e) { }
-        var currentBaby = null;
-        for (var i = 0; i < babies.length; i++) {
-            if (babies[i].id === babyId) {
-                currentBaby = babies[i];
-                break;
+    useMockData: function () {
+        var mockItems = [
+            // 第一次翻身
+            { id: 'm1', title: '自己翻身啦', url: '', thumbnailUrl: '', captureDate: '2026-05-20', displayDate: '05.20', mediaType: 'image', milestone: '第一次翻身 🎉', milestoneIcon: '⭐', monthAge: 5 },
+            { id: 'm2', title: '努力练习中', url: '', thumbnailUrl: '', captureDate: '2026-05-19', displayDate: '05.19', mediaType: 'image', milestone: '第一次翻身 🎉', milestoneIcon: '⭐', monthAge: 5 },
+            // 开始学坐
+            { id: 'm3', title: '靠着沙发坐', url: '', thumbnailUrl: '', captureDate: '2026-04-15', displayDate: '04.15', mediaType: 'video', duration: '0:15', milestone: '开始学坐', milestoneIcon: '🧸', monthAge: 4 },
+            { id: 'm4', title: '需要扶着', url: '', thumbnailUrl: '', captureDate: '2026-04-10', displayDate: '04.10', mediaType: 'image', milestone: '开始学坐', milestoneIcon: '🧸', monthAge: 4 },
+            // 会笑出声
+            { id: 'm5', title: '咯咯笑', url: '', thumbnailUrl: '', captureDate: '2026-03-10', displayDate: '03.10', mediaType: 'image', milestone: '会笑出声 😊', milestoneIcon: '😊', monthAge: 3 },
+            { id: 'm6', title: '逗笑瞬间', url: '', thumbnailUrl: '', captureDate: '2026-03-08', displayDate: '03.08', mediaType: 'image', milestone: '会笑出声 😊', milestoneIcon: '😊', monthAge: 3 },
+        ];
+        var sections = this.groupByMilestone(mockItems);
+        this.setData({
+            sections: sections,
+            isEmpty: sections.length === 0,
+            isLoading: false,
+        });
+    },
+    normalizeMedia: function (m) {
+        var captureDate = m.captureDate || '';
+        var displayDate = '';
+        if (captureDate) {
+            var parts = captureDate.split('-');
+            if (parts.length >= 3) {
+                displayDate = parts[1] + '.' + parts[2];
             }
         }
-        if (!currentBaby && babies.length > 0) {
-            currentBaby = babies[0];
-        }
-        this.setData({
-            currentBaby: currentBaby,
-            babyAgeText: currentBaby ? (currentBaby.birthDate ? '未知年龄' : '') : '',
-            isLoading: false,
-        });
+        return {
+            id: m.id,
+            title: m.title || '',
+            url: m.cosUrl || '',
+            thumbnailUrl: m.thumbnailUrl || m.cosUrl || '',
+            captureDate: captureDate,
+            displayDate: displayDate,
+            mediaType: m.mediaType || 'image',
+            duration: m.duration || '',
+            milestone: m.milestone || '',
+            milestoneIcon: m.milestoneIcon || '📷',
+            monthAge: m.monthAge || 0,
+            cardColor: this.getCardColor(m.id),
+        };
     },
-    fetchMediaList: function (babyId, page) {
-        var _this = this;
-        var token = this.getToken();
-        if (!babyId || !token) {
-            this.fallbackMediaList();
-            return;
+    groupByMilestone: function (items) {
+        var groups = {};
+        for (var i = 0; i < items.length; i++) {
+            var item = items[i];
+            var key = item.milestone || '其他';
+            if (!groups[key]) {
+                groups[key] = {
+                    title: key,
+                    icon: item.milestoneIcon || '📷',
+                    dateLabel: this.extractGroupDate(item.captureDate),
+                    ageLabel: this.extractGroupAge(item.monthAge),
+                    items: [],
+                    leftItems: [],
+                    rightItems: [],
+                };
+            }
+            groups[key].items.push(item);
         }
-        wx.request({
-            url: api_1.API_CONFIG.baseURL + '/media/',
-            method: 'GET',
-            data: { babyId: babyId, page: page },
-            header: { 'Authorization': 'Bearer ' + token },
-            timeout: 8000,
-            success: function (res) {
-                if (res.statusCode === 200 && res.data && res.data.length > 0) {
-                    var items = res.data.map(function (m) {
-                        return {
-                            id: m.id, title: m.title || '', url: m.cosUrl || '',
-                            thumbnailUrl: m.thumbnailUrl || m.cosUrl || '',
-                            cardColor: _this.getCardColor(m.id),
-                            captureDate: m.captureDate,
-                        };
-                    });
-                    _this.setData({
-                        mediaList: items,
-                        isEmpty: items.length === 0,
-                        isLoading: false,
-                        visibleIds: {},
-                    });
-                    // Setup lazy loading observer after data update
-                    setTimeout(function () { _this.setupLazyObserver(); }, 100);
+        var result = [];
+        var keys = Object.keys(groups);
+        for (var j = 0; j < keys.length; j++) {
+            var group = groups[keys[j]];
+            var leftItems = [];
+            var rightItems = [];
+            var gap = 20;
+            var cardWidth = 335;
+            var leftCol = 0;
+            var rightCol = 0;
+            for (var k = 0; k < group.items.length; k++) {
+                var h = this.getItemHeight(group.items[k]);
+                if (leftCol <= rightCol) {
+                    group.items[k]._col = 'left';
+                    group.items[k]._height = h;
+                    leftItems.push(group.items[k]);
+                    leftCol += h + gap;
                 }
                 else {
-                    _this.fallbackMediaList();
+                    group.items[k]._col = 'right';
+                    group.items[k]._height = h;
+                    rightItems.push(group.items[k]);
+                    rightCol += h + gap;
                 }
-            },
-            fail: function () { _this.fallbackMediaList(); },
-        });
-    },
-    fallbackMediaList: function () {
-        // 从本地缓存读取媒体列表
-        var mediaList = [];
-        try {
-            var stored = wx.getStorageSync('album_media');
-            if (Array.isArray(stored) && stored.length > 0)
-                mediaList = stored;
+            }
+            result.push({
+                title: group.title,
+                icon: group.icon,
+                dateLabel: group.dateLabel,
+                ageLabel: group.ageLabel,
+                items: group.items,
+                leftItems: leftItems,
+                rightItems: rightItems,
+            });
         }
-        catch (e) { }
-        if (mediaList.length === 0) {
-            mediaList = this.getMockMediaList();
-        }
-        this.setData({
-            mediaList: mediaList,
-            isEmpty: mediaList.length === 0,
-            isLoading: false,
-        });
+        return result;
     },
-    getMockMediaList: function () {
-        return [
-            { id: 'm1', title: '第一次翻身', url: '', thumbnailUrl: '', cardColor: 'pink', captureDate: '2026-05-01' },
-            { id: 'm2', title: '学坐啦', url: '', thumbnailUrl: '', cardColor: 'blue', captureDate: '2026-05-10' },
-            { id: 'm3', title: '今天会笑了', url: '', thumbnailUrl: '', cardColor: 'beige', captureDate: '2026-05-15' },
-            { id: 'm4', title: '新玩具', url: '', thumbnailUrl: '', cardColor: 'mint', captureDate: '2026-05-20' },
-        ];
+    getItemHeight: function (item) {
+        // Heights vary to create waterfall effect
+        if (item.mediaType === 'video')
+            return 240;
+        var heights = [200, 220, 180, 250, 210, 190];
+        var hash = 0;
+        for (var i = 0; i < item.id.length; i++) {
+            hash = ((hash << 5) - hash) + item.id.charCodeAt(i);
+        }
+        return heights[Math.abs(hash) % heights.length];
+    },
+    extractGroupDate: function (captureDate) {
+        if (!captureDate)
+            return '';
+        var d = captureDate.replace(/-/g, '/');
+        var date = new Date(d);
+        if (isNaN(date.getTime()))
+            return '';
+        var y = date.getFullYear();
+        var m = ('0' + (date.getMonth() + 1)).slice(-2);
+        var day = ('0' + date.getDate()).slice(-2);
+        return y + '.' + m + '.' + day;
+    },
+    extractGroupAge: function (monthAge) {
+        if (monthAge == null)
+            return '';
+        return monthAge + '个月' + (monthAge % 30 > 0 ? Math.floor(monthAge % 30) + '天' : '');
     },
     loadBabies: function () {
         var _this = this;
@@ -216,8 +235,7 @@ Page({
             success: function (res) {
                 if (res.statusCode === 200 && Array.isArray(res.data)) {
                     var babies = res.data;
-                    _this.setData({ babies: babies, isEmpty: babies.length === 0 });
-                    // 缓存到本地
+                    _this.setData({ babies: babies });
                     if (babies.length > 0) {
                         try {
                             wx.setStorageSync('album_babies', babies);
@@ -232,7 +250,6 @@ Page({
                             }
                         }
                         if (!currentId || !found) {
-                            // 没有当前宝宝或当前宝宝不在列表中，自动选第一个
                             var firstBaby = babies[0];
                             _this.setData({ currentBabyId: firstBaby.id, currentBaby: firstBaby });
                             try {
@@ -240,16 +257,13 @@ Page({
                             }
                             catch (e) { }
                         }
-                        // 加载当前选中宝宝的详情和媒体（无论是否刚切换）
                         var targetId = _this.data.currentBabyId;
-                        if (targetId) {
-                            _this.fetchBabyInfo(targetId);
-                            _this.fetchMediaList(targetId, 1);
-                        }
+                        if (targetId)
+                            _this.loadData(targetId);
                     }
                     else {
-                        // 没有宝宝数据，显示空状态
                         _this.setData({ isEmpty: true, isLoading: false });
+                        _this.useMockData();
                     }
                 }
                 else {
@@ -264,8 +278,7 @@ Page({
         try {
             var stored = wx.getStorageSync('album_babies');
             if (Array.isArray(stored) && stored.length > 0) {
-                _this.setData({ babies: stored, isEmpty: false });
-                // auto-select if needed
+                _this.setData({ babies: stored });
                 var currentId = _this.data.currentBabyId;
                 var found = false;
                 for (var i = 0; i < stored.length; i++) {
@@ -282,118 +295,62 @@ Page({
                     }
                     catch (e) { }
                 }
+                _this.loadData(_this.data.currentBabyId);
                 return;
             }
         }
         catch (e) { }
-        // 无任何宝宝数据，显示空状态
-        this.setData({ babies: [], isEmpty: true });
-    },
-    calcAge: function (birthDate) {
-        if (!birthDate)
-            return '';
-        var parts = birthDate.split('-');
-        var birth = new Date(parts[0], parts[1] - 1, parts[2]);
-        var now = new Date();
-        var months = (now.getFullYear() - birth.getFullYear()) * 12 + (now.getMonth() - birth.getMonth());
-        if (months < 0)
-            months = 0;
-        return months + '个月';
+        _this.useMockData();
     },
     getCardColor: function (id) {
-        var colors = ['pink', 'blue', 'beige', 'mint'];
+        var colors = ['#f1dce2', '#dceaf1', '#f4e6d6', '#e2f1e6'];
         var hash = 0;
         for (var i = 0; i < id.length; i++) {
             hash = ((hash << 5) - hash) + id.charCodeAt(i);
         }
         return colors[Math.abs(hash) % colors.length];
     },
-    onContentScroll: function (e) {
-        var scrollTop = e.scrollTop || 0;
-        var collapsed = scrollTop > 60;
-        if (collapsed !== this.data.headerCollapsed) {
-            this.setData({ headerCollapsed: collapsed });
-        }
+    formatDate: function (dateStr) {
+        if (!dateStr)
+            return '';
+        var parts = dateStr.split('-');
+        if (parts.length < 3)
+            return dateStr;
+        return parts[1] + '.' + parts[2];
     },
-    onBabyStripTap: function (e) {
-        var babyId = e.currentTarget.dataset.id;
-        var babies = this.data.babies;
-        var currentBaby = null;
-        for (var i = 0; i < babies.length; i++) {
-            if (babies[i].id === babyId) {
-                currentBaby = babies[i];
-                break;
-            }
-        }
-        if (currentBaby) {
-            this.setData({
-                currentBabyId: babyId, currentBaby: currentBaby, headerCollapsed: false
-            });
-            try {
-                wx.setStorageSync(storage_keys_1.STORAGE_KEYS.currentBabyId, babyId);
-            }
-            catch (e) { }
-            // 重新加载媒体列表
-            this.fetchMediaList(babyId, 1);
-        }
-    },
-    onAddBabyTap: function () { wx.navigateTo({ url: '/pages/baby_onboarding/baby_onboarding' }); },
     onFilterSelect: function (e) {
         var value = e.currentTarget.dataset.value;
-        var opts = this.data.filterOptions.map(function (o) { o.active = o.value === value; return o; });
-        this.setData({ filterOptions: opts });
+        this.setData({ currentFilter: value || '全部' });
     },
-    onBabySelect: function () { wx.navigateTo({ url: '/pages/baby_profile/baby_profile' }); },
-    onMediaTap: function (e) { wx.navigateTo({ url: '/pages/media_detail/media_detail?id=' + e.currentTarget.dataset.id }); },
-    goToSettings: function () { wx.redirectTo({ url: '/pages/settings/settings' }); },
-    goToBabyProfile: function () { wx.navigateTo({ url: '/pages/baby_profile/baby_profile' }); },
-    // ========== Lazy Loading with IntersectionObserver ==========
-    setupLazyObserver: function () {
-        // Disconnect previous observer
-        this.disconnectLazyObserver();
-        var _this = this;
-        try {
-            var observer = wx.createIntersectionObserver(this, {
-                thresholds: [0.1],
-                observeAll: true,
-            });
-            observer.relativeToViewport({ bottom: 300 }).observe('.lazy-media-card', function (res) {
-                if (res.intersectionRatio > 0) {
-                    // res.id 返回被观察节点的 id 属性，wxml 中 id="media-card-{itemId}"
-                    var rawId = res.id || (res.dataset && res.dataset.id) || '';
-                    var id = rawId.indexOf('media-card-') === 0 ? rawId.substring('media-card-'.length) : rawId;
-                    if (id) {
-                        var visibleIds = _this.data.visibleIds;
-                        if (!visibleIds[id]) {
-                            visibleIds[id] = true;
-                            _this.setData({ visibleIds: visibleIds });
-                        }
-                    }
+    onMediaTap: function (e) {
+        var id = e.currentTarget.dataset.id;
+        wx.navigateTo({ url: '/pages/media_detail/media_detail?id=' + id });
+    },
+    onMenuTap: function (e) {
+        var id = e.currentTarget.dataset.id;
+        // Show action sheet for the media item
+        wx.showActionSheet({
+            itemList: ['编辑', '删除', '分享'],
+            success: function (res) {
+                if (res.tapIndex === 0) {
+                    // Edit
                 }
-            });
-            this.setData({ _observer: observer });
-        }
-        catch (e) {
-            // IntersectionObserver not supported, show all images
-            var allVisible = {};
-            var list = this.data.mediaList;
-            for (var i = 0; i < list.length; i++) {
-                allVisible[list[i].id] = true;
-            }
-            this.setData({ visibleIds: allVisible });
-        }
+                else if (res.tapIndex === 1) {
+                    // Delete
+                }
+                else if (res.tapIndex === 2) {
+                    // Share
+                }
+            },
+        });
     },
-    disconnectLazyObserver: function () {
-        var observer = this.data._observer;
-        if (observer) {
-            try {
-                observer.disconnect();
-            }
-            catch (e) { }
-            this.setData({ _observer: null });
-        }
+    goToRecord: function () {
+        wx.redirectTo({ url: '/pages/upload/upload' });
     },
-    onUnload: function () {
-        this.disconnectLazyObserver();
+    goToProfile: function () {
+        wx.redirectTo({ url: '/pages/settings/settings' });
+    },
+    onContentScroll: function (e) {
+        // Optional scroll handling
     },
 });
