@@ -1,14 +1,15 @@
-<!-- album_home.wxml - Claymorphism 首页 -->
+<!-- album_home.wxml - 成长 v2 (瀑布流 + 年龄段筛选) -->
 <wxs module="util">
 var exports = {};
-exports.avatarUrl = function(baby) {
-  if (baby && baby.avatar && baby.avatar.indexOf('http') === 0) {
-    return baby.avatar;
-  }
-  return '';
+exports.formatDate = function(dateStr) {
+  if (!dateStr) return '';
+  var parts = dateStr.split('-');
+  if (parts.length < 3) return dateStr;
+  return parts[1] + '.' + parts[2];
 };
 module.exports = exports;
 </wxs>
+
 <view class="page-home">
 
   <!-- Status Bar Spacer -->
@@ -20,54 +21,16 @@ module.exports = exports;
     <view class="home-nav-spacer"></view>
   </view>
 
-  <!-- Content (scroll-view for scroll events) -->
+  <!-- Content Area -->
   <scroll-view class="clay-content" scroll-y bindscroll="onContentScroll" enable-flex>
 
-    <!-- ===== Baby Info Header (双态折叠) ===== -->
-    <view class="baby-header-container {{headerCollapsed ? 'collapsed' : 'expanded'}}">
-
-      <!-- 展开态：完整信息卡片 -->
-      <view class="baby-header-expanded {{headerCollapsed ? 'fade-out' : ''}}">
-        <view class="baby-header-avatar">
-          <image wx:if="{{util.avatarUrl(currentBaby)}}" class="header-avatar-image" src="{{util.avatarUrl(currentBaby)}}" mode="aspectFill"></image>
-          <text wx:else>{{currentBaby ? (currentBaby.avatar || '👶') : '👶'}}</text>
-        </view>
-        <view class="baby-header-info">
-          <text class="baby-header-name">{{currentBaby ? currentBaby.name : '选择宝宝'}} ✨</text>
-          <text class="baby-header-age">{{babyAgeText}}</text>
-        </view>
-        <view class="baby-header-setting" catchtap="goToBabyProfile">
-          <text>⚙</text>
-        </view>
-      </view>
-
-      <!-- 折叠态：水平宝宝头像条 -->
-      <view class="baby-header-collapsed {{headerCollapsed ? '' : 'fade-out'}}">
-        <scroll-view class="baby-strip-scroll" scroll-x enable-flex>
-          <view wx:for="{{babies}}" wx:key="id"
-            class="baby-strip-item {{currentBabyId === item.id ? 'active' : ''}}"
-            data-id="{{item.id}}"
-            bindtap="onBabyStripTap"
-          >
-            <view class="strip-avatar" style="background-color: {{item.gender === 'male' ? '#dceaf1' : '#f1dce2'}};">
-              <text>{{item.avatar || '👶'}}</text>
-            </view>
-          </view>
-          <!-- 加号按钮 -->
-          <view class="baby-strip-item strip-add-btn" bindtap="onAddBabyTap">
-            <view class="strip-add-circle">
-              <text>+</text>
-            </view>
-          </view>
-        </scroll-view>
-      </view>
-    </view>
-
-    <!-- Month Filter Chips -->
-    <view class="month-filter">
-      <view wx:for="{{filterOptions}}" wx:key="value"
-        class="filter-chip {{item.active ? 'active' : ''}}"
-        data-value="{{item.value}}"
+    <!-- Age Filter Chips -->
+    <view class="age-filter">
+      <view
+        wx:for="{{filterOptions}}"
+        wx:key="value"
+        class="filter-chip {{currentFilter === (item.value || '全部') ? 'active' : ''}}"
+        data-value="{{item.value || '全部'}}"
         bindtap="onFilterSelect"
       >
         <text>{{item.label}}</text>
@@ -81,49 +44,91 @@ module.exports = exports;
 
     <!-- Empty State -->
     <view wx:elif="{{isEmpty}}" class="empty-state">
-      <text>暂无照片，上传第一张记录</text>
-      <view class="empty-upload-btn" bindtap="onUploadTap">
-        <text>上传照片</text>
+      <text>暂无成长记录</text>
+      <view class="empty-upload-btn" bindtap="goToRecord">
+        <text>记录成长瞬间</text>
       </view>
     </view>
 
-    <!-- Media Cards -->
-    <view wx:else class="media-sections">
-      <!-- Month title with count -->
-      <view class="month-section">
-        <text class="month-section-title">{{currentMonthLabel}}</text>
-        <text class="month-section-count">{{mediaList.length}}张记录</text>
-      </view>
+    <!-- Waterfall Sections -->
+    <view wx:else class="waterfall-sections">
 
-      <!-- 2-column card grid -->
-      <view class="card-grid">
-        <view wx:for="{{mediaList}}" wx:key="id"
-          id="media-card-{{item.id}}"
-          class="media-card clay-card-{{item.cardColor || 'pink'}} lazy-media-card"
-          style="min-height: {{item._height || 250}}rpx;"
-          data-id="{{item.id}}"
-          bindtap="onMediaTap"
-        >
-          <!-- Lazy loaded image: placeholder until visible -->
-          <view class="media-card-image" style="height: {{item._imgHeight || 180}}rpx;">
-            <view wx:if="{{visibleIds[item.id]}}" class="media-card-img-wrapper">
-              <image mode="aspectFill" src="{{item.thumbnailUrl || item.url}}"></image>
-            </view>
-            <view wx:else class="media-card-placeholder">
-              <view class="placeholder-shimmer"></view>
+      <view wx:for="{{sections}}" wx:for-item="section" wx:key="title" class="milestone-section">
+
+        <!-- Milestone Header -->
+        <view class="milestone-header">
+          <text class="milestone-icon">{{section.icon}}</text>
+          <view class="milestone-info">
+            <text class="milestone-title">{{section.title}}</text>
+            <text class="milestone-meta">{{section.dateLabel}} · {{section.ageLabel}}</text>
+          </view>
+          <view class="milestone-separator"></view>
+        </view>
+
+        <!-- 2-Column Waterfall -->
+        <view class="waterfall-grid">
+          <!-- Left Column -->
+          <view class="waterfall-col">
+            <view wx:for="{{section.items}}" wx:key="id"
+              wx:if="{{item._col === 'left'}}"
+              class="media-card"
+              style="height: {{item._height}}rpx; background-color: {{item.cardColor}};"
+              data-id="{{item.id}}"
+              bindtap="onMediaTap"
+            >
+              <!-- Media Placeholder -->
+              <view class="media-bg" style="background-color: {{item.cardColor}};"></view>
+
+              <!-- Media Type Icon -->
+              <text class="media-type-icon">{{item.mediaType === 'video' ? '🎬' : '📷'}}</text>
+
+              <!-- Date Overlay -->
+              <text class="media-date">{{util.formatDate(item.captureDate)}}</text>
+
+              <!-- Video Duration Badge -->
+              <view wx:if="{{item.mediaType === 'video' && item.duration}}" class="video-badge">
+                <text>▶</text>
+                <text>{{item.duration}}</text>
+              </view>
+
+              <!-- Menu Button (Author only) -->
+              <view wx:if="{{isAuthorMode}}" class="card-menu" data-id="{{item.id}}" catchtap="onMenuTap">
+                <text>⋮</text>
+              </view>
             </view>
           </view>
-          <text class="media-card-title">{{item.title || '无标题'}}</text>
+
+          <!-- Right Column -->
+          <view class="waterfall-col">
+            <view wx:for="{{section.items}}" wx:key="id"
+              wx:if="{{item._col === 'right'}}"
+              class="media-card"
+              style="height: {{item._height}}rpx; background-color: {{item.cardColor}};"
+              data-id="{{item.id}}"
+              bindtap="onMediaTap"
+            >
+              <view class="media-bg" style="background-color: {{item.cardColor}};"></view>
+              <text class="media-type-icon">{{item.mediaType === 'video' ? '🎬' : '📷'}}</text>
+              <text class="media-date">{{util.formatDate(item.captureDate)}}</text>
+
+              <view wx:if="{{item.mediaType === 'video' && item.duration}}" class="video-badge">
+                <text>▶</text>
+                <text>{{item.duration}}</text>
+              </view>
+
+              <view wx:if="{{isAuthorMode}}" class="card-menu" data-id="{{item.id}}" catchtap="onMenuTap">
+                <text>⋮</text>
+              </view>
+            </view>
+          </view>
         </view>
+
       </view>
     </view>
+
   </scroll-view>
 
   <!-- Bottom Navigation -->
-  <bottom-nav current="journey"></bottom-nav>
+  <bottom-nav current="growth"></bottom-nav>
 
-  <!-- FAB Upload Button -->
-  <view class="fab-upload" bindtap="onUploadTap">
-    <text>+</text>
-  </view>
 </view>

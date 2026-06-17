@@ -19,28 +19,21 @@
         <text class="user-name">{{userName}}</text>
         <text class="user-record">记录天数：{{recordDays}}天</text>
       </view>
-      <view class="achievement-badge">
-        <text class="badge-icon">🏆</text>
-        <text class="badge-count">{{achievementCount}}</text>
-      </view>
     </view>
 
-    <!-- Stats Container -->
+    <!-- Stats Container (single card, 3 columns) -->
     <view class="stats-container anim-fade-in anim-delay-1">
       <view class="stat-item">
-        <view class="stat-dot stat-dot-pink"></view>
         <text class="stat-value">{{photoCount}}</text>
         <text class="stat-label">{{i18n.photos || '照片'}}</text>
       </view>
       <view class="stat-item">
-        <view class="stat-dot stat-dot-blue"></view>
         <text class="stat-value">{{videoCount}}</text>
         <text class="stat-label">{{i18n.videos || '视频'}}</text>
       </view>
       <view class="stat-item">
-        <view class="stat-dot stat-dot-lavender"></view>
-        <text class="stat-value">{{modelCount}}</text>
-        <text class="stat-label">{{i18n.models || '3D模型'}}</text>
+        <text class="stat-value">{{(photoCount || 0) + (videoCount || 0)}}</text>
+        <text class="stat-label">{{i18n.records || '记录'}}</text>
       </view>
     </view>
 

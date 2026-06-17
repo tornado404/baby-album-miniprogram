@@ -74,5 +74,5 @@
   </scroll-view>
 
   <!-- Bottom Nav -->
-  <bottom-nav current="journey"></bottom-nav>
+  <bottom-nav current="growth"></bottom-nav>
 </view>
