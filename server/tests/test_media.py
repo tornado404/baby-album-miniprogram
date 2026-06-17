@@ -1,6 +1,19 @@
 """媒体模块测试 — CRUD + GET single + PUT update + Batch Archive + Batch Tag"""
 
+from io import BytesIO
+from unittest.mock import patch, MagicMock
+
+import pytest
 from httpx import AsyncClient
+from PIL import Image
+
+
+def _make_test_image(width=800, height=600) -> bytes:
+    """生成测试图片 bytes，供 mock MinIO 返回"""
+    img = Image.new("RGB", (width, height), color=(255, 128, 64))
+    buf = BytesIO()
+    img.save(buf, format="PNG")
+    return buf.getvalue()
 
 
 class TestMediaAPI:
@@ -293,3 +306,102 @@ class TestMediaAPI:
         # 用户 B 的 baby 媒体列表应为空
         resp = await client.get(self.BASE, params={"babyId": baby_b_id}, headers=headers_b)
         assert resp.json() == []
+
+
+# ══════════════════════════════════════════════════════════
+# create_media 的 type 字段类型一致性回归测试
+#
+# 背景：MediaCreateBody.type 是 str，路由转成 dict 传给 MediaService.create_media，
+# 新建的 Media 对象 type 是字符串而非 MediaType 枚举；flush 后未从 DB 重新加载，
+# 访问 m.type.value 会抛 AttributeError: 'str' object has no attribute 'value'。
+# 这些测试确保 create_media 对字符串和枚举两种形态都能正确处理。
+# ══════════════════════════════════════════════════════════
+
+
+def _mock_minio_with_image(width=1339, height=700):
+    """构造 mock MinIO client，get_object 返回测试图片 bytes"""
+    test_image = _make_test_image(width, height)
+    mock_response = MagicMock()
+    mock_response.read.return_value = test_image
+    mock_response.close = MagicMock()
+    mock_response.release_conn = MagicMock()
+
+    mock_minio = MagicMock()
+    mock_minio.get_object.return_value = mock_response
+    mock_minio.put_object.return_value = None
+    return mock_minio
+
+
+class TestCreateMediaTypeConsistency:
+    """create_media 中 m.type 形态兼容性回归测试"""
+
+    BASE = "/api/v1/media/"
+
+    async def test_create_image_triggers_thumbnail(
+        self, client: AsyncClient, auth_headers: dict, test_baby_id: str
+    ):
+        """图片类型应触发缩略图生成并回填尺寸/文件大小
+
+        若 create_media 用 m.type.value 访问，此测试会因 AttributeError 触发 500。
+        """
+        with patch("app.services.thumbnail_service.minio_client", _mock_minio_with_image()):
+            body = await self._create_media_via_api(client, auth_headers, test_baby_id, type="image")
+
+        assert body["thumbnailUrl"] is not None
+        assert "thumbnails/" in body["thumbnailUrl"]
+        assert body["width"] == 1339
+        assert body["height"] == 700
+        assert body["fileSize"] > 0
+
+    @pytest.mark.parametrize("media_type", ["image", "video", "threedmodel"])
+    async def test_create_all_types_no_500(
+        self, client: AsyncClient, auth_headers: dict, test_baby_id: str, media_type: str
+    ):
+        """所有 type 值传入字符串都不应抛 AttributeError
+
+        覆盖 m.type.value 在字符串形态下的兼容性。
+        video/threedmodel 不会触发缩略图，但 create_media 仍需走完 type 判断。
+        """
+        with patch("app.services.thumbnail_service.minio_client", _mock_minio_with_image()):
+            body = await self._create_media_via_api(
+                client, auth_headers, test_baby_id, type=media_type
+            )
+
+        assert body["type"] == media_type
+        if media_type == "image":
+            assert body["thumbnailUrl"] is not None
+        else:
+            assert body["thumbnailUrl"] is None
+
+    async def test_create_then_list_type_consistency(
+        self, client: AsyncClient, auth_headers: dict, test_baby_id: str
+    ):
+        """create 返回与 list 返回的 type 字段都应能安全比较
+
+        确保新建对象（type 为字符串）和数据库加载对象（type 为枚举）
+        两种生命周期阶段返回的 type 值一致。
+        """
+        with patch("app.services.thumbnail_service.minio_client", _mock_minio_with_image()):
+            created = await self._create_media_via_api(client, auth_headers, test_baby_id)
+
+        resp = await client.get(self.BASE, params={"babyId": test_baby_id}, headers=auth_headers)
+        listed = resp.json()
+
+        assert created["type"] == "image"
+        assert listed[0]["type"] == "image"
+
+    @staticmethod
+    async def _create_media_via_api(
+        client: AsyncClient, headers: dict, baby_id: str, **overrides
+    ) -> dict:
+        payload = {
+            "babyId": baby_id,
+            "type": "image",
+            "cosKey": f"photos/test/{baby_id[:8]}_photo.png",
+            "captureDate": "2026-06-17",
+            "title": "类型一致性测试",
+        }
+        payload.update(overrides)
+        resp = await client.post("/api/v1/media/", json=payload, headers=headers)
+        assert resp.status_code == 200, f"create_media failed: {resp.status_code} {resp.text}"
+        return resp.json()
