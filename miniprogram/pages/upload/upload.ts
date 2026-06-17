@@ -61,7 +61,8 @@ Page({
     var files = res.tempFiles || [];
     if (files.length === 0) return;
 
-    this.setData({ isUploading: true, uploadProgress: 0, uploadStatus: '获取上传凭证...' });
+    // Save for retry
+    this.setData({ _pendingFiles: files, isUploading: true, uploadProgress: 0, uploadStatus: '获取上传凭证...' });
     var _this = this;
     var babyId = this.getBabyId();
     var token = this.getToken();
@@ -248,5 +249,17 @@ Page({
   handleUploadError(callback) {
     wx.showToast({ title: '上传失败', icon: 'none', duration: 1500 });
     if (callback) callback();
+  },
+
+  onCancelUpload() {
+    this.setData({ isUploading: false, uploadProgress: 0, uploadStatus: '' });
+    wx.showToast({ title: '已取消', icon: 'none', duration: 1000 });
+  },
+
+  onRetryUpload() {
+    // 重新触发上传
+    if (this.data._pendingFiles && this.data._pendingFiles.length > 0) {
+      this.handleMediaResult({ tempFiles: this.data._pendingFiles });
+    }
   },
 });

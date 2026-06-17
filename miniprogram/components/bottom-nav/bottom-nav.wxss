@@ -1,18 +1,18 @@
-/* bottom-nav.wxss - Figma Bottom Nav v2 */
+/* bottom-nav.wxss - v2 3 Tab (成长/记录/我的) */
 
 .bottom-nav {
   display: flex;
   align-items: center;
-  height: 128rpx;
-  padding: 16rpx 0 0;
+  height: 100rpx;
   background: #ffffff;
-  box-shadow: 0px -3px 10px 0px rgba(230, 198, 179, 0.15);
+  box-shadow: 0px -2px 8px 0px rgba(230, 198, 179, 0.2);
   box-sizing: border-box;
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
   z-index: 100;
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
 .bottom-nav-item {
@@ -30,21 +30,16 @@
 }
 
 .nav-icon {
-  font-size: 40rpx;
+  font-size: 48rpx;
   line-height: 1;
 }
 
 .nav-label {
-  font-size: 20rpx;
+  font-size: 24rpx;
   line-height: 1;
   font-weight: 400;
 }
 
 .bottom-nav-item.active .nav-label {
   font-weight: 600;
-}
-
-/* 底部安全区 */
-.bottom-nav {
-  padding-bottom: calc(0rpx + env(safe-area-inset-bottom));
 }

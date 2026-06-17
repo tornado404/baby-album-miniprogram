@@ -1,9 +1,10 @@
-/* upload.wxss - 上传页面 Claymorphism 样式 */
+/* upload.wxss - 记录页 v2 (4步流程) */
 
 .page-upload {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  background: #fffbf8;
 }
 
 /* Status Bar */
@@ -25,7 +26,7 @@
   width: 72rpx;
   height: 72rpx;
   border-radius: 36rpx;
-  background: var(--clay-icon-bg);
+  background: #f9f0e9;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -34,14 +35,14 @@
 
 .upload-nav .nav-btn-circle text {
   font-size: 40rpx;
-  color: var(--clay-text-primary);
+  color: #4a4a4a;
   font-weight: 600;
 }
 
 .upload-nav .nav-title {
-  font-size: var(--clay-font-xxl);
+  font-size: 36rpx;
   font-weight: 700;
-  color: var(--clay-text-primary);
+  color: #4a4a4a;
 }
 
 .upload-nav .nav-spacer {
@@ -56,103 +57,55 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 24rpx;
-  padding: 32rpx 0;
+  gap: 16rpx;
+  padding: 16rpx 20rpx 160rpx;
   width: 750rpx;
   box-sizing: border-box;
   overflow-y: auto;
 }
 
-/* Upload Card */
-.upload-card {
-  width: 670rpx;
-  background: var(--clay-card-white);
-  border-radius: var(--clay-radius-xxl);
-  box-shadow: var(--clay-shadow-card-soft);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 24rpx;
-  padding: 48rpx 40rpx;
-  flex-shrink: 0;
-}
-
-.upload-icon-circle {
-  width: 216rpx;
-  height: 160rpx;
-  border-radius: 80rpx;
-  background: var(--clay-card-pink);
-  box-shadow: var(--clay-shadow-upload-icon);
+/* Step Badge (v2) */
+.step-badge {
+  align-self: flex-end;
+  background: #ffa87a;
+  height: 44rpx;
+  border-radius: 22rpx;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 0 20rpx;
+  margin-bottom: 8rpx;
 }
 
-.upload-icon-circle text {
-  font-size: 64rpx;
-}
-
-.upload-hint {
-  font-size: 32rpx;
-  color: #807366;
+.step-badge text {
+  font-size: 22rpx;
   font-weight: 500;
+  color: #ffffff;
 }
 
-.upload-subhint {
-  font-size: var(--clay-font-md);
-  color: var(--clay-text-muted);
-}
-
-/* Section Title */
-.section-title {
-  font-size: 32rpx;
-  color: var(--clay-text-primary);
-  font-weight: 600;
-  padding: 16rpx 0 0;
-  text-align: center;
-}
-
-/* Upload Options */
+/* Upload Options (v2) */
 .upload-option {
-  width: 642rpx;
-  height: 144rpx;
-  background: var(--clay-card-white);
-  border-radius: var(--clay-radius-xxl);
-  box-shadow: var(--clay-shadow-card-light);
+  width: 670rpx;
+  height: 180rpx;
+  background: #ffffff;
+  border-radius: 48rpx;
+  box-shadow: 0px 4px 10px 0px rgba(230, 198, 179, 0.25);
   display: flex;
   align-items: center;
   gap: 28rpx;
   padding: 0 32rpx;
   flex-shrink: 0;
   box-sizing: border-box;
-  margin: 0 auto;
 }
 
-.option-icon {
-  width: 96rpx;
-  height: 96rpx;
-  border-radius: 32rpx;
+.option-big-icon {
+  font-size: 72rpx;
+  width: 72rpx;
+  height: 72rpx;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-}
-
-.option-icon text {
-  font-size: 44rpx;
-}
-
-.option-icon-pink {
-  background: var(--clay-card-pink);
-}
-
-.option-icon-blue {
-  background: var(--clay-card-blue);
-}
-
-.option-icon-beige {
-  background: var(--clay-card-beige);
 }
 
 .option-text {
@@ -164,19 +117,176 @@
 }
 
 .option-title {
-  font-size: var(--clay-font-body);
-  color: var(--clay-text-primary);
+  font-size: 30rpx;
   font-weight: 600;
+  color: #4a4a4a;
 }
 
 .option-desc {
-  font-size: var(--clay-font-sm);
-  color: var(--clay-text-secondary);
+  font-size: 24rpx;
+  font-weight: 400;
+  color: #999;
 }
 
 .option-arrow {
-  font-size: 44rpx;
-  color: var(--clay-text-muted);
+  font-size: 48rpx;
+  color: #ccc;
   font-weight: 500;
   flex-shrink: 0;
+  line-height: 1;
+}
+
+/* Step Previews (v2) */
+.step-preview {
+  width: 670rpx;
+  background: #f9f0e9;
+  border-radius: 32rpx;
+  padding: 20rpx 32rpx;
+  box-sizing: border-box;
+  opacity: 0.6;
+}
+
+.step-preview-title {
+  font-size: 24rpx;
+  font-weight: 500;
+  color: #999;
+  display: block;
+  margin-bottom: 12rpx;
+}
+
+.step-preview-thumbs {
+  display: flex;
+  gap: 16rpx;
+  margin-bottom: 8rpx;
+}
+
+.thumb-icon {
+  font-size: 40rpx;
+}
+
+.thumb-icon-sm {
+  font-size: 32rpx;
+}
+
+.step-preview-hint {
+  font-size: 22rpx;
+  font-weight: 400;
+  color: #999;
+  display: block;
+}
+
+/* Progress Bar */
+.progress-bar-bg {
+  width: 100%;
+  height: 16rpx;
+  background: #e0e0e0;
+  border-radius: 8rpx;
+  margin: 8rpx 0;
+}
+
+.progress-bar-bg.big {
+  height: 24rpx;
+  border-radius: 12rpx;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: #ffa87a;
+  border-radius: inherit;
+}
+
+/* Upload Progress Overlay */
+.upload-progress-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.upload-progress-card {
+  width: 590rpx;
+  background: #ffffff;
+  border-radius: 48rpx;
+  padding: 40rpx;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16rpx;
+  box-shadow: 0px 8px 24px 0px rgba(0, 0, 0, 0.15);
+}
+
+.progress-emoji {
+  font-size: 96rpx;
+  margin-bottom: 8rpx;
+}
+
+.progress-pct {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #ffa87a;
+}
+
+.progress-status {
+  font-size: 26rpx;
+  font-weight: 400;
+  color: #999;
+}
+
+.progress-actions {
+  display: flex;
+  gap: 20rpx;
+  width: 100%;
+  margin-top: 16rpx;
+}
+
+.progress-btn {
+  flex: 1;
+  height: 84rpx;
+  border-radius: 42rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.progress-btn text {
+  font-size: 28rpx;
+  font-weight: 600;
+}
+
+.progress-btn-cancel {
+  background: #f9f0e9;
+}
+
+.progress-btn-cancel text {
+  color: #4a4a4a;
+}
+
+.progress-btn-retry {
+  background: #ffa87a;
+}
+
+.progress-btn-retry text {
+  color: #ffffff;
+}
+
+.current-file-preview {
+  width: 120rpx;
+  height: 120rpx;
+  background: #f1dce2;
+  border-radius: 24rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 8rpx;
+}
+
+.current-file-preview text {
+  font-size: 64rpx;
 }
