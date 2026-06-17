@@ -58,7 +58,8 @@
             bindtap="onMediaTap"
           >
             <view class="tcard-img" style="background: {{item.cardColor === 'blue' ? '#dceaf1' : item.cardColor === 'beige' ? '#f4e6d6' : '#f1dce2'}};">
-              <text>📷</text>
+              <image wx:if="{{item.thumbnailUrl || item.cosUrl}}" class="tcard-img-el" src="{{item.thumbnailUrl || item.cosUrl}}" mode="aspectFill" lazy-load></image>
+              <text wx:else>📷</text>
             </view>
             <view class="tcard-info">
               <text wx:if="{{item.title}}" class="tcard-title">{{item.title}}</text>
