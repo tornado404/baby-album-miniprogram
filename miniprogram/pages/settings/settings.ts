@@ -112,32 +112,19 @@ Page({
       growth_compare: '',
       achievements: '',
       storage: '',
-<<<<<<< HEAD
-      share: '',
-      about: '/pages/about/about',
-=======
       share: '/pages/share_settings/share_settings',
-      about: '',
+      about: '/pages/about/about',
       export_data: '',
       export_report: '',
->>>>>>> worktree-issue-8-p2-optimize
     };
 
     var url = routes[key];
     if (url) {
-<<<<<<< HEAD
-      if (key === 'baby_manage' || key === 'about') {
-        wx.navigateTo({ url: url });
-      } else {
-        wx.showToast({ title: '功能开发中', icon: 'none' });
-      }
-=======
       wx.navigateTo({ url: url });
     } else if (key === 'export_data') {
       this.onExportData();
     } else if (key === 'export_report') {
       this.onExportReport();
->>>>>>> worktree-issue-8-p2-optimize
     } else {
       wx.showToast({ title: '功能开发中', icon: 'none' });
     }

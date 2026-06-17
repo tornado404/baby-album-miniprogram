@@ -104,7 +104,7 @@ Page({
             achievements: '',
             storage: '',
             share: '/pages/share_settings/share_settings',
-            about: '',
+            about: '/pages/about/about',
             export_data: '',
             export_report: '',
         };
