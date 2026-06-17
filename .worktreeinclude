@@ -1,0 +1,7 @@
+# Copy local environment and secret files into new worktrees.
+# Only files that are also gitignored are copied.
+.env
+.env.*
+.secrets/
+*.key
+*.pem
