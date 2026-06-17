@@ -25,7 +25,7 @@
 
     <!-- Main Image -->
     <view class="main-image-wrap">
-      <image wx:if="{{media && media.url}}" class="main-image" src="{{media.url}}" mode="aspectFit" show-menu-by-longpress></image>
+      <image wx:if="{{media && media.cosUrl}}" class="main-image" src="{{media.cosUrl}}" mode="aspectFit" show-menu-by-longpress></image>
       <text wx:else class="main-image-placeholder">📷✨</text>
     </view>
 

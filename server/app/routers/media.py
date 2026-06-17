@@ -7,7 +7,6 @@ from sqlalchemy import select, update as sa_update
 from app.database import get_db
 from app.middleware.auth import get_current_user_id
 from app.services.media_service import MediaService
-from app.services.file_service import get_presigned_file_url
 from app.models.media import Media
 from datetime import datetime
 
@@ -15,15 +14,13 @@ router = APIRouter()
 
 
 def _resolve_media_urls(m: Media) -> dict:
-    """根据 cos_key 路径决定返回公开 URL 还是预签名 URL
+    """返回媒体的访问 URL
 
-    thumbnails/ 和 avatars/ 在 MinIO 中为公开可读，直接用公开 URL。
-    photos/ 和 videos/ 非公开可读，使用预签名 URL（1 小时有效）。
+    MinIO bucket 策略已允许 photos/、videos/、thumbnails/、avatars/ 公开读取，
+    cos_url 和 thumbnail_url 字段在写入时即为公开 URL，直接返回即可。
+    预签名 URL 有过期时间和编码问题，公开 URL 更适合小程序 <image> 直接加载。
     """
-    cos_url = m.cos_url
-    if m.cos_key and m.cos_key.startswith(("photos/", "videos/")):
-        cos_url = get_presigned_file_url(m.cos_key)
-    return {"cosUrl": cos_url, "thumbnailUrl": m.thumbnail_url}
+    return {"cosUrl": m.cos_url, "thumbnailUrl": m.thumbnail_url}
 
 
 class BatchArchiveRequest(BaseModel):
