@@ -206,7 +206,7 @@
 }
 
 .menu-title {
-  font-size: 30rpx;  /* Figma: 15px */
+  font-size: var(--clay-font-body);
   font-weight: 500;
   color: var(--clay-text-primary);
 }
@@ -217,8 +217,8 @@
 }
 
 .menu-arrow {
-  font-size: 40rpx;  /* Figma: 20px */
-  color: #ccc;
+  font-size: 44rpx;
+  color: var(--clay-text-muted);
   text-align: center;
   flex-shrink: 0;
   width: 44rpx;

@@ -272,6 +272,7 @@ Page({
       growthCompareDesc: t('settings.growthCompareDesc'),
       achievements: t('settings.achievements'),
       achievementsDesc: t('settings.achievementsDesc'),
+      recordDays: t('settings.recordDays'),
       storage: t('settings.storage'),
       storageDesc: t('settings.storageDesc'),
       share: t('settings.share'),
