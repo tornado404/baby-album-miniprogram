@@ -38,7 +38,7 @@ module.exports = exports;
       </view>
 
       <!-- Baby Cards -->
-      <view wx:for="{{babies}}" wx:key="id" class="baby-card" data-id="{{item.id}}" bindtap="onBabyTap">
+      <view wx:for="{{babies}}" wx:key="id" class="baby-card" data-id="{{item.id}}" data-name="{{item.name}}" bindtap="onBabyTap" bindlongpress="onBabyLongPress">
         <view class="baby-card-avatar" style="background-color: {{item.gender === 'male' ? '#dceaf1' : '#f1dce2'}};">
           <image wx:if="{{util.avatarUrl(item)}}" class="card-avatar-image" src="{{util.avatarUrl(item)}}" mode="aspectFill"></image>
           <text wx:else>{{item.avatar || '👶'}}</text>
