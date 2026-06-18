@@ -10,12 +10,13 @@ Page({
         safeTop: 44,
         userName: '星星妈妈',
         recordDays: 0,
+        recordDaysText: '',
         photoCount: 0,
         videoCount: 0,
         modelCount: 0,
         achievementCount: 0,
         // Dark mode
-        themeMode: 'auto', // 'auto' | 'light' | 'dark'
+        themeMode: 'auto',
         themeAttr: '',
         // i18n
         i18n: {},
@@ -38,6 +39,7 @@ Page({
         this.loadThemeMode();
         this.applyI18n();
         this.loadStats();
+        this.loadUserProfile();
     },
     onShow: function () {
         this.loadEnvInfo();
@@ -47,10 +49,7 @@ Page({
     loadStats: function () {
         var _this = this;
         var token = '';
-        try {
-            token = wx.getStorageSync('baby_diary_access_token') || '';
-        }
-        catch (e) { }
+        try { token = wx.getStorageSync('baby_diary_access_token') || ''; } catch (e) { }
         // 加载统计数据
         wx.request({
             url: api_1.API_CONFIG.baseURL + '/analytics/stats',
@@ -66,6 +65,7 @@ Page({
                         modelCount: d.modelCount || 0,
                         recordDays: d.recordDays || 0,
                     });
+                    _this._updateRecordDaysText(d.recordDays || 0);
                 }
             },
             fail: function () { },
@@ -95,14 +95,42 @@ Page({
             selectedEnv: currentEnv,
         });
     },
+    // ========== 用户资料加载 ==========
+    loadUserProfile: function () {
+        var _this = this;
+        var token = '';
+        try { token = wx.getStorageSync('baby_diary_access_token') || ''; } catch (e) { }
+        if (!token) return;
+        wx.request({
+            url: api_1.API_CONFIG.baseURL + '/auth/me',
+            method: 'GET',
+            header: { 'Authorization': 'Bearer ' + token },
+            timeout: 8000,
+            success: function (res) {
+                if (res.statusCode === 200 && res.data) {
+                    var d = res.data;
+                    _this.setData({
+                        userName: d.nickName || '',
+                        userAvatar: d.avatarUrl || '',
+                    });
+                }
+            },
+            fail: function () { },
+        });
+    },
+    // ========== 记录天数文本更新 ==========
+    _updateRecordDaysText: function (days) {
+        if (days === undefined) { days = this.data.recordDays; }
+        var template = (0, i18n_1.t)('settings.recordDays') || '记录天数：{days}天';
+        this.setData({ recordDaysText: template.replace('{days}', days || 0) });
+    },
     // ========== 菜单导航 ==========
     onMenuTap: function (e) {
         var key = e.currentTarget.dataset.key;
         var routes = {
             baby_manage: '/pages/baby_list/baby_list',
-            growth_compare: '',
-            achievements: '',
-            storage: '',
+            growth_compare: '/pages/growth_compare/growth_compare',
+            achievements: '/pages/achievements/achievements',
             share: '/pages/share_settings/share_settings',
             about: '/pages/about/about',
             export_data: '',
@@ -121,6 +149,10 @@ Page({
         else {
             wx.showToast({ title: '功能开发中', icon: 'none' });
         }
+    },
+    // ========== 成就徽章 ==========
+    goToAchievements: function () {
+        wx.navigateTo({ url: '/pages/achievements/achievements' });
     },
     // ========== 环境切换（开发者面板） ==========
     onEnvSwitchTap: function () {
@@ -143,7 +175,6 @@ Page({
             return;
         }
         this.setData({ showEnvPicker: false });
-        // 显示切换成功提示
         var envName = '';
         var envs = this.data.environments;
         for (var i = 0; i < envs.length; i++) {
@@ -159,15 +190,8 @@ Page({
             cancelText: '稍后重启',
             success: function (res) {
                 if (res.confirm) {
-                    try {
-                        wx.exitMiniProgram();
-                    }
-                    catch (e) {
-                        wx.showToast({
-                            title: '请手动关闭小程序重启',
-                            icon: 'none',
-                            duration: 3000,
-                        });
+                    try { wx.exitMiniProgram(); } catch (e) {
+                        wx.showToast({ title: '请手动关闭小程序重启', icon: 'none', duration: 3000 });
                     }
                 }
             },
@@ -176,10 +200,7 @@ Page({
     // ========== Dark Mode ==========
     loadThemeMode: function () {
         var mode = 'auto';
-        try {
-            mode = wx.getStorageSync('baby_diary_theme_mode') || 'auto';
-        }
-        catch (e) { }
+        try { mode = wx.getStorageSync('baby_diary_theme_mode') || 'auto'; } catch (e) { }
         this.setData({ themeMode: mode });
         this.applyTheme(mode);
     },
@@ -188,33 +209,20 @@ Page({
         var current = this.data.themeMode;
         var nextIndex = 0;
         for (var i = 0; i < modes.length; i++) {
-            if (modes[i] === current) {
-                nextIndex = (i + 1) % modes.length;
-                break;
-            }
+            if (modes[i] === current) { nextIndex = (i + 1) % modes.length; break; }
         }
         var nextMode = modes[nextIndex];
         this.setData({ themeMode: nextMode });
-        try {
-            wx.setStorageSync('baby_diary_theme_mode', nextMode);
-        }
-        catch (e) { }
+        try { wx.setStorageSync('baby_diary_theme_mode', nextMode); } catch (e) { }
         this.applyTheme(nextMode);
     },
     applyTheme: function (mode) {
         var pages = getCurrentPages();
         var currentPage = pages[pages.length - 1];
         if (currentPage) {
-            if (mode === 'dark') {
-                currentPage.setData({ themeAttr: 'dark' });
-            }
-            else if (mode === 'light') {
-                currentPage.setData({ themeAttr: 'light' });
-            }
-            else {
-                // auto - remove manual override, let system preference take over
-                currentPage.setData({ themeAttr: '' });
-            }
+            if (mode === 'dark') { currentPage.setData({ themeAttr: 'dark' }); }
+            else if (mode === 'light') { currentPage.setData({ themeAttr: 'light' }); }
+            else { currentPage.setData({ themeAttr: '' }); }
         }
     },
     // ========== i18n (OPT-07) ==========
@@ -230,8 +238,7 @@ Page({
             growthCompareDesc: (0, i18n_1.t)('settings.growthCompareDesc'),
             achievements: (0, i18n_1.t)('settings.achievements'),
             achievementsDesc: (0, i18n_1.t)('settings.achievementsDesc'),
-            storage: (0, i18n_1.t)('settings.storage'),
-            storageDesc: (0, i18n_1.t)('settings.storageDesc'),
+            recordDays: (0, i18n_1.t)('settings.recordDays'),
             share: (0, i18n_1.t)('settings.share'),
             shareDesc: (0, i18n_1.t)('settings.shareDesc'),
             about: (0, i18n_1.t)('settings.about'),
@@ -250,6 +257,7 @@ Page({
             currentLocale: currentLocale,
             availableLocales: availableLocales,
         });
+        this._updateRecordDaysText();
     },
     onLocaleTap: function () {
         this.setData({ showLocalePicker: true });
@@ -269,14 +277,8 @@ Page({
     // ========== Data Export (OPT-08) ==========
     onExportData: function () {
         var token = '';
-        try {
-            token = wx.getStorageSync('baby_diary_access_token') || '';
-        }
-        catch (e) { }
-        if (!token) {
-            wx.showToast({ title: '请先登录', icon: 'none' });
-            return;
-        }
+        try { token = wx.getStorageSync('baby_diary_access_token') || ''; } catch (e) { }
+        if (!token) { wx.showToast({ title: '请先登录', icon: 'none' }); return; }
         wx.showLoading({ title: '导出中...' });
         wx.request({
             url: api_1.API_CONFIG.baseURL + '/export/data',
@@ -286,35 +288,20 @@ Page({
             success: function (res) {
                 wx.hideLoading();
                 if (res.statusCode === 200 && res.data) {
-                    // Save exported data to clipboard for now
                     var jsonStr = JSON.stringify(res.data, null, 2);
                     wx.setClipboardData({
                         data: jsonStr,
-                        success: function () {
-                            wx.showToast({ title: '数据已复制到剪贴板', icon: 'success', duration: 2000 });
-                        },
+                        success: function () { wx.showToast({ title: '数据已复制到剪贴板', icon: 'success', duration: 2000 }); },
                     });
-                }
-                else {
-                    wx.showToast({ title: '导出失败', icon: 'none' });
-                }
+                } else { wx.showToast({ title: '导出失败', icon: 'none' }); }
             },
-            fail: function () {
-                wx.hideLoading();
-                wx.showToast({ title: '网络错误', icon: 'none' });
-            },
+            fail: function () { wx.hideLoading(); wx.showToast({ title: '网络错误', icon: 'none' }); },
         });
     },
     onExportReport: function () {
         var token = '';
-        try {
-            token = wx.getStorageSync('baby_diary_access_token') || '';
-        }
-        catch (e) { }
-        if (!token) {
-            wx.showToast({ title: '请先登录', icon: 'none' });
-            return;
-        }
+        try { token = wx.getStorageSync('baby_diary_access_token') || ''; } catch (e) { }
+        if (!token) { wx.showToast({ title: '请先登录', icon: 'none' }); return; }
         wx.showLoading({ title: '生成报告中...' });
         wx.request({
             url: api_1.API_CONFIG.baseURL + '/export/report',
@@ -327,19 +314,11 @@ Page({
                     var jsonStr = JSON.stringify(res.data, null, 2);
                     wx.setClipboardData({
                         data: jsonStr,
-                        success: function () {
-                            wx.showToast({ title: '报告已复制到剪贴板', icon: 'success', duration: 2000 });
-                        },
+                        success: function () { wx.showToast({ title: '报告已复制到剪贴板', icon: 'success', duration: 2000 }); },
                     });
-                }
-                else {
-                    wx.showToast({ title: '生成失败', icon: 'none' });
-                }
+                } else { wx.showToast({ title: '生成失败', icon: 'none' }); }
             },
-            fail: function () {
-                wx.hideLoading();
-                wx.showToast({ title: '网络错误', icon: 'none' });
-            },
+            fail: function () { wx.hideLoading(); wx.showToast({ title: '网络错误', icon: 'none' }); },
         });
     },
 });
