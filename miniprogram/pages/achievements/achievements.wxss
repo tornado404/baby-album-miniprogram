@@ -1,0 +1,135 @@
+/* achievements.wxss - 成就徽章页 Claymorphism 样式 */
+
+.page-achievements {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--clay-bg, #fffbf8);
+}
+
+.status-bar {
+  flex-shrink: 0;
+}
+
+/* Navigation Bar */
+.achievements-nav {
+  display: flex;
+  align-items: center;
+  height: 104rpx;
+  padding: 0 40rpx;
+  flex-shrink: 0;
+}
+
+.nav-back {
+  width: 60rpx;
+  height: 60rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.nav-back text {
+  font-size: 56rpx;
+  color: #4a4a4a;
+  font-weight: 300;
+  line-height: 1;
+}
+
+.nav-title {
+  flex: 1;
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #4a4a4a;
+}
+
+.nav-right {
+  flex-shrink: 0;
+}
+
+.nav-count {
+  font-size: 22rpx;
+  color: #999;
+}
+
+/* Content Area */
+.content-area {
+  flex: 1;
+  padding: 20rpx 32rpx 160rpx;
+  overflow-y: auto;
+}
+
+/* Empty State */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 160rpx 0;
+  gap: 16rpx;
+}
+
+.empty-icon {
+  font-size: 96rpx;
+}
+
+.empty-text {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #4a4a4a;
+}
+
+.empty-hint {
+  font-size: 26rpx;
+  color: #999;
+}
+
+/* Badge Grid - 3 columns */
+.badge-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24rpx;
+  justify-content: flex-start;
+}
+
+.badge-card {
+  width: calc((100% - 48rpx) / 3);
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+.badge-card-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8rpx;
+  padding: 24rpx 12rpx;
+  background: #ffffff;
+  border-radius: 32rpx;
+  box-shadow: 0px 6rpx 16rpx 0px rgba(230, 198, 179, 0.35);
+  box-sizing: border-box;
+}
+
+.badge-icon {
+  font-size: 64rpx;
+  line-height: 1;
+}
+
+.badge-name {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #4a4a4a;
+  text-align: center;
+}
+
+.badge-desc {
+  font-size: 20rpx;
+  color: #999;
+  text-align: center;
+}
+
+.badge-date {
+  font-size: 18rpx;
+  color: #bbb;
+  text-align: center;
+}

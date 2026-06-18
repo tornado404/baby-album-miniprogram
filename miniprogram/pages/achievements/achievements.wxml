@@ -1,0 +1,47 @@
+<view class="page-achievements" data-theme="{{themeAttr}}">
+
+  <!-- Status Bar -->
+  <view class="status-bar" style="height: {{safeTop}}px;"></view>
+
+  <!-- Navigation Bar -->
+  <view class="achievements-nav">
+    <view class="nav-back" bindtap="goBack">
+      <text>‹</text>
+    </view>
+    <text class="nav-title">{{i18n.title || '成就徽章'}}</text>
+    <view class="nav-right">
+      <text class="nav-count" wx:if="{{badges.length > 0}}">{{i18n.earned || '已获得'}} {{badges.length}}/{{totalBadgeCount}} {{i18n.badges || '枚'}}</text>
+    </view>
+  </view>
+
+  <!-- Content -->
+  <scroll-view class="content-area" scroll-y enable-flex>
+
+    <!-- Empty State -->
+    <view class="empty-state" wx:if="{{badges.length === 0}}">
+      <text class="empty-icon">🏅</text>
+      <text class="empty-text">{{i18n.empty || '暂无已获得的徽章'}}</text>
+      <text class="empty-hint">{{i18n.emptyHint || '多上传记录来解锁徽章吧'}}</text>
+    </view>
+
+    <!-- Badge Grid -->
+    <view class="badge-grid" wx:if="{{badges.length > 0}}">
+      <view
+        class="badge-card"
+        wx:for="{{badges}}"
+        wx:key="key"
+      >
+        <view class="badge-card-inner">
+          <text class="badge-icon">{{item.icon}}</text>
+          <text class="badge-name">{{item.name}}</text>
+          <text class="badge-desc">{{item.desc}}</text>
+          <text class="badge-date" wx:if="{{item.unlockedAt}}">{{formatDate(item.unlockedAt)}}</text>
+        </view>
+      </view>
+    </view>
+
+  </scroll-view>
+
+  <!-- Bottom Navigation -->
+  <bottom-nav current="profile"></bottom-nav>
+</view>
