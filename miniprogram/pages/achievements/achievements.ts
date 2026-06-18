@@ -30,6 +30,7 @@ Page({
     try { token = wx.getStorageSync('baby_diary_access_token') || ''; } catch (e) {}
 
     if (!token) {
+      wx.showToast({ title: '请先登录', icon: 'none' });
       return;
     }
 
