@@ -34,7 +34,7 @@ jest.mock('../miniprogram/config/api', () => {
   };
   return {
     CONFIGS_MAP: CONFIGS_MAP,
-    CURRENT_ENV: mockCurrentEnv,
+    get CURRENT_ENV() { return mockCurrentEnv; },
     isEnvSwitchable: function () { return mockSwitchable; },
     ENV_STORAGE_KEY: 'baby_diary_env_config',
   };
@@ -123,6 +123,14 @@ describe('config_service.ts - 运行时配置切换服务', () => {
     test('getCurrentEnvName 返回显示名称', () => {
       expect(configService.getCurrentEnvName()).toBe('测试服务器');
     });
+
+    test('未知环境应返回原始环境标识', () => {
+      mockCurrentEnv = 'staging';
+      jest.resetModules();
+      setupMockWx();
+      var cs = require('../miniprogram/services/config_service').configService;
+      expect(cs.getCurrentEnvName()).toBe('staging');
+    });
   });
 
   // ==================================================================
@@ -152,6 +160,12 @@ describe('config_service.ts - 运行时配置切换服务', () => {
       expect(result).toBe(false);
       expect(mockStorage['baby_diary_env_config']).toBeUndefined();
     });
+  test('切换失败 (setStorageSync 异常) 应返回 false', () => {
+      mockStorage['baby_diary_env_config'] = {};
+      (global as any).wx.setStorageSync = function () { throw new Error('fail'); };
+      var result = configService.switchTo('development');
+      expect(result).toBe(false);
+    });
   });
 
   // ==================================================================
@@ -170,6 +184,12 @@ describe('config_service.ts - 运行时配置切换服务', () => {
     test('无 storage 配置时重置返回 true', () => {
       var result = configService.resetToDefault();
       expect(result).toBe(true);
+    });
+
+    test('重置失败 (removeStorageSync 异常) 应返回 false', () => {
+      (global as any).wx.removeStorageSync = function () { throw new Error('fail'); };
+      var result = configService.resetToDefault();
+      expect(result).toBe(false);
     });
   });
 

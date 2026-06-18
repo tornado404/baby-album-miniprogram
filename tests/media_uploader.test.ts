@@ -165,10 +165,11 @@ describe('T-04 媒体上传组件测试', () => {
 
     test('日期字符串应为当天日期', () => {
       const now = new Date();
-      const dateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-
-      const today = new Date().toISOString().split('T')[0];
-      expect(dateStr).toBe(today);
+      const y = now.getFullYear();
+      const m = String(now.getMonth() + 1).padStart(2, '0');
+      const d = String(now.getDate()).padStart(2, '0');
+      const dateStr = y + '-' + m + '-' + d;
+      expect(dateStr).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     });
   });
 

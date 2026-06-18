@@ -105,6 +105,13 @@ describe('OPT-07 i18n 多语言支持测试', () => {
       expect(result).toBe(false);
     });
 
+    test('t 在异常 locale 下应回退到中文', () => {
+      setupMockWx();
+      var i18n = require('../miniprogram/utils/i18n');
+      i18n.setLocale('zz-ZZ');
+      expect(i18n.t('settings.title')).toBe('我的');
+    });
+
     test('setLocale 失败后 locale 不应改变', () => {
       setupMockWx();
       var i18n = require('../miniprogram/utils/i18n');
@@ -127,6 +134,58 @@ describe('OPT-07 i18n 多语言支持测试', () => {
     });
   });
 
+  describe('initLocale 异常处理', () => {
+    test('系统语言非中文时初始化为 en-US', () => {
+      setupMockWx();
+      (global as any).wx.getSystemInfoSync = function () {
+        return { language: 'en' };
+      };
+      jest.resetModules();
+      var i18n = require('../miniprogram/utils/i18n');
+      expect(i18n.getLocale()).toBe('en-US');
+    });
+
+    test('getSystemInfoSync 抛出异常时回退到 zh-CN', () => {
+      setupMockWx();
+      (global as any).wx.getSystemInfoSync = function () {
+        throw new Error('mock fail');
+      };
+      jest.resetModules();
+      var i18n = require('../miniprogram/utils/i18n');
+      expect(i18n.getLocale()).toBe('zh-CN');
+    });
+
+    test('en_US 格式语言也应正确映射到 zh-CN', () => {
+      setupMockWx();
+      (global as any).wx.getSystemInfoSync = function () {
+        return { language: 'zh_TW' };
+      };
+      jest.resetModules();
+      var i18n = require('../miniprogram/utils/i18n');
+      expect(i18n.getLocale()).toBe('zh-CN');
+    });
+
+    test('sysInfo.language 为空时应回退到 zh_CN', () => {
+      setupMockWx();
+      (global as any).wx.getSystemInfoSync = function () {
+        return { language: '' };
+      };
+      jest.resetModules();
+      var i18n = require('../miniprogram/utils/i18n');
+      expect(i18n.getLocale()).toBe('zh-CN');
+    });
+
+    test('sysInfo 不含 language 字段时应回退到 zh_CN', () => {
+      setupMockWx();
+      (global as any).wx.getSystemInfoSync = function () {
+        return {};
+      };
+      jest.resetModules();
+      var i18n = require('../miniprogram/utils/i18n');
+      expect(i18n.getLocale()).toBe('zh-CN');
+    });
+  });
+
   describe('翻译完整性检查', () => {
     test('中英文语言包应有相同的 key 集合', () => {
       setupMockWx();
@@ -139,3 +198,5 @@ describe('OPT-07 i18n 多语言支持测试', () => {
     });
   });
 });
+
+export {};

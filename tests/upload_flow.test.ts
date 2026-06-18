@@ -405,3 +405,4 @@ describe('上传流程单元测试', () => {
     expect(mockUploadTasks.length).toBe(0);
   });
 });
+export {};
