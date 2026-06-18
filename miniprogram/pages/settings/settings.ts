@@ -12,6 +12,7 @@ Page({
     safeTop: 44,
     userName: '星星妈妈',
     recordDays: 0,
+    recordDaysText: '',
     photoCount: 0,
     videoCount: 0,
     modelCount: 0,
@@ -71,10 +72,7 @@ Page({
             modelCount: d.modelCount || 0,
             recordDays: d.recordDays || 0,
           });
-        }
-      },
-      fail: function () {},
-    });
+          _this._updateRecordDaysText(d.recordDays || 0);
 
     // 加载成就
     wx.request({
@@ -128,6 +126,14 @@ Page({
       },
       fail: function () {},
     });
+  },
+
+  // ========== 记录天数文本更新 ==========
+
+  _updateRecordDaysText: function (days) {
+    if (days === undefined) { days = this.data.recordDays; }
+    var template = t('settings.recordDays') || '记录天数：{days}天';
+    this.setData({ recordDaysText: template.replace('{days}', days || 0) });
   },
 
   // ========== 菜单导航 ==========
@@ -294,6 +300,7 @@ Page({
       currentLocale: currentLocale,
       availableLocales: availableLocales,
     });
+    this._updateRecordDaysText();
   },
 
   onLocaleTap: function () {

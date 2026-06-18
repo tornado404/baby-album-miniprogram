@@ -19,7 +19,7 @@
       </view>
       <view class="user-info">
         <text class="user-name">{{userName}}</text>
-        <text class="user-record">{{(i18n.recordDays || '记录天数：{days}天').replace('{days}', recordDays || 0)}}</text>
+        <text class="user-record">{{recordDaysText}}</text>
       </view>
       <view class="badge-entry" wx:if="{{achievementCount > 0}}">
         <text class="badge-icon-text">🏆</text>
