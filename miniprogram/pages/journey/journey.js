@@ -3,6 +3,7 @@
 // journey.ts - 成长历程页面
 Object.defineProperty(exports, "__esModule", { value: true });
 var api_1 = require("../../config/api");
+var tokenManager = require('../../services/request').tokenManager;
 Page({
     data: {
         safeTop: 44,
@@ -32,12 +33,7 @@ Page({
         this.loadData();
     },
     onShow: function () { this.loadData(); },
-    getToken: function () { try {
-        return wx.getStorageSync('baby_diary_access_token') || '';
-    }
-    catch (e) {
-        return '';
-    } },
+    getToken: function () { return tokenManager.getAccessToken(); },
     loadData: function () {
         this.setData({ isLoading: true });
         this.loadBabyInfo();

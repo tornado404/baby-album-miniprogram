@@ -5,7 +5,6 @@
 // 首屏检测：有 authed flag -> 跳过，无 -> 展示引导页
 Object.defineProperty(exports, "__esModule", { value: true });
 var api_1 = require("../../config/api");
-var AUTH_KEY = 'baby_diary_authed';
 var TOKEN_KEY = 'baby_diary_access_token';
 var REFRESH_KEY = 'baby_diary_refresh_token';
 var USER_ID_KEY = 'baby_diary_user_id';
@@ -47,7 +46,13 @@ Page({
             success: function (res) {
                 if (res.statusCode === 200) {
                     var babyProfile = wx.getStorageSync(BABY_KEY);
-                    _this.redirectTo(babyProfile ? 'home' : 'baby_onboarding');
+                    if (babyProfile) {
+                        _this.redirectTo('home');
+                    }
+                    else {
+                        // 本地无宝宝缓存 → 查 API 确认后再跳转
+                        _this.checkBabiesBeforeRoute(token);
+                    }
                 }
                 else if (res.statusCode === 401) {
                     _this.tryRefreshToken();
@@ -85,12 +90,17 @@ Page({
             data: { refreshToken: refreshToken },
             success: function (res) {
                 if (res.statusCode === 200 && res.data && res.data.accessToken) {
-                    wx.setStorageSync(TOKEN_KEY, res.data.accessToken);
+                    try { wx.setStorageSync(TOKEN_KEY, res.data.accessToken); } catch (e) {}
                     if (res.data.refreshToken) {
-                        wx.setStorageSync(REFRESH_KEY, res.data.refreshToken);
+                        try { wx.setStorageSync(REFRESH_KEY, res.data.refreshToken); } catch (e) {}
                     }
                     var babyProfile = wx.getStorageSync(BABY_KEY);
-                    _this.redirectTo(babyProfile ? 'home' : 'baby_onboarding');
+                    if (babyProfile) {
+                        _this.redirectTo('home');
+                    }
+                    else {
+                        _this.checkBabiesBeforeRoute(res.data.accessToken);
+                    }
                 }
                 else {
                     _this.setData({ authState: 'idle' });
@@ -122,10 +132,9 @@ Page({
                         timeout: 15000,
                         success: function (res) {
                             if (res.statusCode === 200 && res.data && res.data.accessToken) {
-                                wx.setStorageSync(TOKEN_KEY, res.data.accessToken);
-                                wx.setStorageSync(REFRESH_KEY, res.data.refreshToken);
-                                wx.setStorageSync(USER_ID_KEY, res.data.userId);
-                                wx.setStorageSync(AUTH_KEY, true);
+                                try { wx.setStorageSync(TOKEN_KEY, res.data.accessToken); } catch (e) { }
+                                try { wx.setStorageSync(REFRESH_KEY, res.data.refreshToken); } catch (e) { }
+                                try { wx.setStorageSync(USER_ID_KEY, res.data.userId); } catch (e) { }
                                 _this.setData({ authState: 'success' });
                                 if (res.data.isNewUser) {
                                     _this.redirectTo('baby_onboarding');
@@ -153,7 +162,6 @@ Page({
         });
     },
     handleOfflineFallback: function () {
-        wx.setStorageSync(AUTH_KEY, true);
         var babyProfile = wx.getStorageSync(BABY_KEY);
         this.setData({ authState: 'success' });
         if (babyProfile) {
@@ -171,5 +179,40 @@ Page({
             ? '/pages/album_home/album_home'
             : '/pages/baby_onboarding/baby_onboarding';
         wx.reLaunch({ url: url });
+    },
+    // 查 API 确认宝宝是否存在后再决定跳转（防止缓存清除后误跳新建页）
+    checkBabiesBeforeRoute: function (token) {
+        var _this = this;
+        wx.request({
+            url: api_1.API_CONFIG.baseURL + '/babies/',
+            method: 'GET',
+            header: { 'Authorization': 'Bearer ' + token },
+            timeout: 8000,
+            success: function (res) {
+                if (res.statusCode === 200 && Array.isArray(res.data) && res.data.length > 0) {
+                    var babies = res.data;
+                    try {
+                        wx.setStorageSync('album_babies', babies);
+                    }
+                    catch (e) { }
+                    try {
+                        wx.setStorageSync(BABY_KEY, babies[0]);
+                    }
+                    catch (e) { }
+                    try {
+                        wx.setStorageSync('baby_diary_current_baby_id', babies[0].id);
+                    }
+                    catch (e) { }
+                    _this.redirectTo('home');
+                }
+                else {
+                    _this.redirectTo('baby_onboarding');
+                }
+            },
+            fail: function () {
+                // 网络不可用，保守跳首页（用户可能已有缓存但读取失败）
+                _this.redirectTo('home');
+            },
+        });
     },
 });

@@ -4,6 +4,7 @@
 import { API_CONFIG } from '../../config/api';
 import { mediaApi } from '../../services/media_api';
 import { STORAGE_KEYS } from '../../constants/storage_keys';
+var tokenManager = require('../../services/request').tokenManager;
 
 Page({
   data: {
@@ -11,7 +12,7 @@ Page({
 
     // Step flow
     currentStep: 1,
-    navTitle: '添加记录',
+    navTitle: '记录成长',
     selectedFiles: [],
     thumbColors: ['#f1dce2', '#dceaf1', '#f4e6d6', '#e2f1e6'],
 
@@ -71,7 +72,7 @@ Page({
   onBack: function () { wx.navigateBack(); },
 
   getToken: function () {
-    try { return wx.getStorageSync('baby_diary_access_token') || ''; } catch (e) { return ''; }
+    return tokenManager.getAccessToken();
   },
 
   getBabyId: function () {
@@ -104,7 +105,7 @@ Page({
       selectedFiles: files,
       _pendingFiles: files,
       currentStep: 2,
-      navTitle: '确认信息',
+      navTitle: '添加记录',
     });
   },
 
@@ -378,7 +379,7 @@ Page({
     // Reset to step 1
     this.setData({
       currentStep: 1,
-      navTitle: '添加记录',
+      navTitle: '记录成长',
       isUploading: false,
       uploadProgress: 0,
       uploadCurrentFile: 0,
@@ -410,7 +411,7 @@ Page({
     // Reset to step 1 for another upload
     this.setData({
       currentStep: 1,
-      navTitle: '添加记录',
+      navTitle: '记录成长',
       selectedFiles: [],
       milestone: '',
       description: '',

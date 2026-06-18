@@ -12,7 +12,6 @@
 .home-nav {
   display: flex;
   align-items: center;
-  justify-content: center;
   height: 104rpx;
   padding: 0 40rpx;
   flex-shrink: 0;
@@ -21,11 +20,6 @@
   font-size: 36rpx;
   font-weight: 700;
   color: #4a4a4a;
-}
-.home-nav-spacer {
-  width: 56rpx;
-  height: 72rpx;
-  flex-shrink: 0;
 }
 
 /* ---- Content Area (Skyline scroll-view) ---- */
@@ -66,7 +60,6 @@
 
 .filter-chip.active {
   background: #ffa87a;
-  box-shadow: 0px 3px 6px 0px rgba(255, 168, 122, 0.35);
 }
 .filter-chip.active text {
   font-weight: 600;
@@ -120,7 +113,7 @@
   color: #ffa87a;
   position: absolute;
   left: 0;
-  top: 22rpx;
+  top: 20rpx;
   line-height: 1;
 }
 .milestone-info {
@@ -180,7 +173,7 @@
   left: 0;
   width: 100%;
   height: 100%;
-  border-radius: 32rpx;
+  border-radius: 24rpx;  /* Figma: inner media 12px */
 }
 
 .media-type-icon {
@@ -193,7 +186,7 @@
 /* Date overlay (bottom-left) */
 .media-date {
   position: absolute;
-  bottom: 12rpx;
+  bottom: 40rpx;  /* Figma: 20px from bottom */
   left: 16rpx;
   font-size: 20rpx;
   font-weight: 400;
@@ -206,7 +199,7 @@
 .card-menu {
   position: absolute;
   top: 12rpx;
-  right: 16rpx;
+  right: 28rpx;  /* Figma: ~14px from right */
   width: 40rpx;
   height: 40rpx;
   display: flex;
@@ -226,7 +219,7 @@
 .video-badge {
   position: absolute;
   bottom: 12rpx;
-  right: 16rpx;
+  right: 12rpx;
   background: rgba(0, 0, 0, 0.5);
   border-radius: 8rpx;
   padding: 4rpx 10rpx;

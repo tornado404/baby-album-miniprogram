@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 // growth_compare.ts - 成长对比页
 var api_1 = require("../../config/api");
+var tokenManager = require('../../services/request').tokenManager;
 Page({
     data: {
         safeTop: 44,
@@ -42,11 +43,7 @@ Page({
     },
     loadFirstBaby: function () {
         var _this = this;
-        var token = '';
-        try {
-            token = wx.getStorageSync('baby_diary_access_token') || '';
-        }
-        catch (e) { }
+        var token = tokenManager.getAccessToken();
         if (!token)
             return;
         wx.request({
@@ -71,11 +68,7 @@ Page({
     },
     loadGrowthCompare: function (babyId) {
         var _this = this;
-        var token = '';
-        try {
-            token = wx.getStorageSync('baby_diary_access_token') || '';
-        }
-        catch (e) { }
+        var token = tokenManager.getAccessToken();
         if (!token) {
             return;
         }

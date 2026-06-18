@@ -2,6 +2,7 @@
 // gallery.ts - 素材库页面
 
 import { API_CONFIG } from '../../config/api';
+var tokenManager = require('../../services/request').tokenManager;
 
 Page({
   data: {
@@ -25,7 +26,7 @@ Page({
   onShow() { this.loadMedia(); },
 
   getToken() {
-    try { return wx.getStorageSync('baby_diary_access_token') || ''; } catch (e) { return ''; }
+    return tokenManager.getAccessToken();
   },
 
   loadMedia() {
@@ -49,7 +50,6 @@ Page({
       success: function (res) {
         if (res.statusCode === 200 && Array.isArray(res.data)) {
           _this.setData({ mediaList: res.data, isLoading: false, hasMore: res.data.length >= 20 });
-          _this.updateCache(res.data);
         } else { _this.loadFallback(); }
       },
       fail: function () { _this.loadFallback(); },
@@ -67,8 +67,6 @@ Page({
     }
     this.setData({ mediaList: list, isLoading: false });
   },
-
-  updateCache(list) { try { wx.setStorageSync('album_media_cache', list); } catch (e) {} },
 
   onFilterTap(e) {
     var idx = parseInt(e.currentTarget.dataset.index);

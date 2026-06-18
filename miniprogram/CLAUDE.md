@@ -11,6 +11,7 @@
 | `<block wx:for>` | Skyline 报错 `Element iterators can only be used in elements or text nodes` | 直接在 `<view wx:for>` 上迭代 |
 | `scroll-view` + `enable-flex` | Skyline 不支持，页面白屏 | 移除该属性 |
 | `overflow-y: auto` / `overflow-y: scroll` 在 scroll-view 上 | Skyline 使用自己的滚动机制 | 移除这些 CSS 属性 |
+| `wx:else` 分支内含 `wx:for` | Skyline 编译阶段会在非元素节点上创建迭代器，报错 `Element iterators can only be used in elements or text nodes` | 将 `wx:else` 改为 `wx:elif="{{!cond1 && !cond2}}"` 显式条件 |
 
 ### 瀑布流布局的实现约束
 

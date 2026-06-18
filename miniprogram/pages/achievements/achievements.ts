@@ -1,5 +1,6 @@
 // achievements.ts - 成就徽章页
 import { API_CONFIG } from '../../config/api';
+var tokenManager = require('../../services/request').tokenManager;
 
 Page({
   data: {
@@ -26,8 +27,7 @@ Page({
 
   loadAchievements() {
     var _this = this;
-    var token = '';
-    try { token = wx.getStorageSync('baby_diary_access_token') || ''; } catch (e) {}
+    var token = tokenManager.getAccessToken();
 
     if (!token) {
       wx.showToast({ title: '请先登录', icon: 'none' });

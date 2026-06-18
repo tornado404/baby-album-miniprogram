@@ -2,6 +2,7 @@
 // journey.ts - 成长历程页面
 
 import { API_CONFIG } from '../../config/api';
+var tokenManager = require('../../services/request').tokenManager;
 
 Page({
   data: {
@@ -31,7 +32,7 @@ Page({
 
   onShow() { this.loadData(); },
 
-  getToken() { try { return wx.getStorageSync('baby_diary_access_token') || ''; } catch (e) { return ''; } },
+  getToken() { return tokenManager.getAccessToken(); },
 
   loadData() {
     this.setData({ isLoading: true });

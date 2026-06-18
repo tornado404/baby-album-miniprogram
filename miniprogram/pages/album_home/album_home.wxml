@@ -7,7 +7,6 @@
   <!-- Navigation Bar -->
   <view class="home-nav">
     <text class="home-nav-title">宝宝成长日记</text>
-    <view class="home-nav-spacer"></view>
   </view>
 
   <!-- Content Area (Skyline: 不使用 enable-flex) -->
@@ -40,7 +39,7 @@
     </view>
 
     <!-- Waterfall Sections -->
-    <view wx:else class="waterfall-sections">
+    <view wx:elif="{{!isLoading && !isEmpty}}" class="waterfall-sections">
 
       <view wx:for="{{sections}}" wx:for-item="section" wx:key="title" class="milestone-section">
 

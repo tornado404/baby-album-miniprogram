@@ -4,6 +4,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 var api_1 = require("../../config/api");
 var i18n_1 = require("../../utils/i18n");
+var tokenManager = require('../../services/request').tokenManager;
 Page({
     data: {
         safeTop: 44,
@@ -47,12 +48,7 @@ Page({
         });
     },
     getToken: function () {
-        try {
-            return wx.getStorageSync('baby_diary_access_token') || '';
-        }
-        catch (e) {
-            return '';
-        }
+        return tokenManager.getAccessToken();
     },
     // ========== 数据加载 ==========
     loadBabies: function () {

@@ -52,6 +52,9 @@ class StorageService {
   private async checkVersion(): Promise<void> {
     const version = wx.getStorageSync(this.keys.version);
     if (version !== this.VERSION) {
+      // v1: 当前版本无需数据迁移，直接写入版本号
+      // 未来有数据格式变更时，在此处添加 if-else if 链式迁移：
+      // if (version === 'v1') { /* 将 v1 格式迁移到 v2 */ }
       await wx.setStorageSync(this.keys.version, this.VERSION);
     }
   }

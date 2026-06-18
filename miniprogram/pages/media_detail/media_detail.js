@@ -3,6 +3,7 @@
 // media_detail.ts - 内容详情页，对接后端 API (Figma 精确还原)
 Object.defineProperty(exports, "__esModule", { value: true });
 var api_1 = require("../../config/api");
+var tokenManager = require('../../services/request').tokenManager;
 Page({
     data: {
         safeTop: 44,
@@ -31,11 +32,7 @@ Page({
     loadMedia: function (id) {
         this.setData({ isLoading: true });
         var _this = this;
-        var token = '';
-        try {
-            token = wx.getStorageSync('baby_diary_access_token') || '';
-        }
-        catch (e) { }
+        var token = tokenManager.getAccessToken();
         wx.request({
             url: api_1.API_CONFIG.baseURL + '/media/' + id,
             method: 'GET',

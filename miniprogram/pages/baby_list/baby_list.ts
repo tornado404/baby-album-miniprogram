@@ -3,6 +3,7 @@
 
 import { API_CONFIG } from '../../config/api';
 import { STORAGE_KEYS } from '../../constants/storage_keys';
+var tokenManager = require('../../services/request').tokenManager;
 
 Page({
   data: {
@@ -24,8 +25,7 @@ Page({
   loadBabies() {
     this.setData({ isLoading: true });
     var _this = this;
-    var token = '';
-    try { token = wx.getStorageSync('baby_diary_access_token') || ''; } catch (e) {}
+    var token = tokenManager.getAccessToken();
 
     wx.request({
       url: API_CONFIG.baseURL + '/babies/',
@@ -93,8 +93,7 @@ Page({
 
   deleteBaby(babyId) {
     var _this = this;
-    var token = '';
-    try { token = wx.getStorageSync('baby_diary_access_token') || ''; } catch (e) {}
+    var token = tokenManager.getAccessToken();
 
     wx.showLoading({ title: '删除中...' });
     wx.request({

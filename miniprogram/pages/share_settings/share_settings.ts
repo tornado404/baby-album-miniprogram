@@ -3,6 +3,7 @@
 
 import { API_CONFIG } from '../../config/api';
 import { t } from '../../utils/i18n';
+var tokenManager = require('../../services/request').tokenManager;
 
 Page({
   data: {
@@ -50,7 +51,7 @@ Page({
   },
 
   getToken: function () {
-    try { return wx.getStorageSync('baby_diary_access_token') || ''; } catch (e) { return ''; }
+    return tokenManager.getAccessToken();
   },
 
   // ========== 数据加载 ==========

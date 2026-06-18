@@ -18,9 +18,7 @@ export const STORAGE_KEYS = {
   /** 存储版本 */
   version: `${STORAGE_PREFIX}version`,
   /** 当前宝宝ID */
-  currentBabyId: 'baby_diary_current_baby_id',
-  /** 用户偏好设置 */
-  userPreferences: `${STORAGE_PREFIX}user_preferences`
+  currentBabyId: 'baby_diary_current_baby_id'
 } as const;
 
 /**

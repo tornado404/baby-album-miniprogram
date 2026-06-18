@@ -4,6 +4,7 @@
 import { API_CONFIG } from '../../config/api';
 import { configService } from '../../services/config_service';
 import { t, getLocale, setLocale, getAvailableLocales } from '../../utils/i18n';
+var tokenManager = require('../../services/request').tokenManager;
 
 type Env = 'development' | 'testing' | 'production';
 
@@ -54,8 +55,7 @@ Page({
 
   loadStats() {
     var _this = this;
-    var token = '';
-    try { token = wx.getStorageSync('baby_diary_access_token') || ''; } catch (e) {}
+    var token = tokenManager.getAccessToken();
 
     // 加载统计数据
     wx.request({
@@ -110,8 +110,7 @@ Page({
 
   loadUserProfile() {
     var _this = this;
-    var token = '';
-    try { token = wx.getStorageSync('baby_diary_access_token') || ''; } catch (e) {}
+    var token = tokenManager.getAccessToken();
     if (!token) return;
 
     wx.request({
@@ -328,8 +327,7 @@ Page({
   // ========== Data Export (OPT-08) ==========
 
   onExportData: function () {
-    var token = '';
-    try { token = wx.getStorageSync('baby_diary_access_token') || ''; } catch (e) {}
+    var token = tokenManager.getAccessToken();
 
     if (!token) {
       wx.showToast({ title: '请先登录', icon: 'none' });
@@ -365,8 +363,7 @@ Page({
   },
 
   onExportReport: function () {
-    var token = '';
-    try { token = wx.getStorageSync('baby_diary_access_token') || ''; } catch (e) {}
+    var token = tokenManager.getAccessToken();
 
     if (!token) {
       wx.showToast({ title: '请先登录', icon: 'none' });

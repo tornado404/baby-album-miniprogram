@@ -96,7 +96,7 @@
 
 .upload-option {
   width: 670rpx;
-  height: 180rpx;
+  height: 200rpx;
   background: #ffffff;
   border-radius: 48rpx;
   box-shadow: 0px 4px 10px 0px rgba(230, 198, 179, 0.25);
@@ -128,19 +128,19 @@
 }
 
 .option-title {
-  font-size: 30rpx;
+  font-size: 34rpx;
   font-weight: 600;
   color: #4a4a4a;
 }
 
 .option-desc {
-  font-size: 24rpx;
+  font-size: 26rpx;
   font-weight: 400;
   color: #999;
 }
 
 .option-arrow {
-  font-size: 48rpx;
+  font-size: 52rpx;
   color: #ccc;
   font-weight: 500;
   flex-shrink: 0;
@@ -165,7 +165,7 @@
   align-items: center;
   justify-content: flex-start;
   padding: 0 16px;  /* Figma: left 16px */
-  width: 333px;  /* Figma: 335px - 2px margin */
+  width: 335px;  /* Figma: 335px */
   flex-shrink: 0;
   margin-bottom: 12px;  /* spacing to thumbs */
 }
@@ -179,8 +179,8 @@
 /* Thumbnail Grid (4 in a row) */
 .thumb-grid {
   display: flex;
-  gap: 8px;  /* 83-76=7px gap in Figma, rounded to 8 */
-  width: 333px;  /* match badge width */
+  gap: 7px;  /* 83-76=7px gap in Figma */
+  width: 335px;  /* match badge width */
   margin-bottom: 16px;  /* spacing to form */
 }
 
@@ -206,7 +206,7 @@
 
 /* Form Fields */
 .form-fields {
-  width: 333px;  /* 335-2 */
+  width: 335px;  /* 335px */
   display: flex;
   flex-direction: column;
   gap: 8px;  /* 252+8-160=... */
@@ -216,7 +216,7 @@
   background: #ffffff;
   height: 80px;  /* Figma: 80px */
   border-radius: 32rpx;  /* Figma: 16px ≈ 32rpx */
-  box-shadow: 0px 4rpx 12rpx 0px rgba(230, 198, 179, 0.15);  /* Figma shadow */
+  box-shadow: 0px 2px 6px 0px rgba(230, 198, 179, 0.15);  /* Figma: 0px 2px 6px */
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -249,11 +249,11 @@
 
 /* Confirm Button */
 .confirm-btn {
-  width: 333px;
+  width: 335px;
   height: 50px;  /* Figma: 50px */
   background: #ffa87a;
   border-radius: 25px;  /* Figma: 25px */
-  box-shadow: 0px 8rpx 16rpx 0px rgba(230, 198, 179, 0.3);
+  box-shadow: 0px 4px 8px 0px rgba(230, 198, 179, 0.3);  /* Figma: 0px 4px 8px */
   display: flex;
   align-items: center;
   justify-content: center;

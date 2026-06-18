@@ -5,6 +5,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 var api_1 = require("../../config/api");
 var storage_keys_1 = require("../../constants/storage_keys");
+var tokenManager = require('../../services/request').tokenManager;
 var BABY_KEY = 'baby_diary_baby_profile';
 Page({
     data: {
@@ -49,13 +50,54 @@ Page({
             wx.showToast({ title: '请输入宝宝昵称', icon: 'none' });
             return;
         }
+        var token = tokenManager.getAccessToken();
+        if (!token) {
+            this.fallbackToLocal(name);
+            return;
+        }
+        // 先检查服务端是否已有宝宝，防止重复创建
+        this.checkExistingBabies(token, name);
+    },
+    checkExistingBabies: function (token, name) {
+        var _this = this;
+        wx.request({
+            url: api_1.API_CONFIG.baseURL + '/babies/',
+            method: 'GET',
+            header: { 'Authorization': 'Bearer ' + token },
+            timeout: 8000,
+            success: function (res) {
+                if (res.statusCode === 200 && Array.isArray(res.data) && res.data.length > 0) {
+                    // 已有宝宝 → 不创建，刷新缓存并跳首页
+                    var babies = res.data;
+                    try {
+                        wx.setStorageSync('album_babies', babies);
+                    }
+                    catch (e) { }
+                    try {
+                        wx.setStorageSync(BABY_KEY, babies[0]);
+                    }
+                    catch (e) { }
+                    try {
+                        wx.setStorageSync(storage_keys_1.STORAGE_KEYS.currentBabyId, babies[0].id);
+                    }
+                    catch (e) { }
+                    wx.showToast({ title: '宝宝已存在', icon: 'none', duration: 1500 });
+                    setTimeout(function () { wx.redirectTo({ url: '/pages/album_home/album_home' }); }, 1500);
+                }
+                else {
+                    // 确实无宝宝 → 正常创建
+                    _this.createBaby(token, name);
+                }
+            },
+            fail: function () {
+                // 网络不可用 → 离线创建
+                _this.fallbackToLocal(name);
+            },
+        });
+    },
+    createBaby: function (token, name) {
         this.setData({ isSaving: true });
         var _this = this;
-        var token = '';
-        try {
-            token = wx.getStorageSync('baby_diary_access_token') || '';
-        }
-        catch (e) { }
         wx.request({
             url: api_1.API_CONFIG.baseURL + '/babies/',
             method: 'POST',

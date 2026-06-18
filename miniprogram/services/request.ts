@@ -60,6 +60,11 @@ function clearTokens(): void {
   try {
     wx.removeStorageSync(ACCESS_TOKEN_KEY);
     wx.removeStorageSync(REFRESH_TOKEN_KEY);
+    wx.removeStorageSync(USER_ID_KEY);
+    wx.removeStorageSync('baby_diary_authed');
+    wx.removeStorageSync('baby_diary_baby_profile');
+    wx.removeStorageSync('album_babies');
+    wx.removeStorageSync('baby_diary_current_baby_id');
   } catch (e) {}
 }
 

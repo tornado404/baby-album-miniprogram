@@ -4,6 +4,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 var api_1 = require("../../config/api");
 var storage_keys_1 = require("../../constants/storage_keys");
+var tokenManager = require('../../services/request').tokenManager;
 Page({
     data: {
         safeTop: 44,
@@ -22,11 +23,7 @@ Page({
     loadBabies: function () {
         this.setData({ isLoading: true });
         var _this = this;
-        var token = '';
-        try {
-            token = wx.getStorageSync('baby_diary_access_token') || '';
-        }
-        catch (e) { }
+        var token = tokenManager.getAccessToken();
         wx.request({
             url: api_1.API_CONFIG.baseURL + '/babies/',
             method: 'GET',
@@ -90,8 +87,7 @@ Page({
     },
     deleteBaby: function (babyId) {
         var _this = this;
-        var token = '';
-        try { token = wx.getStorageSync('baby_diary_access_token') || ''; } catch (e) { }
+        var token = tokenManager.getAccessToken();
         wx.showLoading({ title: '删除中...' });
         wx.request({
             url: api_1.API_CONFIG.baseURL + '/babies/' + babyId,

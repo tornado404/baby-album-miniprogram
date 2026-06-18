@@ -4,6 +4,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 var storage_keys_1 = require("../../constants/storage_keys");
 var api_1 = require("../../config/api");
+var tokenManager = require('../../services/request').tokenManager;
 Page({
     data: {
         safeTop: 44,
@@ -38,11 +39,7 @@ Page({
     },
     loadFromApi: function (babyId) {
         var _this = this;
-        var token = '';
-        try {
-            token = wx.getStorageSync('baby_diary_access_token') || '';
-        }
-        catch (e) { }
+        var token = tokenManager.getAccessToken();
         wx.request({
             url: api_1.API_CONFIG.baseURL + '/babies/' + babyId,
             method: 'GET',
@@ -131,11 +128,7 @@ Page({
         catch (e) { }
         if (!babyId)
             return;
-        var token = '';
-        try {
-            token = wx.getStorageSync('baby_diary_access_token') || '';
-        }
-        catch (e) { }
+        var token = tokenManager.getAccessToken();
         wx.uploadFile({
             url: api_1.API_CONFIG.baseURL + '/babies/' + babyId + '/avatar',
             filePath: filePath,
@@ -176,11 +169,7 @@ Page({
             babyId = wx.getStorageSync(storage_keys_1.STORAGE_KEYS.currentBabyId) || '';
         }
         catch (e) { }
-        var token = '';
-        try {
-            token = wx.getStorageSync('baby_diary_access_token') || '';
-        }
-        catch (e) { }
+        var token = tokenManager.getAccessToken();
         var _this = this;
         var url;
         var method;
@@ -240,6 +229,18 @@ Page({
                 storedBabies.push(profile);
             }
             wx.setStorageSync('album_babies', storedBabies);
+            // 更新 BABY_KEY 确保首页读到最新数据
+            if (found && targetId) {
+                var currentBabyId = '';
+                try { currentBabyId = wx.getStorageSync('baby_diary_current_baby_id') || ''; } catch (e) { }
+                if (targetId === currentBabyId) {
+                    var updatedBaby = null;
+                    for (var j = 0; j < storedBabies.length; j++) {
+                        if (storedBabies[j].id === targetId) { updatedBaby = storedBabies[j]; break; }
+                    }
+                    if (updatedBaby) { try { wx.setStorageSync('baby_diary_baby_profile', updatedBaby); } catch (e) { } }
+                }
+            }
         }
         catch (e) { }
     },
@@ -259,6 +260,17 @@ Page({
                 storedBabies.push(profile);
             }
             wx.setStorageSync('album_babies', storedBabies);
+            if (found && babyId) {
+                var currentBabyId = '';
+                try { currentBabyId = wx.getStorageSync('baby_diary_current_baby_id') || ''; } catch (e) { }
+                if (babyId === currentBabyId) {
+                    var updatedBaby = null;
+                    for (var j = 0; j < storedBabies.length; j++) {
+                        if (storedBabies[j].id === babyId) { updatedBaby = storedBabies[j]; break; }
+                    }
+                    if (updatedBaby) { try { wx.setStorageSync('baby_diary_baby_profile', updatedBaby); } catch (e) { } }
+                }
+            }
         }
         catch (e) { }
         wx.showToast({ title: '已保存到本地', icon: 'success' });
