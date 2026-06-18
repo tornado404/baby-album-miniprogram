@@ -1,0 +1,93 @@
+<view class="page-growth-compare">
+  <!-- Status Bar -->
+  <view class="status-bar" style="height: {{safeTop}}px;"></view>
+
+  <!-- Navigation Bar -->
+  <view class="compare-nav">
+    <view class="nav-back" bindtap="goBack">
+      <text>‹</text>
+    </view>
+    <text class="nav-title">{{i18n.title || '成长对比'}}</text>
+    <view class="nav-spacer"></view>
+  </view>
+
+  <!-- Content -->
+  <scroll-view class="content-area" scroll-y>
+
+    <!-- Empty State (no data) -->
+    <view class="empty-state" wx:if="{{!hasData}}">
+      <text class="empty-icon">📸</text>
+      <text class="empty-text">{{i18n.empty || '暂无对比数据'}}</text>
+      <text class="empty-hint">{{i18n.emptyHint || '为照片标记里程碑后来查看吧'}}</text>
+    </view>
+
+    <view class="compare-content" wx:if="{{hasData}}">
+
+      <!-- === Top: Milestone Section === -->
+      <view class="top-section">
+        <!-- Milestone Pill Tabs -->
+        <scroll-view class="milestone-tabs" scroll-x enable-flex>
+          <view
+            class="milestone-pill {{currentMilestoneIndex === index ? 'pill-active' : ''}}"
+            wx:for="{{milestones}}"
+            wx:key="key"
+            data-index="{{index}}"
+            bindtap="onMilestoneTap"
+          >
+            <text class="pill-text">{{item.name}}</text>
+          </view>
+        </scroll-view>
+
+        <!-- Current Milestone Cover Photo -->
+        <view class="milestone-photo-area">
+          <image
+            class="milestone-cover"
+            src="{{currentMilestone.thumbnailUrl || currentMilestone.coverUrl}}"
+            mode="aspectFill"
+            wx:if="{{currentMilestone.coverUrl}}"
+          ></image>
+          <view class="milestone-cover-placeholder" wx:else>
+            <text class="placeholder-icon">📷</text>
+          </view>
+
+          <!-- Milestone Info Overlay -->
+          <view class="milestone-info">
+            <text class="milestone-name">{{currentMilestone.name}}</text>
+            <text class="milestone-count">{{currentMilestone.photoCount}}{{i18n.photos || '张照片'}}</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- === Divider === -->
+      <view class="vs-divider">
+        <view class="divider-line"></view>
+        <text class="divider-text">VS</text>
+        <view class="divider-line"></view>
+      </view>
+
+      <!-- === Bottom: Latest Photo Section === -->
+      <view class="bottom-section" wx:if="{{latestPhoto}}">
+        <view class="latest-photo-area">
+          <image
+            class="latest-photo"
+            src="{{latestPhoto.thumbnailUrl || latestPhoto.url}}"
+            mode="aspectFill"
+          ></image>
+          <view class="latest-info">
+            <text class="latest-date">{{latestPhoto.captureDate}}</text>
+            <text class="latest-age" wx:if="{{latestPhoto.babyAge}}">
+              {{latestPhoto.babyAge.years}}{{i18n.years || '岁'}}
+              {{latestPhoto.babyAge.months}}{{i18n.months || '月'}}
+              {{latestPhoto.babyAge.days}}{{i18n.days || '天'}}
+            </text>
+          </view>
+        </view>
+      </view>
+
+    </view>
+
+  </scroll-view>
+
+  <!-- Bottom Navigation -->
+  <bottom-nav current="profile"></bottom-nav>
+</view>

@@ -16,7 +16,8 @@
     "pages/3d_viewer/3d_viewer",
     "pages/achievements/achievements",
     "pages/about/about",
-    "pages/share_settings/share_settings"
+    "pages/share_settings/share_settings",
+    "pages/growth_compare/growth_compare"
   ],
   "window": {
     "navigationBarTextStyle": "black",

@@ -1,0 +1,248 @@
+/* growth_compare.wxss - 成长对比页 Claymorphism 样式 */
+
+.page-growth-compare {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--clay-bg, #fffbf8);
+}
+
+.status-bar {
+  flex-shrink: 0;
+}
+
+/* Navigation Bar */
+.compare-nav {
+  display: flex;
+  align-items: center;
+  height: 104rpx;
+  padding: 0 40rpx;
+  flex-shrink: 0;
+}
+
+.nav-back {
+  width: 60rpx;
+  height: 60rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.nav-back text {
+  font-size: 56rpx;
+  color: #4a4a4a;
+  font-weight: 300;
+  line-height: 1;
+}
+
+.nav-title {
+  flex: 1;
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #4a4a4a;
+}
+
+.nav-spacer {
+  width: 60rpx;
+  flex-shrink: 0;
+}
+
+/* Content Area */
+.content-area {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.compare-content {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 160rpx;
+}
+
+/* Empty State */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 200rpx 0;
+  gap: 16rpx;
+}
+
+.empty-icon {
+  font-size: 96rpx;
+}
+
+.empty-text {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #4a4a4a;
+}
+
+.empty-hint {
+  font-size: 26rpx;
+  color: #999;
+}
+
+/* === Top Section (60% of content) === */
+.top-section {
+  padding: 0 32rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+}
+
+/* Milestone Pill Tabs */
+.milestone-tabs {
+  display: flex;
+  flex-direction: row;
+  gap: 16rpx;
+  white-space: nowrap;
+  overflow-x: auto;
+  padding: 8rpx 0;
+  -webkit-overflow-scrolling: touch;
+}
+
+.milestone-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 12rpx 28rpx;
+  border-radius: 40rpx;
+  background: #ffffff;
+  box-shadow: 0px 4rpx 8rpx 0px rgba(230, 198, 179, 0.25);
+  flex-shrink: 0;
+}
+
+.pill-active {
+  background: var(--clay-primary, #ffa87a);
+  box-shadow: 0px 4rpx 12rpx 0px rgba(255, 168, 122, 0.4);
+}
+
+.pill-text {
+  font-size: 26rpx;
+  font-weight: 500;
+  color: #4a4a4a;
+}
+
+.pill-active .pill-text {
+  color: #ffffff;
+}
+
+/* Milestone Cover Photo */
+.milestone-photo-area {
+  width: 100%;
+  height: 520rpx;
+  border-radius: 48rpx;
+  overflow: hidden;
+  background: #ffffff;
+  box-shadow: 0px 6rpx 16rpx 0px rgba(230, 198, 179, 0.35);
+  position: relative;
+}
+
+.milestone-cover {
+  width: 100%;
+  height: 100%;
+}
+
+.milestone-cover-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--clay-card-blue, #dceaf1);
+}
+
+.placeholder-icon {
+  font-size: 80rpx;
+  opacity: 0.5;
+}
+
+.milestone-info {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20rpx 28rpx;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.4));
+}
+
+.milestone-name {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.milestone-count {
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* === VS Divider === */
+.vs-divider {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+  padding: 40rpx 80rpx;
+}
+
+.divider-line {
+  flex: 1;
+  height: 2rpx;
+  background: var(--clay-text-muted, #ccc);
+  opacity: 0.3;
+}
+
+.divider-text {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: var(--clay-primary, #ffa87a);
+  letter-spacing: 4rpx;
+}
+
+/* === Bottom Section === */
+.bottom-section {
+  padding: 0 32rpx;
+}
+
+.latest-photo-area {
+  width: 100%;
+  height: 400rpx;
+  border-radius: 48rpx;
+  overflow: hidden;
+  background: #ffffff;
+  box-shadow: 0px 6rpx 16rpx 0px rgba(230, 198, 179, 0.35);
+  position: relative;
+}
+
+.latest-photo {
+  width: 100%;
+  height: 100%;
+}
+
+.latest-info {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  padding: 16rpx 28rpx;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.4));
+}
+
+.latest-date {
+  font-size: 24rpx;
+  color: #ffffff;
+  font-weight: 500;
+}
+
+.latest-age {
+  font-size: 22rpx;
+  color: rgba(255, 255, 255, 0.85);
+}
