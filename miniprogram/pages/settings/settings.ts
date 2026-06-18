@@ -73,6 +73,10 @@ Page({
             recordDays: d.recordDays || 0,
           });
           _this._updateRecordDaysText(d.recordDays || 0);
+        }
+      },
+      fail: function () {},
+    });
 
     // 加载成就
     wx.request({

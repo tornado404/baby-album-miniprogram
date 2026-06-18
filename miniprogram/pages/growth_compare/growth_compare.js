@@ -64,7 +64,9 @@ Page({
                     _this.loadGrowthCompare(babyId);
                 }
             },
-            fail: function () { },
+            fail: function () {
+                wx.showToast({ title: '加载失败', icon: 'none' });
+            },
         });
     },
     loadGrowthCompare: function (babyId) {
