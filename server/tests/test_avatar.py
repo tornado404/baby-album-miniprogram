@@ -1,9 +1,10 @@
 """头像上传 API 端点测试
 
-注意：头像上传依赖 MinIO，测试中 mock minio_client.put_object。
+注意：头像上传使用 httpx.put 直接调用 MinIO REST API，测试中 mock httpx.put。
 """
 
 from unittest.mock import patch, MagicMock
+import httpx
 from httpx import AsyncClient
 
 
@@ -11,10 +12,10 @@ class TestAvatarUploadAPI:
     """头像上传端点测试"""
 
     async def test_upload_avatar_success(self, client: AsyncClient, auth_headers: dict, test_baby_id: str):
-        """上传头像成功（mock MinIO）"""
-        with patch("app.routers.baby.minio_client") as mock_minio:
-            mock_minio.put_object = MagicMock()
-
+        """上传头像成功（mock httpx.put）"""
+        mock_resp = MagicMock(spec=httpx.Response)
+        mock_resp.status_code = 200
+        with patch("httpx.put", return_value=mock_resp) as mock_put:
             resp = await client.put(
                 f"/api/v1/babies/{test_baby_id}/avatar",
                 files={"file": ("avatar.jpg", b"fake-image-bytes", "image/jpeg")},
@@ -24,12 +25,13 @@ class TestAvatarUploadAPI:
             body = resp.json()
             assert body["code"] == 0
             assert "avatar" in body["data"]
-            # 验证 MinIO put_object 被调用
-            mock_minio.put_object.assert_called_once()
+            mock_put.assert_called_once()
 
     async def test_upload_avatar_baby_not_found(self, client: AsyncClient, auth_headers: dict):
         """不存在的宝宝返回 404"""
-        with patch("app.routers.baby.minio_client") as mock_minio:
+        mock_resp = MagicMock(spec=httpx.Response)
+        mock_resp.status_code = 200
+        with patch("httpx.put", return_value=mock_resp):
             resp = await client.put(
                 "/api/v1/babies/nonexistent/avatar",
                 files={"file": ("avatar.jpg", b"fake-image-bytes", "image/jpeg")},
@@ -47,9 +49,9 @@ class TestAvatarUploadAPI:
 
     async def test_upload_avatar_ext_validation(self, client: AsyncClient, auth_headers: dict, test_baby_id: str):
         """非图片扩展名默认为 jpg"""
-        with patch("app.routers.baby.minio_client") as mock_minio:
-            mock_minio.put_object = MagicMock()
-
+        mock_resp = MagicMock(spec=httpx.Response)
+        mock_resp.status_code = 200
+        with patch("httpx.put", return_value=mock_resp) as mock_put:
             resp = await client.put(
                 f"/api/v1/babies/{test_baby_id}/avatar",
                 files={"file": ("avatar.exe", b"fake-bytes", "application/octet-stream")},
@@ -57,6 +59,5 @@ class TestAvatarUploadAPI:
             )
             assert resp.status_code == 200
             # 检查上传路径中包含 .jpg（非图片扩展名回退为 jpg）
-            call_args = mock_minio.put_object.call_args
-            object_path = call_args[0][1]  # 第二个位置参数
-            assert object_path.endswith(".jpg")
+            call_url = mock_put.call_args[0][0]
+            assert call_url.endswith(".jpg")
