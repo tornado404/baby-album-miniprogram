@@ -314,18 +314,157 @@ Page({
 
   onMenuTap: function (e) {
     var id = e.currentTarget.dataset.id;
+    var _this = this;
     // Show action sheet for the media item
     wx.showActionSheet({
       itemList: ['编辑', '删除', '分享'],
       success: function (res) {
         if (res.tapIndex === 0) {
-          // Edit
+          // Edit - TODO
         } else if (res.tapIndex === 1) {
           // Delete
+          _this.handleDelete(id);
         } else if (res.tapIndex === 2) {
-          // Share
+          // Share invitation
+          var babyId = _this.data.currentBabyId;
+          if (!babyId) {
+            wx.showToast({ title: '请先选择宝宝', icon: 'none' });
+            return;
+          }
+          wx.showModal({
+            title: '邀请共享',
+            editable: true,
+            placeholderText: '输入对方手机号或邮箱',
+            success: function (modalRes) {
+              if (modalRes.confirm) {
+                var token = _this.getToken();
+                if (!token) {
+                  wx.showToast({ title: '请先登录', icon: 'none' });
+                  return;
+                }
+                wx.request({
+                  url: API_CONFIG.baseURL + '/share/invitations',
+                  method: 'POST',
+                  header: {
+                    'Authorization': 'Bearer ' + token,
+                    'content-type': 'application/json',
+                  },
+                  data: JSON.stringify({
+                    babyId: babyId,
+                    permission: 'viewer',
+                  }),
+                  success: function (reqRes) {
+                    if (reqRes.statusCode === 200 || reqRes.statusCode === 201) {
+                      wx.showToast({ title: '邀请已发送', icon: 'success' });
+                    } else {
+                      var errDetail = reqRes.data && reqRes.data.detail;
+                      var errMsg = errDetail || ('请求失败: ' + reqRes.statusCode);
+                      wx.showToast({ title: '发送失败: ' + errMsg, icon: 'none' });
+                    }
+                  },
+                  fail: function (err) {
+                    var errMsg = err.errMsg || '网络错误';
+                    wx.showToast({ title: '发送失败: ' + errMsg, icon: 'none' });
+                  },
+                });
+              }
+            },
+          });
         }
       },
+    });
+  },
+
+  handleDelete: function (id) {
+    var _this = this;
+    var token = this.getToken();
+    if (!token) {
+      wx.showToast({ title: '请先登录', icon: 'none' });
+      return;
+    }
+    wx.showModal({
+      title: '确认删除',
+      content: '确定删除这条成长记录吗？',
+      success: function (modalRes) {
+        if (modalRes.confirm) {
+          _this.doDelete(id, token);
+        }
+      },
+    });
+  },
+
+  doDelete: function (id, token) {
+    var _this = this;
+    wx.request({
+      url: API_CONFIG.baseURL + '/media/' + id,
+      method: 'DELETE',
+      header: { 'Authorization': 'Bearer ' + token },
+      timeout: 8000,
+      success: function (res) {
+        if (res.statusCode === 200 || res.statusCode === 204) {
+          wx.showToast({ title: '删除成功', icon: 'success' });
+          _this.removeMediaFromSections(id);
+        } else {
+          wx.showToast({ title: '删除失败', icon: 'none' });
+        }
+      },
+      fail: function () {
+        wx.showToast({ title: '删除失败', icon: 'none' });
+      },
+    });
+  },
+
+  removeMediaFromSections: function (id) {
+    var sections = this.data.sections;
+    var newSections = [];
+    var isEmpty = true;
+
+    for (var i = 0; i < sections.length; i++) {
+      var section = sections[i];
+      var newLeftItems = [];
+      var newRightItems = [];
+      var newItems = [];
+
+      // Filter out the deleted item from left items
+      for (var j = 0; j < section.leftItems.length; j++) {
+        if (section.leftItems[j].id !== id) {
+          newLeftItems.push(section.leftItems[j]);
+        }
+      }
+
+      // Filter out the deleted item from right items
+      for (var j = 0; j < section.rightItems.length; j++) {
+        if (section.rightItems[j].id !== id) {
+          newRightItems.push(section.rightItems[j]);
+        }
+      }
+
+      // Filter out the deleted item from all items
+      for (var j = 0; j < section.items.length; j++) {
+        if (section.items[j].id !== id) {
+          newItems.push(section.items[j]);
+        }
+      }
+
+      // If both columns are empty, skip this section entirely
+      if (newLeftItems.length > 0 || newRightItems.length > 0) {
+        var newSection = {};
+        newSection.title = section.title;
+        newSection.icon = section.icon;
+        newSection.dateLabel = section.dateLabel;
+        newSection.ageLabel = section.ageLabel;
+        newSection.items = newItems;
+        newSection.leftItems = newLeftItems;
+        newSection.rightItems = newRightItems;
+        newSections.push(newSection);
+      }
+    }
+
+    isEmpty = newSections.length === 0;
+
+    this.setData({
+      sections: newSections,
+      isEmpty: isEmpty,
     });
   },
 
