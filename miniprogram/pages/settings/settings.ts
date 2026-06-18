@@ -41,6 +41,7 @@ Page({
     this.loadThemeMode();
     this.applyI18n();
     this.loadStats();
+    this.loadUserProfile();
   },
 
   onShow() {
@@ -103,15 +104,40 @@ Page({
     });
   },
 
+  // ========== 用户资料加载 ==========
+
+  loadUserProfile() {
+    var _this = this;
+    var token = '';
+    try { token = wx.getStorageSync('baby_diary_access_token') || ''; } catch (e) {}
+    if (!token) return;
+
+    wx.request({
+      url: API_CONFIG.baseURL + '/auth/me',
+      method: 'GET',
+      header: { 'Authorization': 'Bearer ' + token },
+      timeout: 8000,
+      success: function (res) {
+        if (res.statusCode === 200 && res.data) {
+          var d = res.data;
+          _this.setData({
+            userName: d.nickName || '',
+            userAvatar: d.avatarUrl || '',
+          });
+        }
+      },
+      fail: function () {},
+    });
+  },
+
   // ========== 菜单导航 ==========
 
   onMenuTap(e) {
     var key = e.currentTarget.dataset.key;
     var routes = {
       baby_manage: '/pages/baby_list/baby_list',
-      growth_compare: '',
-      achievements: '',
-      storage: '',
+      growth_compare: '/pages/growth_compare/growth_compare',
+      achievements: '/pages/achievements/achievements',
       share: '/pages/share_settings/share_settings',
       about: '/pages/about/about',
       export_data: '',
@@ -128,6 +154,12 @@ Page({
     } else {
       wx.showToast({ title: '功能开发中', icon: 'none' });
     }
+  },
+
+  // ========== 成就徽章 ==========
+
+  goToAchievements() {
+    wx.navigateTo({ url: '/pages/achievements/achievements' });
   },
 
   // ========== 环境切换（开发者面板） ==========

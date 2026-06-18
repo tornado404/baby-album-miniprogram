@@ -5,19 +5,25 @@
 
   <!-- Navigation Bar -->
   <view class="settings-nav">
-    <text class="nav-title-centered">{{i18n.title || '我的'}}</text>
+    <text class="nav-title-left">{{i18n.title || '我的'}}</text>
   </view>
 
   <!-- Content Area -->
   <scroll-view class="content-area" scroll-y enable-flex>
 
-    <!-- User Card -->
-    <view class="user-card anim-scale-in">      <view class="user-avatar">
-        <text>👩</text>
+    <!-- User Card with badge entry -->
+    <view class="user-card anim-scale-in" bindtap="goToAchievements" hover-class="user-card-hover">
+      <view class="user-avatar {{userAvatar ? 'user-avatar-img-wrap' : ''}}">
+        <image wx:if="{{userAvatar}}" src="{{userAvatar}}" mode="aspectFill" class="user-avatar-img"></image>
+        <text wx:else>👩</text>
       </view>
       <view class="user-info">
         <text class="user-name">{{userName}}</text>
-        <text class="user-record">记录天数：{{recordDays}}天</text>
+        <text class="user-record">{{i18n.recordDays.replace('{days}', recordDays || 0)}}</text>
+      </view>
+      <view class="badge-entry" wx:if="{{achievementCount > 0}}">
+        <text class="badge-icon-text">🏆</text>
+        <text class="badge-count-text">{{achievementCount}}</text>
       </view>
     </view>
 
@@ -32,8 +38,8 @@
         <text class="stat-label">{{i18n.videos || '视频'}}</text>
       </view>
       <view class="stat-item">
-        <text class="stat-value">{{(photoCount || 0) + (videoCount || 0)}}</text>
-        <text class="stat-label">{{i18n.records || '记录'}}</text>
+        <text class="stat-value">{{modelCount || 0}}</text>
+        <text class="stat-label">{{i18n.models || '3D模型'}}</text>
       </view>
     </view>
 
@@ -71,17 +77,6 @@
         <text class="menu-arrow">›</text>
       </view>
 
-      <view class="menu-item" bindtap="onMenuTap" data-key="storage">
-        <view class="menu-icon">
-          <text>💾</text>
-        </view>
-        <view class="menu-text-area">
-          <text class="menu-title">{{i18n.storage || '存储管理'}}</text>
-          <text class="menu-desc">{{i18n.storageDesc || '管理本地和云端存储'}}</text>
-        </view>
-        <text class="menu-arrow">›</text>
-      </view>
-
       <view class="menu-item" bindtap="onMenuTap" data-key="share">
         <view class="menu-icon">
           <text>🔗</text>
@@ -89,17 +84,6 @@
         <view class="menu-text-area">
           <text class="menu-title">{{i18n.share || '分享设置'}}</text>
           <text class="menu-desc">{{i18n.shareDesc || '家人共享设置'}}</text>
-        </view>
-        <text class="menu-arrow">›</text>
-      </view>
-
-      <view class="menu-item" bindtap="onThemeTap">
-        <view class="menu-icon">
-          <text>🌙</text>
-        </view>
-        <view class="menu-text-area">
-          <text class="menu-title">{{i18n.theme || '外观模式'}}</text>
-          <text class="menu-desc">{{themeMode === 'auto' ? (i18n.themeAuto || '跟随系统') : themeMode === 'dark' ? (i18n.themeDark || '暗黑模式') : (i18n.themeLight || '浅色模式')}}</text>
         </view>
         <text class="menu-arrow">›</text>
       </view>
