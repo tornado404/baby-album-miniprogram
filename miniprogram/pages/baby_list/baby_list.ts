@@ -45,7 +45,11 @@ Page({
       timeout: 8000,
       success: function (res) {
         if (res.statusCode === 200 && Array.isArray(res.data)) {
-          _this.setData({ babies: res.data, isLoading: false });
+          var items = res.data.map(function (b) {
+            b.ageText = b.age || '';
+            return b;
+          });
+          _this.setData({ babies: items, isLoading: false });
         } else {
           _this.fallbackBabies();
         }
@@ -58,7 +62,11 @@ Page({
     try {
       var stored = wx.getStorageSync('album_babies');
       if (Array.isArray(stored) && stored.length > 0) {
-        this.setData({ babies: stored, isLoading: false });
+        var items = stored.map(function (b) {
+          b.ageText = b.ageText || b.age || '';
+          return b;
+        });
+        this.setData({ babies: items, isLoading: false });
         return;
       }
     } catch (e) {}

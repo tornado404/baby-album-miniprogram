@@ -1,4 +1,5 @@
 """宝宝路由"""
+from datetime import date
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_db
@@ -8,6 +9,39 @@ from app.schemas.baby import BabyCreate, BabyUpdate, BabyResponse
 from app.utils.milestones import get_recommended_milestones
 from app.services.file_service import get_file_url, generate_file_path, _sign_request_headers
 from app.config import settings
+
+
+def _compute_age_text(birth_date: str | None) -> str | None:
+    """根据出生日期计算年龄文本（如 "6个月3天"）"""
+    if not birth_date:
+        return None
+    try:
+        parts = birth_date.split("-")
+        if len(parts) != 3:
+            return None
+        bd = date(int(parts[0]), int(parts[1]), int(parts[2]))
+        today = date.today()
+        if today < bd:
+            return None
+        yrs = today.year - bd.year
+        mos = today.month - bd.month
+        days = today.day - bd.day
+        if days < 0:
+            mos -= 1
+            prev = date(today.year, today.month - 1, bd.day)
+            days = (today - prev).days
+        if mos < 0:
+            yrs -= 1
+            mos += 12
+        parts_list = []
+        if yrs > 0:
+            parts_list.append(f"{yrs}岁")
+        if mos > 0 or yrs > 0:
+            parts_list.append(f"{mos}个月")
+        parts_list.append(f"{days}天")
+        return "".join(parts_list)
+    except (ValueError, IndexError):
+        return None
 
 router = APIRouter()
 
@@ -24,6 +58,7 @@ async def list_babies(
     return [
         BabyResponse(
             id=b.id, name=b.name, gender=b.gender, birthDate=b.birth_date,
+            age=_compute_age_text(b.birth_date),
             **stats_map.get(b.id, {"photoCount": 0, "videoCount": 0, "recordDays": 0}),
         ) for b in babies
     ]
@@ -37,7 +72,8 @@ async def create_baby(
 ):
     baby = await BabyService(db).create_baby(user_id, data)
     return BabyResponse(
-        id=baby.id, name=baby.name, gender=baby.gender, birthDate=baby.birth_date
+        id=baby.id, name=baby.name, gender=baby.gender, birthDate=baby.birth_date,
+        age=_compute_age_text(baby.birth_date),
     )
 
 
@@ -54,6 +90,7 @@ async def get_baby(
     stats = await svc.get_baby_stats(baby_id, user_id)
     return BabyResponse(
         id=baby.id, name=baby.name, gender=baby.gender, birthDate=baby.birth_date,
+        age=_compute_age_text(baby.birth_date),
         **stats,
     )
 
@@ -67,7 +104,8 @@ async def update_baby(
     try:
         baby = await BabyService(db).update_baby(baby_id, user_id, data)
         return BabyResponse(
-            id=baby.id, name=baby.name, gender=baby.gender, birthDate=baby.birth_date
+            id=baby.id, name=baby.name, gender=baby.gender, birthDate=baby.birth_date,
+            age=_compute_age_text(baby.birth_date),
         )
     except ValueError as e:
         raise HTTPException(404, str(e))
