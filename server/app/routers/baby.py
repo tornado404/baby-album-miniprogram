@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_db
 from app.middleware.auth import get_current_user_id
-from app.services.baby_service import BabyService
+from app.services.baby_service import BabyService, DuplicateBabyNameError, BabyNotFoundError
 from app.schemas.baby import BabyCreate, BabyUpdate, BabyResponse
 from app.utils.milestones import get_recommended_milestones
 from app.services.file_service import get_file_url, generate_file_path, _sign_request_headers
@@ -70,11 +70,14 @@ async def create_baby(
     user_id: str = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db),
 ):
-    baby = await BabyService(db).create_baby(user_id, data)
-    return BabyResponse(
-        id=baby.id, name=baby.name, gender=baby.gender, birthDate=baby.birth_date,
-        age=_compute_age_text(baby.birth_date),
-    )
+    try:
+        baby = await BabyService(db).create_baby(user_id, data)
+        return BabyResponse(
+            id=baby.id, name=baby.name, gender=baby.gender, birthDate=baby.birth_date,
+            age=_compute_age_text(baby.birth_date),
+        )
+    except DuplicateBabyNameError as e:
+        raise HTTPException(409, str(e))
 
 
 @router.get("/{baby_id}", response_model=BabyResponse)
@@ -107,7 +110,9 @@ async def update_baby(
             id=baby.id, name=baby.name, gender=baby.gender, birthDate=baby.birth_date,
             age=_compute_age_text(baby.birth_date),
         )
-    except ValueError as e:
+    except DuplicateBabyNameError as e:
+        raise HTTPException(409, str(e))
+    except BabyNotFoundError as e:
         raise HTTPException(404, str(e))
 
 
@@ -120,7 +125,7 @@ async def delete_baby(
     try:
         await BabyService(db).delete_baby(baby_id, user_id)
         return {"message": "Deleted"}
-    except ValueError as e:
+    except BabyNotFoundError as e:
         raise HTTPException(404, str(e))
 
 

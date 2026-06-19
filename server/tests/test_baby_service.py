@@ -70,15 +70,19 @@ class TestGetBabiesStats:
 
 class TestCreateBaby:
     async def test_creates_and_returns(self, svc, db):
-        from app.models.baby import Baby
         from app.schemas.baby import BabyCreate
 
-        with patch("app.services.baby_service.Baby", return_value=MagicMock(id="new-id", name="test", gender="male", birth_date="2026-01-01")):
-            with patch("app.services.baby_service.record_sync_log", AsyncMock()):
-                data = BabyCreate(name="test", gender="male", birthDate="2026-01-01")
-                baby = await svc.create_baby("u1", data)
+        # 模拟：重复名检查返回空
+        no_dup = MagicMock(first=lambda: None)
+        db.execute = AsyncMock(return_value=no_dup)
 
-        assert baby.id == "new-id"
+        with patch("app.services.baby_service.record_sync_log", AsyncMock()):
+            data = BabyCreate(name="test", gender="male", birthDate="2026-01-01")
+            baby = await svc.create_baby("u1", data)
+
+        assert baby.name == "test"
+        db.add.assert_called_once()
+        db.commit.assert_awaited_once()
 
 
 class TestListBabies:
@@ -128,8 +132,11 @@ class TestUpdateBaby:
     async def test_updates_fields_and_commits(self, svc, db):
         from app.schemas.baby import BabyUpdate
         baby = MagicMock(id="b1", name="old", gender="male", birth_date="2026-01-01")
-        mock_result = MagicMock(scalar_one_or_none=lambda: baby)
-        db.execute = AsyncMock(return_value=mock_result)
+        baby_found = MagicMock(scalar_one_or_none=lambda: baby)
+        no_dup = MagicMock(first=lambda: None)
+
+        # get_baby 调用 → baby_found, 重复名检查 → no_dup
+        db.execute = AsyncMock(side_effect=[baby_found, no_dup])
         db.commit = AsyncMock()
         db.refresh = AsyncMock()
 

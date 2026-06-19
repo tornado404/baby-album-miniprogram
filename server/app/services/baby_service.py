@@ -8,6 +8,16 @@ from app.schemas.baby import BabyCreate, BabyUpdate
 from app.services.sync_service import record_sync_log
 
 
+class DuplicateBabyNameError(ValueError):
+    """同一用户下同名宝宝已存在"""
+    pass
+
+
+class BabyNotFoundError(ValueError):
+    """宝宝记录不存在"""
+    pass
+
+
 class BabyService:
     def __init__(self, db: AsyncSession):
         self.db = db
@@ -75,6 +85,15 @@ class BabyService:
         return result
 
     async def create_baby(self, user_id: str, data: BabyCreate):
+        existing = await self.db.execute(
+            select(Baby.id).where(
+                Baby.user_id == user_id, Baby.name == data.name,
+                Baby.is_deleted == False
+            )
+        )
+        if existing.first() is not None:
+            raise DuplicateBabyNameError(f"Baby with name '{data.name}' already exists")
+
         baby = Baby(
             user_id=user_id, name=data.name, gender=data.gender,
             birth_date=data.birthDate, avatar=data.avatar
@@ -89,7 +108,20 @@ class BabyService:
     async def update_baby(self, baby_id: str, user_id: str, data: BabyUpdate):
         baby = await self.get_baby(baby_id, user_id)
         if not baby:
-            raise ValueError("Baby not found")
+            raise BabyNotFoundError("Baby not found")
+
+        # 如果更新了 name，检查是否与同用户的其他宝宝重名
+        new_name = data.name
+        if new_name is not None and new_name != baby.name:
+            existing = await self.db.execute(
+                select(Baby.id).where(
+                    Baby.user_id == user_id, Baby.name == new_name,
+                    Baby.is_deleted == False, Baby.id != baby_id
+                )
+            )
+            if existing.first() is not None:
+                raise DuplicateBabyNameError(f"Baby with name '{new_name}' already exists")
+
         # camelCase → snake_case 字段映射
         field_map = {"birthDate": "birth_date"}
         for k, v in data.model_dump(exclude_unset=True).items():
@@ -104,7 +136,7 @@ class BabyService:
     async def delete_baby(self, baby_id: str, user_id: str):
         baby = await self.get_baby(baby_id, user_id)
         if not baby:
-            raise ValueError("Baby not found")
+            raise BabyNotFoundError("Baby not found")
         baby.is_deleted = True
         await record_sync_log(self.db, user_id, "baby", baby_id, SyncAction.delete)
         await self.db.commit()

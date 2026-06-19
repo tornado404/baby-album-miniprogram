@@ -6,13 +6,12 @@
 
   <!-- Navigation Bar -->
   <view class="home-nav">
-    <view class="home-nav-left">
-      <text class="home-nav-title">宝宝成长日记</text>
+    <view class="home-nav-left" bindtap="toggleBabyPicker">
+      <text class="home-nav-baby-name">{{currentBaby.name || '宝宝成长日记'}}</text>
+      <text class="home-nav-arrow">{{showBabyPicker ? '▲' : '▼'}}</text>
     </view>
-    <view class="baby-selector" bindtap="toggleBabyPicker">
-      <text class="baby-selector-value">{{currentBaby.name || '选择宝宝'}}</text>
-      <text class="baby-selector-arrow">{{showBabyPicker ? '▲' : '▼'}}</text>
-    </view>
+    <!-- 右侧留空，不放置任何交互元素 -->
+    <view class="home-nav-right"></view>
   </view>
 
   <!-- Baby Picker Dropdown -->

@@ -18,38 +18,27 @@
   flex-shrink: 0;
 }
 .home-nav-left {
-  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
   min-width: 0;
 }
-.home-nav-title {
+.home-nav-baby-name {
   font-size: 36rpx;
   font-weight: 700;
   color: #4a4a4a;
-}
-
-/* ---- Baby Selector ---- */
-.baby-selector {
-  display: flex;
-  align-items: center;
-  gap: 8rpx;
-  background: #f9f0e9;
-  border-radius: 24rpx;
-  padding: 10rpx 20rpx;
-  max-width: 240rpx;
-  flex-shrink: 0;
-}
-.baby-selector-value {
-  font-size: 26rpx;
-  font-weight: 500;
-  color: #4a4a4a;
+  max-width: 400rpx;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 160rpx;
 }
-.baby-selector-arrow {
-  font-size: 18rpx;
+.home-nav-arrow {
+  font-size: 20rpx;
   color: #999;
+  margin-top: 8rpx;
+}
+.home-nav-right {
+  flex: 1;
 }
 
 /* ---- Baby Picker Overlay ---- */
@@ -65,7 +54,7 @@
 .baby-picker-dropdown {
   position: absolute;
   top: 128rpx;
-  right: 40rpx;
+  left: 40rpx;
   background: #ffffff;
   border-radius: 20rpx;
   box-shadow: 0px 6px 24px 0px rgba(0, 0, 0, 0.12);
