@@ -3,7 +3,7 @@
 import uuid
 from datetime import datetime
 from decimal import Decimal
-from sqlalchemy import String, Integer, Date, Numeric, Boolean, DateTime, ForeignKey, UniqueConstraint
+from sqlalchemy import String, Integer, Date, Numeric, Boolean, DateTime, ForeignKey, Index, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -12,7 +12,8 @@ from app.database import Base
 class Baby(Base):
     __tablename__ = "babies"
     __table_args__ = (
-        UniqueConstraint("user_id", "name", name="uq_babies_user_name"),
+        Index("uq_babies_user_name", "user_id", "name", unique=True,
+              postgresql_where=text("is_deleted = FALSE")),
     )
 
     id: Mapped[str] = mapped_column(
