@@ -12,14 +12,87 @@
 .home-nav {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   height: 104rpx;
   padding: 0 40rpx;
   flex-shrink: 0;
+}
+.home-nav-left {
+  flex: 1;
+  min-width: 0;
 }
 .home-nav-title {
   font-size: 36rpx;
   font-weight: 700;
   color: #4a4a4a;
+}
+
+/* ---- Baby Selector ---- */
+.baby-selector {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  background: #f9f0e9;
+  border-radius: 24rpx;
+  padding: 10rpx 20rpx;
+  max-width: 240rpx;
+  flex-shrink: 0;
+}
+.baby-selector-value {
+  font-size: 26rpx;
+  font-weight: 500;
+  color: #4a4a4a;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 160rpx;
+}
+.baby-selector-arrow {
+  font-size: 18rpx;
+  color: #999;
+}
+
+/* ---- Baby Picker Overlay ---- */
+.baby-picker-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 100;
+  background: rgba(0, 0, 0, 0.1);
+}
+.baby-picker-dropdown {
+  position: absolute;
+  top: 128rpx;
+  right: 40rpx;
+  background: #ffffff;
+  border-radius: 20rpx;
+  box-shadow: 0px 6px 24px 0px rgba(0, 0, 0, 0.12);
+  min-width: 240rpx;
+  overflow: hidden;
+}
+.baby-picker-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24rpx 28rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+.baby-picker-item:last-child {
+  border-bottom: none;
+}
+.baby-picker-item-active {
+  background: #fff8f0;
+}
+.baby-picker-name {
+  font-size: 26rpx;
+  color: #4a4a4a;
+}
+.baby-picker-check {
+  font-size: 24rpx;
+  color: #ffa87a;
+  margin-left: 16rpx;
 }
 
 /* ---- Content Area (Skyline scroll-view) ---- */

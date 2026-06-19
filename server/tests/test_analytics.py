@@ -23,6 +23,85 @@ class TestAnalyticsAPI:
         assert data["modelCount"] == 0
         assert data["recordDays"] == 0
 
+    async def test_stats_with_baby_id_new_user(
+        self, client: AsyncClient, auth_headers: dict, test_baby_id: str
+    ):
+        """按 baby_id 统计（新用户无媒体，计数为 0）"""
+        resp = await client.get(
+            "/api/v1/analytics/stats",
+            params={"baby_id": test_baby_id},
+            headers=auth_headers,
+        )
+        assert resp.status_code == 200
+        data = resp.json()["data"]
+        assert data["photoCount"] == 0
+        assert data["videoCount"] == 0
+        assert data["modelCount"] == 0
+        assert data["recordDays"] == 0
+
+    async def test_stats_with_baby_id_after_upload(
+        self, client: AsyncClient, auth_headers: dict, test_baby_id: str
+    ):
+        """上传媒体后按 baby_id 统计"""
+        await client.post(
+            "/api/v1/media/",
+            json={
+                "babyId": test_baby_id,
+                "type": "image",
+                "cosKey": "photos/test/stats_baby.jpg",
+                "captureDate": "2026-06-01",
+                "title": "统计测试",
+            },
+            headers=auth_headers,
+        )
+        await client.post(
+            "/api/v1/media/",
+            json={
+                "babyId": test_baby_id,
+                "type": "video",
+                "cosKey": "videos/test/stats_baby.mp4",
+                "captureDate": "2026-06-02",
+                "title": "视频测试",
+            },
+            headers=auth_headers,
+        )
+
+        resp = await client.get(
+            "/api/v1/analytics/stats",
+            params={"baby_id": test_baby_id},
+            headers=auth_headers,
+        )
+        assert resp.status_code == 200
+        data = resp.json()["data"]
+        assert data["photoCount"] == 1
+        assert data["videoCount"] == 1
+        assert data["modelCount"] == 0
+        assert data["recordDays"] == 2
+
+    async def test_stats_with_baby_id_wrong_baby(
+        self, client: AsyncClient, auth_headers: dict, test_baby_id: str
+    ):
+        """用不存在的 baby_id 过滤 → 计数均为 0"""
+        await client.post(
+            "/api/v1/media/",
+            json={
+                "babyId": test_baby_id,
+                "type": "image",
+                "cosKey": "photos/test/stats_wrong.jpg",
+                "captureDate": "2026-06-01",
+            },
+            headers=auth_headers,
+        )
+        resp = await client.get(
+            "/api/v1/analytics/stats",
+            params={"baby_id": "nonexistent-baby"},
+            headers=auth_headers,
+        )
+        assert resp.status_code == 200
+        data = resp.json()["data"]
+        assert data["photoCount"] == 0
+        assert data["videoCount"] == 0
+
     async def test_achievements_requires_auth(self, client: AsyncClient):
         """未认证 → 401"""
         resp = await client.get("/api/v1/analytics/achievements")

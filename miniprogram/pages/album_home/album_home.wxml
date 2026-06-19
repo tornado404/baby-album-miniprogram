@@ -6,7 +6,31 @@
 
   <!-- Navigation Bar -->
   <view class="home-nav">
-    <text class="home-nav-title">宝宝成长日记</text>
+    <view class="home-nav-left">
+      <text class="home-nav-title">宝宝成长日记</text>
+    </view>
+    <view class="baby-selector" bindtap="toggleBabyPicker">
+      <text class="baby-selector-value">{{currentBaby.name || '选择宝宝'}}</text>
+      <text class="baby-selector-arrow">{{showBabyPicker ? '▲' : '▼'}}</text>
+    </view>
+  </view>
+
+  <!-- Baby Picker Dropdown -->
+  <view wx:if="{{showBabyPicker && babies.length > 0}}" class="baby-picker-overlay" catchtap="toggleBabyPicker">
+    <view class="baby-picker-dropdown">
+      <view
+        wx:for="{{babies}}"
+        wx:key="id"
+        wx:for-item="baby"
+        class="baby-picker-item {{baby.id === currentBabyId ? 'baby-picker-item-active' : ''}}"
+        data-id="{{baby.id}}"
+        data-name="{{baby.name}}"
+        catchtap="onBabySelect"
+      >
+        <text class="baby-picker-name">{{baby.name}}</text>
+        <text wx:if="{{baby.id === currentBabyId}}" class="baby-picker-check">✓</text>
+      </view>
+    </view>
   </view>
 
   <!-- Content Area (Skyline: 不使用 enable-flex) -->

@@ -1,35 +1,73 @@
 """数据分析路由"""
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, func
 from app.database import get_db
 from app.middleware.auth import get_current_user_id
 from app.services.achievement_service import AchievementService
 from app.services.export_service import ExportService
+from app.models.media import Media
 
 router = APIRouter()
 
 
+async def _count_media(db: AsyncSession, user_id: str, baby_id: str, media_type: str) -> int:
+    """统计某个宝宝的指定类型媒体数量"""
+    r = await db.execute(
+        select(func.count(Media.id)).where(
+            Media.user_id == user_id,
+            Media.baby_id == baby_id,
+            Media.type == media_type,
+            Media.is_deleted == False,
+        )
+    )
+    return r.scalar() or 0
+
+
+async def _count_record_days(db: AsyncSession, user_id: str, baby_id: str) -> int:
+    """统计某个宝宝有记录的天数"""
+    r = await db.execute(
+        select(func.count(func.distinct(Media.capture_date))).where(
+            Media.user_id == user_id,
+            Media.baby_id == baby_id,
+            Media.is_deleted == False,
+        )
+    )
+    return r.scalar() or 0
+
+
 @router.get("/stats")
 async def get_stats(
+    baby_id: str = Query(None),
     user_id: str = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db),
 ):
-    """用户全局统计"""
-    from app.models.user import User
-    from sqlalchemy import select
-
-    r = await db.execute(select(User).where(User.id == user_id))
-    user = r.scalar_one_or_none()
-    if not user:
-        return {"code": 0, "data": {}}
+    """用户统计 — 支持按宝宝筛选"""
+    if baby_id:
+        # 按宝宝统计
+        photo_count = await _count_media(db, user_id, baby_id, "image")
+        video_count = await _count_media(db, user_id, baby_id, "video")
+        model_count = await _count_media(db, user_id, baby_id, "threedmodel")
+        record_days = await _count_record_days(db, user_id, baby_id)
+    else:
+        # 用户全局统计（向后兼容）
+        from app.models.user import User
+        r = await db.execute(select(User).where(User.id == user_id))
+        user = r.scalar_one_or_none()
+        if not user:
+            return {"code": 0, "data": {}}
+        photo_count = user.total_photos
+        video_count = user.total_videos
+        model_count = user.total_3d_models
+        record_days = user.record_days
 
     return {
         "code": 0,
         "data": {
-            "photoCount": user.total_photos,
-            "videoCount": user.total_videos,
-            "modelCount": user.total_3d_models,
-            "recordDays": user.record_days,
+            "photoCount": photo_count,
+            "videoCount": video_count,
+            "modelCount": model_count,
+            "recordDays": record_days,
         },
     }
 

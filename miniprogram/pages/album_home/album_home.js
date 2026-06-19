@@ -12,6 +12,7 @@ Page({
         currentFilter: '全部',
         currentBabyId: '',
         currentBaby: null,
+        showBabyPicker: false,
         babies: [],
         sections: [],
         isEmpty: false,
@@ -297,6 +298,29 @@ Page({
         }
         catch (e) { }
         _this.useMockData();
+    },
+    toggleBabyPicker: function () {
+        this.setData({ showBabyPicker: !this.data.showBabyPicker });
+    },
+    onBabySelect: function (e) {
+        var id = e.currentTarget.dataset.id;
+        var name = e.currentTarget.dataset.name;
+        if (id === this.data.currentBabyId) {
+            this.setData({ showBabyPicker: false });
+            return;
+        }
+        this.setData({
+            currentBabyId: id,
+            currentBaby: { id: id, name: name },
+            showBabyPicker: false,
+            sections: [],
+            isLoading: true,
+        });
+        try {
+            wx.setStorageSync(storage_keys_1.STORAGE_KEYS.currentBabyId, id);
+        }
+        catch (e) { }
+        this.fetchGroups(id);
     },
     getCardColor: function (id) {
         var colors = ['#f1dce2', '#dceaf1', '#f4e6d6', '#e2f1e6'];

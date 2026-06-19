@@ -5,6 +5,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var api_1 = require("../../config/api");
 var config_service_1 = require("../../services/config_service");
 var i18n_1 = require("../../utils/i18n");
+var storage_keys_1 = require("../../constants/storage_keys");
 var tokenManager = require('../../services/request').tokenManager;
 Page({
     data: {
@@ -50,9 +51,19 @@ Page({
     loadStats: function () {
         var _this = this;
         var token = tokenManager.getAccessToken();
-        // 加载统计数据
+        // 读取当前宝宝 ID
+        var babyId = '';
+        try {
+            babyId = wx.getStorageSync(storage_keys_1.STORAGE_KEYS.currentBabyId) || '';
+        }
+        catch (e) { }
+        // 加载统计数据（按宝宝筛选）
+        var statsUrl = api_1.API_CONFIG.baseURL + '/analytics/stats';
+        if (babyId) {
+            statsUrl += '?baby_id=' + encodeURIComponent(babyId);
+        }
         wx.request({
-            url: api_1.API_CONFIG.baseURL + '/analytics/stats',
+            url: statsUrl,
             method: 'GET',
             header: { 'Authorization': 'Bearer ' + token },
             timeout: 8000,

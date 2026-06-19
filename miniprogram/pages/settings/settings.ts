@@ -4,6 +4,7 @@
 import { API_CONFIG } from '../../config/api';
 import { configService } from '../../services/config_service';
 import { t, getLocale, setLocale, getAvailableLocales } from '../../utils/i18n';
+import { STORAGE_KEYS } from '../../constants/storage_keys';
 var tokenManager = require('../../services/request').tokenManager;
 
 type Env = 'development' | 'testing' | 'production';
@@ -57,9 +58,17 @@ Page({
     var _this = this;
     var token = tokenManager.getAccessToken();
 
-    // 加载统计数据
+    // 读取当前宝宝 ID
+    var babyId = '';
+    try { babyId = wx.getStorageSync(STORAGE_KEYS.currentBabyId) || ''; } catch (e) {}
+
+    // 加载统计数据（按宝宝筛选）
+    var statsUrl = API_CONFIG.baseURL + '/analytics/stats';
+    if (babyId) {
+      statsUrl += '?baby_id=' + encodeURIComponent(babyId);
+    }
     wx.request({
-      url: API_CONFIG.baseURL + '/analytics/stats',
+      url: statsUrl,
       method: 'GET',
       header: { 'Authorization': 'Bearer ' + token },
       timeout: 8000,
