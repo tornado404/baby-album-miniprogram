@@ -51,7 +51,9 @@ os.environ["DATABASE_URL"] = _app_url
 
 # Alembic 使用的同步 URL
 _sync_url = _db_url.replace("+asyncpg", "+psycopg2")
-config.set_main_option("sqlalchemy.url", _sync_url)
+# ConfigParser 将 % 视为插值标记，密码中的 %XX 需转义为 %%XX
+_sync_url_escaped = _sync_url.replace("%", "%%")
+config.set_main_option("sqlalchemy.url", _sync_url_escaped)
 
 # ── 模型元数据 ───────────────────────────────────────────
 # 导入所有模型，使 Base.metadata 包含所有表定义
