@@ -90,9 +90,12 @@ class BabyService:
         baby = await self.get_baby(baby_id, user_id)
         if not baby:
             raise ValueError("Baby not found")
+        # camelCase → snake_case 字段映射
+        field_map = {"birthDate": "birth_date"}
         for k, v in data.model_dump(exclude_unset=True).items():
             if v is not None:
-                setattr(baby, k, v)
+                col = field_map.get(k, k)
+                setattr(baby, col, v)
         await record_sync_log(self.db, user_id, "baby", baby_id, SyncAction.update)
         await self.db.commit()
         await self.db.refresh(baby)

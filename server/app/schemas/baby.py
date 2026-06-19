@@ -14,7 +14,6 @@ class BabyUpdate(BaseModel):
     name: Optional[str] = None
     gender: Optional[str] = None
     birthDate: Optional[str] = None
-    dueDate: Optional[str] = None
     weight: Optional[str] = None
     height: Optional[str] = None
     avatar: Optional[str] = None

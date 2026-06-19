@@ -283,11 +283,11 @@ class TestMigrationExecution:
         assert expected.issubset(columns), f"Missing columns: {expected - columns}"
 
     def test_babies_columns(self, engine):
-        """babies 表包含所有预期列"""
+        """babies 表包含所有预期列（不含已移除的 due_date）"""
         inspector = inspect(engine)
         columns = {col["name"] for col in inspector.get_columns("babies")}
         expected = {
-            "id", "user_id", "name", "gender", "birth_date", "due_date",
+            "id", "user_id", "name", "gender", "birth_date",
             "weight", "height", "avatar", "order", "is_deleted",
             "created_at", "updated_at",
         }

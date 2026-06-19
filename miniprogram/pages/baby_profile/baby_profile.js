@@ -11,9 +11,6 @@ Page({
         nickname: '小星星',
         gender: 'female',
         birthDate: '2025-12-01',
-        dueDate: '2025-11-24',
-        birthDateArray: [],
-        dueDateArray: [],
         weight: '7.2',
         height: '65',
         avatarUrl: '',
@@ -32,9 +29,6 @@ Page({
         }
         if (this.data.birthDate) {
             this.setData({ birthDateArray: this.dateToArray(this.data.birthDate) });
-        }
-        if (this.data.dueDate) {
-            this.setData({ dueDateArray: this.dateToArray(this.data.dueDate) });
         }
     },
     loadFromApi: function (babyId) {
@@ -160,7 +154,6 @@ Page({
             gender: this.data.gender,
             birthDate: this.data.birthDate,
             avatar: this.data.avatarUrl || this.data.avatarEmoji,
-            dueDate: this.data.birthDate,
             weight: this.data.weight,
             height: this.data.height,
         };
@@ -307,9 +300,6 @@ Page({
     },
     onBirthDateChange: function (e) {
         this.setData({ birthDate: e.detail.value });
-    },
-    onDueDateChange: function (e) {
-        this.setData({ dueDate: e.detail.value });
     },
     onWeightMinus: function () {
         var w = parseFloat(this.data.weight) - 0.1;

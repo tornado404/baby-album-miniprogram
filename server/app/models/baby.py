@@ -21,7 +21,6 @@ class Baby(Base):
     name: Mapped[str] = mapped_column(String(50))
     gender: Mapped[str | None] = mapped_column(String(10))
     birth_date: Mapped[str | None] = mapped_column(String(10))  # YYYY-MM-DD
-    due_date: Mapped[str | None] = mapped_column(String(10))
     weight: Mapped[Decimal | None] = mapped_column(Numeric(5, 2))
     height: Mapped[Decimal | None] = mapped_column(Numeric(5, 1))
     avatar: Mapped[str | None] = mapped_column(String(500))
