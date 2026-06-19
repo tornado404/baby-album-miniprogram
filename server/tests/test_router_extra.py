@@ -295,3 +295,85 @@ class TestSyncExtras:
         )
         assert resp.status_code == 200
         assert resp.json()["code"] == 0
+
+
+class TestUploadCallbackSuccess:
+    """Upload callback success path (mock Celery)"""
+
+    async def test_upload_callback_success(self, client, auth_headers, test_baby_id, monkeypatch):
+        """创建媒体后调用 callback，覆盖 success 路径"""
+        from unittest.mock import MagicMock
+        mock_task = MagicMock()
+        mock_task.id = "mock-task-id-123"
+        mock_delay = MagicMock(return_value=mock_task)
+
+        import app.tasks.thumbnail
+        monkeypatch.setattr(app.tasks.thumbnail.generate_thumbnail, "delay", mock_delay)
+
+        cr = await client.post(
+            "/api/v1/media/",
+            json={
+                "babyId": test_baby_id,
+                "type": "image",
+                "cosKey": "photos/test/cb.jpg",
+                "captureDate": "2026-06-01",
+            },
+            headers=auth_headers,
+        )
+        media_id = cr.json()["id"]
+
+        resp = await client.post(
+            "/api/v1/upload/callback",
+            json={"mediaId": media_id},
+            headers=auth_headers,
+        )
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["taskId"] == "mock-task-id-123"
+        assert body["message"] == "Thumbnail generation started"
+        mock_delay.assert_called_once()
+
+
+class TestShareBabyMedia:
+    """GET /api/v1/share/babies/{id}/media with real media"""
+
+    async def _login(self, client, code):
+        resp = await client.post("/api/v1/auth/login", json={"code": code})
+        assert resp.status_code == 200
+        data = resp.json()
+        return data["accessToken"], {"Authorization": f"Bearer {data['accessToken']}"}
+
+    async def test_shared_baby_media_with_content(self, client):
+        """共享宝宝的媒体可查看"""
+        owner_token, owner_headers = await self._login(client, "share_media_owner")
+        baby_resp = await client.post(
+            "/api/v1/babies/",
+            json={"name": "媒体测试宝宝", "gender": "male", "birthDate": "2026-01-01"},
+            headers=owner_headers,
+        )
+        baby_id = baby_resp.json()["id"]
+
+        # 创建媒体
+        await client.post(
+            "/api/v1/media/",
+            json={"babyId": baby_id, "type": "image", "cosKey": "photos/test/sm.jpg", "captureDate": "2026-06-01"},
+            headers=owner_headers,
+        )
+
+        # 邀请 viewer
+        inv = await client.post(
+            "/api/v1/share/invitations",
+            json={"babyId": baby_id, "permission": "viewer"},
+            headers=owner_headers,
+        )
+        token = inv.json()["data"]["token"]
+
+        _, viewer_headers = await self._login(client, "share_media_viewer")
+        await client.post("/api/v1/share/accept", json={"token": token}, headers=viewer_headers)
+
+        resp = await client.get(f"/api/v1/share/babies/{baby_id}/media", headers=viewer_headers)
+        assert resp.status_code == 200
+        data = resp.json()["data"]
+        assert len(data) == 1
+        assert data[0]["type"] == "image"
+        assert data[0]["cosUrl"] is not None
