@@ -306,14 +306,10 @@ Page({
         this.setData({ gender: gender });
     },
     onBirthDateChange: function (e) {
-        var val = e.detail.value;
-        var dateStr = this.arrayToDate(val);
-        this.setData({ birthDate: dateStr, birthDateArray: val });
+        this.setData({ birthDate: e.detail.value });
     },
     onDueDateChange: function (e) {
-        var val = e.detail.value;
-        var dateStr = this.arrayToDate(val);
-        this.setData({ dueDate: dateStr, dueDateArray: val });
+        this.setData({ dueDate: e.detail.value });
     },
     onWeightMinus: function () {
         var w = parseFloat(this.data.weight) - 0.1;
