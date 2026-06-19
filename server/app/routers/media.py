@@ -108,7 +108,7 @@ async def create_media(
     user_id: str = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db),
 ):
-    create_data = data.dict(exclude_unset=True)
+    create_data = data.model_dump(exclude_unset=True)
     if "tags" not in create_data or create_data["tags"] is None:
         create_data.pop("tags", None)
 
@@ -183,7 +183,7 @@ async def update_media(
     m = r.scalar_one_or_none()
     if not m:
         raise HTTPException(404, "Media not found")
-    updates = data.dict(exclude_unset=True, exclude_none=True)
+    updates = data.model_dump(exclude_unset=True, exclude_none=True)
     # camelCase → snake_case 字段映射
     field_map = {
         "locationName": "location_name",

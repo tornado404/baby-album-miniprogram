@@ -94,8 +94,14 @@ var StorageService = /** @class */ (function () {
                     case 0:
                         version = wx.getStorageSync(this.keys.version);
                         if (!(version !== this.VERSION)) return [3 /*break*/, 2];
+                        // v1: 当前版本无需数据迁移，直接写入版本号
+                        // 未来有数据格式变更时，在此处添加 if-else if 链式迁移：
+                        // if (version === 'v1') { /* 将 v1 格式迁移到 v2 */ }
                         return [4 /*yield*/, wx.setStorageSync(this.keys.version, this.VERSION)];
                     case 1:
+                        // v1: 当前版本无需数据迁移，直接写入版本号
+                        // 未来有数据格式变更时，在此处添加 if-else if 链式迁移：
+                        // if (version === 'v1') { /* 将 v1 格式迁移到 v2 */ }
                         _a.sent();
                         _a.label = 2;
                     case 2: return [2 /*return*/];

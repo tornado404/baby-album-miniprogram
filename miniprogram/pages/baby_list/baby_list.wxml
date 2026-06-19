@@ -38,7 +38,7 @@ module.exports = exports;
       </view>
 
       <!-- Baby Cards -->
-      <view wx:for="{{babies}}" wx:key="id" class="baby-card" data-id="{{item.id}}" data-name="{{item.name}}" bindtap="onBabyTap" bindlongpress="onBabyLongPress">
+      <view wx:for="{{babies}}" wx:key="id" class="baby-card {{item.id === currentBabyId ? 'baby-card-active' : ''}}" data-id="{{item.id}}" data-name="{{item.name}}" bindtap="onBabyTap" bindlongpress="onBabyLongPress">
         <view class="baby-card-avatar" style="background-color: {{item.gender === 'male' ? '#dceaf1' : '#f1dce2'}};">
           <image wx:if="{{util.avatarUrl(item)}}" class="card-avatar-image" src="{{util.avatarUrl(item)}}" mode="aspectFill"></image>
           <text wx:else>{{item.avatar || '👶'}}</text>
@@ -47,7 +47,10 @@ module.exports = exports;
           <text class="baby-card-name">{{item.name}}</text>
           <text class="baby-card-age">{{item.ageText || '年龄未知'}}</text>
         </view>
-        <text class="baby-card-arrow">›</text>
+        <view wx:if="{{item.id === currentBabyId}}" class="active-badge">
+          <text>✓</text>
+        </view>
+        <text wx:else class="baby-card-arrow">›</text>
       </view>
 
       <!-- Add Baby Button -->

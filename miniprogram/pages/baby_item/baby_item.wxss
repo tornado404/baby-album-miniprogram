@@ -1,0 +1,317 @@
+/* baby_item.wxss - 宝宝信息编辑页 Claymorphism 风格 */
+
+.page-baby-item {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: #fffbf8;
+}
+
+.status-bar {
+  flex-shrink: 0;
+}
+
+/* ---- Navigation Bar ---- */
+.item-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 104rpx;
+  padding: 0 40rpx 0 24rpx;
+  flex-shrink: 0;
+}
+
+.item-nav .nav-btn-circle {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 36rpx;
+  background: #f9f0e9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.item-nav .nav-btn-circle text {
+  font-size: 40rpx;
+  color: #4a4a4a;
+  font-weight: 600;
+}
+
+.item-nav .nav-title {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #4a4a4a;
+}
+
+.save-btn {
+  width: 120rpx;
+  height: 64rpx;
+  border-radius: 32rpx;
+  background: #ffa87a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.save-btn text {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.save-btn-hover {
+  opacity: 0.85;
+  transform: scale(0.97);
+}
+
+/* ---- Content Area ---- */
+.content-area {
+  flex: 1;
+  width: 750rpx;
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+
+.content-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40rpx 20rpx 60rpx;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.load-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 200rpx 0;
+}
+
+.load-state text {
+  font-size: 28rpx;
+  color: #999;
+}
+
+.form-body {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24rpx;
+}
+
+/* ---- Avatar Section ---- */
+.avatar-section {
+  width: 670rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 48rpx 0 36rpx;
+  background: #fcf6f1;
+  border-radius: 48rpx;
+  box-shadow: 0px 6px 16px 0px rgba(230, 198, 179, 0.35);
+  position: relative;
+  margin-bottom: 8rpx;
+}
+
+.avatar-circle {
+  width: 140rpx;
+  height: 140rpx;
+  border-radius: 70rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.avatar-circle text {
+  font-size: 64rpx;
+}
+
+.avatar-image {
+  width: 140rpx;
+  height: 140rpx;
+  border-radius: 70rpx;
+}
+
+.camera-badge {
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 24rpx;
+  background: #ffa87a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24rpx;
+  position: absolute;
+  top: 138rpx;
+  right: 240rpx;
+}
+
+.avatar-name {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #4a4a4a;
+  margin-top: 16rpx;
+}
+
+.avatar-hint {
+  font-size: 24rpx;
+  color: #999;
+  margin-top: 8rpx;
+}
+
+/* ---- Form Fields ---- */
+.form-field {
+  width: 670rpx;
+  background: #fcf6f1;
+  border-radius: 32rpx;
+  padding: 0 32rpx;
+  box-shadow: 0px 3px 8px 0px rgba(230, 198, 179, 0.2);
+  box-sizing: border-box;
+}
+
+.field-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 104rpx;
+}
+
+.field-label {
+  font-size: 30rpx;
+  color: #666;
+  flex-shrink: 0;
+}
+
+.date-picker {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.date-value {
+  min-width: 200rpx;
+  height: 64rpx;
+  border-radius: 32rpx;
+  border: 2rpx solid rgba(255, 168, 122, 0.5);
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  padding: 0 24rpx;
+  box-sizing: border-box;
+}
+
+.date-value text {
+  font-size: 26rpx;
+  color: #666;
+}
+
+.date-placeholder {
+  color: #bbb !important;
+}
+
+.date-icon {
+  width: 40rpx;
+  text-align: center;
+  font-size: 28rpx;
+}
+
+/* ---- Milestone ---- */
+.milestone-selector {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  min-width: 260rpx;
+  height: 64rpx;
+  border-radius: 32rpx;
+  border: 2rpx solid rgba(255, 168, 122, 0.5);
+  background: #ffffff;
+  padding: 0 24rpx;
+  box-sizing: border-box;
+}
+
+.milestone-value {
+  font-size: 26rpx;
+  color: #666;
+  flex: 1;
+}
+
+.milestone-placeholder {
+  font-size: 26rpx;
+  color: #bbb;
+  flex: 1;
+}
+
+.dropdown-arrow {
+  font-size: 20rpx;
+  color: #ffa87a;
+}
+
+.milestone-dropdown {
+  width: 670rpx;
+  background: #ffffff;
+  border-radius: 32rpx;
+  padding: 24rpx;
+  box-shadow: 0px 6px 24rpx 0px rgba(230, 198, 179, 0.35);
+  box-sizing: border-box;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+}
+
+.milestone-option {
+  width: calc(50% - 8rpx);
+  height: 56rpx;
+  border-radius: 28rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.milestone-option text {
+  font-size: 26rpx;
+  color: #4a4a4a;
+}
+
+.milestone-option:active {
+  opacity: 0.8;
+  transform: scale(0.97);
+}
+
+/* ---- Text Area ---- */
+.form-field-textarea {
+  padding: 24rpx 32rpx 16rpx;
+  flex-direction: column;
+  min-height: 320rpx;
+}
+
+.text-area-box {
+  width: 100%;
+  min-height: 220rpx;
+  background: #ffffff;
+  border-radius: 24rpx;
+  border: 2rpx solid #f4e6d6;
+  margin-top: 16rpx;
+  padding: 16rpx;
+  box-sizing: border-box;
+}
+
+.text-area-input {
+  width: 100%;
+  min-height: 180rpx;
+  font-size: 28rpx;
+  color: #4a4a4a;
+  line-height: 1.6;
+}
+
+.char-count {
+  font-size: 22rpx;
+  color: #bbb;
+  align-self: flex-end;
+  margin-top: 8rpx;
+}

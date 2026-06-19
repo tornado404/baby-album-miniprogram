@@ -1,0 +1,85 @@
+<!-- baby_item.wxml - 宝宝信息编辑页面 -->
+<view class="page page-baby-item">
+
+  <!-- Status Bar -->
+  <view class="status-bar" style="height: {{safeTop}}px;"></view>
+
+  <!-- Navigation Bar -->
+  <view class="item-nav">
+    <view class="nav-btn-circle" bindtap="onBack">
+      <text>←</text>
+    </view>
+    <text class="nav-title">宝宝信息</text>
+    <view class="save-btn" bindtap="onSave" hover-class="save-btn-hover">
+      <text>保存</text>
+    </view>
+  </view>
+
+  <!-- Content Area -->
+  <scroll-view class="content-area" scroll-y enable-flex>
+    <view class="content-inner">
+
+      <!-- Loading State -->
+      <view wx:if="{{isLoading}}" class="load-state">
+        <text>加载中...</text>
+      </view>
+
+      <view wx:else class="form-body">
+
+        <!-- Avatar Section -->
+        <view class="avatar-section" bindtap="onAvatarTap">
+          <view class="avatar-circle" style="background-color: {{gender === 'male' ? '#dceaf1' : '#f1dce2'}};">
+            <image wx:if="{{avatarUrl}}" class="avatar-image" src="{{avatarUrl}}" mode="aspectFill"></image>
+            <text wx:else class="avatar-emoji">{{avatarEmoji}}</text>
+          </view>
+          <view class="camera-badge">📷</view>
+          <view class="avatar-name">{{babyName || '宝宝'}}</view>
+          <view class="avatar-hint">点击上传头像</view>
+        </view>
+
+        <!-- Birth Date Field -->
+        <view class="form-field">
+          <view class="field-label-row">
+            <text class="field-label">出生日期</text>
+            <picker class="date-picker" mode="date" value="{{birthDate}}" bindchange="onDateChange">
+              <view class="date-value">
+                <text wx:if="{{birthDate}}">{{birthDate}}</text>
+                <text wx:else class="date-placeholder">请选择日期</text>
+              </view>
+              <text class="date-icon">📅</text>
+            </picker>
+          </view>
+        </view>
+
+        <!-- Milestone Field -->
+        <view class="form-field">
+          <view class="field-label-row">
+            <text class="field-label">里程碑</text>
+            <view class="milestone-selector" bindtap="onMilestoneTap">
+              <text wx:if="{{selectedMilestone}}" class="milestone-value">{{selectedMilestone}}</text>
+              <text wx:else class="milestone-placeholder">请选择里程碑</text>
+              <text class="dropdown-arrow">▼</text>
+            </view>
+          </view>
+        </view>
+
+        <!-- Milestone Dropdown Options -->
+        <view wx:if="{{showMilestonePicker}}" class="milestone-dropdown">
+          <view wx:for="{{milestones}}" wx:key="index" class="milestone-option" data-index="{{index}}" bindtap="onMilestoneSelect" style="background-color: {{index % 2 === 0 ? '#f1dce2' : index % 3 === 0 ? '#dceaf1' : index % 5 === 0 ? '#e2f1e6' : '#f4e6d6'}};">
+            <text>{{item}}</text>
+          </view>
+        </view>
+
+        <!-- Description Field -->
+        <view class="form-field form-field-textarea">
+          <text class="field-label">描述</text>
+          <view class="text-area-box">
+            <textarea class="text-area-input" value="{{description}}" bindinput="onDescriptionInput" placeholder="记录宝宝此时此刻的精彩瞬间..." maxlength="{{maxChars}}" auto-height></textarea>
+          </view>
+          <text class="char-count">{{charCount}}/{{maxChars}}</text>
+        </view>
+
+      </view>
+    </view>
+  </scroll-view>
+</view>

@@ -267,6 +267,21 @@ class TestUploadExtras:
         )
         assert resp.status_code == 404
 
+    async def test_upload_callback_no_coskey(self, client, auth_headers, test_baby_id):
+        """回调时 media 无 cos_key → 400"""
+        cr = await client.post(
+            "/api/v1/media/",
+            json={"babyId": test_baby_id, "type": "image", "cosKey": "", "captureDate": "2026-06-01"},
+            headers=auth_headers,
+        )
+        media_id = cr.json()["id"]
+        resp = await client.post(
+            "/api/v1/upload/callback",
+            json={"mediaId": media_id},
+            headers=auth_headers,
+        )
+        assert resp.status_code == 400
+
 
 class TestMainApp:
     """app/main.py uncovered endpoints"""

@@ -117,6 +117,11 @@
   transform: scale(0.98);
 }
 
+.baby-card-active {
+  box-shadow: 0px 6px 16px 0px rgba(230, 198, 179, 0.45);
+  border: 2rpx solid rgba(255, 168, 122, 0.3);
+}
+
 .baby-card-avatar {
   width: 112rpx;
   height: 112rpx;
@@ -163,6 +168,24 @@
   color: #b3b3b3;
   font-weight: 500;
   flex-shrink: 0;
+}
+
+/* ---- Active Badge ---- */
+.active-badge {
+  width: 60rpx;
+  height: 60rpx;
+  border-radius: 30rpx;
+  background: #ffa87a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.active-badge text {
+  font-size: 32rpx;
+  color: #ffffff;
+  font-weight: bold;
 }
 
 /* ---- Add Baby Button ---- */

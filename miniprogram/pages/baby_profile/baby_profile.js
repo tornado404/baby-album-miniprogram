@@ -232,13 +232,24 @@ Page({
             // 更新 BABY_KEY 确保首页读到最新数据
             if (found && targetId) {
                 var currentBabyId = '';
-                try { currentBabyId = wx.getStorageSync('baby_diary_current_baby_id') || ''; } catch (e) { }
+                try {
+                    currentBabyId = wx.getStorageSync(storage_keys_1.STORAGE_KEYS.currentBabyId) || '';
+                }
+                catch (e) { }
                 if (targetId === currentBabyId) {
                     var updatedBaby = null;
                     for (var j = 0; j < storedBabies.length; j++) {
-                        if (storedBabies[j].id === targetId) { updatedBaby = storedBabies[j]; break; }
+                        if (storedBabies[j].id === targetId) {
+                            updatedBaby = storedBabies[j];
+                            break;
+                        }
                     }
-                    if (updatedBaby) { try { wx.setStorageSync('baby_diary_baby_profile', updatedBaby); } catch (e) { } }
+                    if (updatedBaby) {
+                        try {
+                            wx.setStorageSync('baby_diary_baby_profile', updatedBaby);
+                        }
+                        catch (e) { }
+                    }
                 }
             }
         }
@@ -262,13 +273,24 @@ Page({
             wx.setStorageSync('album_babies', storedBabies);
             if (found && babyId) {
                 var currentBabyId = '';
-                try { currentBabyId = wx.getStorageSync('baby_diary_current_baby_id') || ''; } catch (e) { }
+                try {
+                    currentBabyId = wx.getStorageSync(storage_keys_1.STORAGE_KEYS.currentBabyId) || '';
+                }
+                catch (e) { }
                 if (babyId === currentBabyId) {
                     var updatedBaby = null;
                     for (var j = 0; j < storedBabies.length; j++) {
-                        if (storedBabies[j].id === babyId) { updatedBaby = storedBabies[j]; break; }
+                        if (storedBabies[j].id === babyId) {
+                            updatedBaby = storedBabies[j];
+                            break;
+                        }
                     }
-                    if (updatedBaby) { try { wx.setStorageSync('baby_diary_baby_profile', updatedBaby); } catch (e) { } }
+                    if (updatedBaby) {
+                        try {
+                            wx.setStorageSync('baby_diary_baby_profile', updatedBaby);
+                        }
+                        catch (e) { }
+                    }
                 }
             }
         }

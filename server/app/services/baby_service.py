@@ -90,7 +90,7 @@ class BabyService:
         baby = await self.get_baby(baby_id, user_id)
         if not baby:
             raise ValueError("Baby not found")
-        for k, v in data.dict(exclude_unset=True).items():
+        for k, v in data.model_dump(exclude_unset=True).items():
             if v is not None:
                 setattr(baby, k, v)
         await record_sync_log(self.db, user_id, "baby", baby_id, SyncAction.update)

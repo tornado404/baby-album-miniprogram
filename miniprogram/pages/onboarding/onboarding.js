@@ -90,9 +90,15 @@ Page({
             data: { refreshToken: refreshToken },
             success: function (res) {
                 if (res.statusCode === 200 && res.data && res.data.accessToken) {
-                    try { wx.setStorageSync(TOKEN_KEY, res.data.accessToken); } catch (e) {}
+                    try {
+                        wx.setStorageSync(TOKEN_KEY, res.data.accessToken);
+                    }
+                    catch (e) { }
                     if (res.data.refreshToken) {
-                        try { wx.setStorageSync(REFRESH_KEY, res.data.refreshToken); } catch (e) {}
+                        try {
+                            wx.setStorageSync(REFRESH_KEY, res.data.refreshToken);
+                        }
+                        catch (e) { }
                     }
                     var babyProfile = wx.getStorageSync(BABY_KEY);
                     if (babyProfile) {
@@ -132,9 +138,18 @@ Page({
                         timeout: 15000,
                         success: function (res) {
                             if (res.statusCode === 200 && res.data && res.data.accessToken) {
-                                try { wx.setStorageSync(TOKEN_KEY, res.data.accessToken); } catch (e) { }
-                                try { wx.setStorageSync(REFRESH_KEY, res.data.refreshToken); } catch (e) { }
-                                try { wx.setStorageSync(USER_ID_KEY, res.data.userId); } catch (e) { }
+                                try {
+                                    wx.setStorageSync(TOKEN_KEY, res.data.accessToken);
+                                }
+                                catch (e) { }
+                                try {
+                                    wx.setStorageSync(REFRESH_KEY, res.data.refreshToken);
+                                }
+                                catch (e) { }
+                                try {
+                                    wx.setStorageSync(USER_ID_KEY, res.data.userId);
+                                }
+                                catch (e) { }
                                 _this.setData({ authState: 'success' });
                                 if (res.data.isNewUser) {
                                     _this.redirectTo('baby_onboarding');

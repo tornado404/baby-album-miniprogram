@@ -10,6 +10,7 @@ Page({
     safeTop: 44,
     babies: [],
     isLoading: false,
+    currentBabyId: '',
   },
 
   onLoad() {
@@ -17,10 +18,20 @@ Page({
       var info = wx.getWindowInfo();
       this.setData({ safeTop: info.statusBarHeight || 44 });
     } catch (e) {}
+    this.loadCurrentBabyId();
     this.loadBabies();
   },
 
-  onShow() { this.loadBabies(); },
+  onShow() {
+    this.loadCurrentBabyId();
+    this.loadBabies();
+  },
+
+  loadCurrentBabyId() {
+    var id = '';
+    try { id = wx.getStorageSync(STORAGE_KEYS.currentBabyId) || ''; } catch (e) {}
+    this.setData({ currentBabyId: id });
+  },
 
   loadBabies() {
     this.setData({ isLoading: true });

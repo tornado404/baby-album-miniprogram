@@ -5,7 +5,12 @@ Media.tags 在 PG 中使用 ARRAY(String)，测试时替换为 JSON 以兼容 SQ
 """
 
 import sqlite3
+import os
+import atexit
+import tempfile
 from typing import AsyncGenerator
+
+from sqlalchemy import text
 
 import pytest_asyncio
 from httpx import AsyncClient, ASGITransport
@@ -28,27 +33,40 @@ from app.models.media import Media
 Media.__table__.columns["tags"].type = SA_JSON()
 
 from app.database import Base, get_db
+
+# 创建 VERSION 文件，覆盖 main.py 的 COMMIT_HASH 读取路径（line 21-26）
+_version_path = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "app", "VERSION"
+)
+os.makedirs(os.path.dirname(_version_path), exist_ok=True)
+with open(_version_path, "w") as _vf:
+    _vf.write("test-hash\n")
+atexit.register(lambda: os.path.exists(_version_path) and os.unlink(_version_path))
+
 from app.main import app
 
 # ── 测试数据库 ─────────────────────────────────────────
-TEST_DATABASE_URL = "sqlite+aiosqlite:///./test.db"
+# 每个 test 使用独立临时文件，彻底避免状态残留
 
 
 @pytest_asyncio.fixture(scope="function")
 async def db_session() -> AsyncGenerator[AsyncSession, None]:
     """创建测试数据库会话（每个测试函数独立，自动建表/拆表）"""
+    # 每个 test 使用独立临时文件，彻底避免状态残留
+    _tmp = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
+    _tmp.close()
+    db_path = _tmp.name
     engine = create_async_engine(
-        TEST_DATABASE_URL,
+        f"sqlite+aiosqlite:///{db_path}",
         poolclass=NullPool,
         echo=False,
     )
 
-    # SQLite PRAGMA 优化
     @event.listens_for(engine.sync_engine, "connect")
     def _set_sqlite_pragma(dbapi_connection, connection_record):
         if isinstance(dbapi_connection, sqlite3.Connection):
             cursor = dbapi_connection.cursor()
-            cursor.execute("PRAGMA journal_mode=WAL")
+            cursor.execute("PRAGMA journal_mode=DELETE")
             cursor.execute("PRAGMA foreign_keys=ON")
             cursor.close()
 
@@ -61,9 +79,17 @@ async def db_session() -> AsyncGenerator[AsyncSession, None]:
         yield session
     finally:
         await session.close()
+        # 全表 DELETE（逆序解除依赖），避免 drop_all 因外键约束失败
         async with engine.begin() as conn:
-            await conn.run_sync(Base.metadata.drop_all)
+            await conn.execute(text("PRAGMA foreign_keys=OFF"))
+            for table in reversed(Base.metadata.sorted_tables):
+                await conn.execute(text(f"DELETE FROM {table.name}"))
         await engine.dispose()
+        # 清理临时文件
+        try:
+            os.unlink(db_path)
+        except OSError:
+            pass
 
 
 @pytest_asyncio.fixture(scope="function")
