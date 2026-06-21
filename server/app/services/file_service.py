@@ -150,7 +150,9 @@ def _sign_presigned_url(
     query_string = "&".join(
         f"{quote(k, safe='')}={quote(v, safe='')}" for k, v in sorted(params.items())
     )
-    return f"http://{host}{object_path}?{query_string}"
+    # 协议跟随 MINIO_PUBLIC_URL（Cloudflare 反代时为 https，开发环境 localhost 仍是 http）
+    scheme = "https" if settings.MINIO_PUBLIC_URL.startswith("https") else "http"
+    return f"{scheme}://{host}{object_path}?{query_string}"
 
 
 def _sign_request_headers(

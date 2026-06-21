@@ -99,10 +99,16 @@ services:
     restart: unless-stopped
     networks:
       - baby-network
+      # 同时接入 MinIO 容器所在网络，使 nginx 能解析到 baby-minio:9000
+      - baby-minio
 
 networks:
   baby-network:
     driver: bridge
+  # 由独立 docker-compose-minio.yml 创建（项目名 baby-minio）
+  baby-minio:
+    external: true
+    name: baby-minio_default
 
 volumes:
   pgdata:

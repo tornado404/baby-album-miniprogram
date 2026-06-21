@@ -33,11 +33,11 @@ const CONFIGS: Record<Env, ApiConfig> = {
     desc: 'ARM 局域网测试环境',
   },
   production: {
-    baseURL: 'http://101.126.41.146:8000/api/v1',
-    minioURL: 'http://101.126.41.146:9000',
+    baseURL: 'https://api.qzjlyouhua.fun/api/v1',
+    minioURL: 'https://oss.qzjlyouhua.fun',
     timeout: 20000,
     name: '生产环境',
-    desc: '云服务器正式环境',
+    desc: '云服务器正式环境（Cloudflare HTTPS）',
   },
 };
 

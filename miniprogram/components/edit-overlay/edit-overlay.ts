@@ -1,7 +1,7 @@
 // @ts-nocheck
 // edit-overlay.ts - 上传编辑浮层组件（GPS/标签/时刻/里程碑）
 
-const API_BASE = 'http://101.126.41.146:8000/api/v1';
+const API_BASE = require('../../config/api').API_CONFIG.baseURL;
 
 Component({
   properties: {
