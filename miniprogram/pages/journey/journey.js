@@ -23,6 +23,7 @@ Page({
             { key: 'creative', icon: '🎨' },
         ],
         isLoading: false,
+        _loaded: false,
     },
     onLoad: function () {
         try {
@@ -30,9 +31,14 @@ Page({
             this.setData({ safeTop: info.statusBarHeight || 44 });
         }
         catch (e) { }
+        this.data._loaded = true;
         this.loadData();
     },
-    onShow: function () { this.loadData(); },
+    onShow: function () {
+        if (!this.data._loaded)
+            return;
+        this.loadData();
+    },
     getToken: function () { return tokenManager.getAccessToken(); },
     loadData: function () {
         this.setData({ isLoading: true });

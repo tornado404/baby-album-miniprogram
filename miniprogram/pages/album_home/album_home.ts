@@ -17,6 +17,7 @@ Page({
     sections: [],
     isEmpty: false,
     isLoading: false,
+    _loaded: false, // 标记首次加载已完成，避免 onShow 重复调用
     filterOptions: [
       { label: '全部', value: null, minAge: null, maxAge: null },
       { label: '0-1月', value: '0-1', minAge: 0, maxAge: 1 },
@@ -42,6 +43,9 @@ Page({
   },
 
   onShow: function () {
+    // 首次 onShow：onLoad 已经在加载中，跳过避免重复请求
+    if (!this.data._loaded) return;
+
     var babyId = '';
     try {
       babyId = wx.getStorageSync(STORAGE_KEYS.currentBabyId) || '';
@@ -231,6 +235,7 @@ Page({
   loadBabies: function () {
     var _this = this;
     var token = this.getToken();
+    _this.data._loaded = true; // 标记已加载，避免 onShow 重复请求
 
     wx.request({
       url: API_CONFIG.baseURL + '/babies/',
@@ -269,6 +274,7 @@ Page({
 
   fallbackBabies: function () {
     var _this = this;
+    _this.data._loaded = true;
     try {
       var stored = wx.getStorageSync('album_babies');
       if (Array.isArray(stored) && stored.length > 0) {

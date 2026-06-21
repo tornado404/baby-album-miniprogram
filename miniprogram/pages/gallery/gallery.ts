@@ -16,14 +16,19 @@ Page({
     selectMode: false,
     selectedIds: [],
     allSelected: false,
+    _loaded: false,
   },
 
   onLoad() {
     try { var info = wx.getWindowInfo(); this.setData({ safeTop: info.statusBarHeight || 44 }); } catch (e) {}
+    this.data._loaded = true;
     this.loadMedia();
   },
 
-  onShow() { this.loadMedia(); },
+  onShow() {
+    if (!this.data._loaded) return;
+    this.loadMedia();
+  },
 
   getToken() {
     return tokenManager.getAccessToken();

@@ -11,6 +11,7 @@ Page({
         babies: [],
         isLoading: false,
         currentBabyId: '',
+        _loaded: false,
     },
     onLoad: function () {
         try {
@@ -18,10 +19,13 @@ Page({
             this.setData({ safeTop: info.statusBarHeight || 44 });
         }
         catch (e) { }
+        this.data._loaded = true;
         this.loadCurrentBabyId();
         this.loadBabies();
     },
     onShow: function () {
+        if (!this.data._loaded)
+            return;
         this.loadCurrentBabyId();
         this.loadBabies();
     },

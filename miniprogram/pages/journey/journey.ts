@@ -23,14 +23,19 @@ Page({
       { key: 'creative', icon: '🎨' },
     ],
     isLoading: false,
+    _loaded: false,
   },
 
   onLoad() {
     try { var info = wx.getWindowInfo(); this.setData({ safeTop: info.statusBarHeight || 44 }); } catch (e) {}
+    this.data._loaded = true;
     this.loadData();
   },
 
-  onShow() { this.loadData(); },
+  onShow() {
+    if (!this.data._loaded) return;
+    this.loadData();
+  },
 
   getToken() { return tokenManager.getAccessToken(); },
 

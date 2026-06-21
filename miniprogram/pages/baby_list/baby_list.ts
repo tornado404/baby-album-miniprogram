@@ -11,6 +11,7 @@ Page({
     babies: [],
     isLoading: false,
     currentBabyId: '',
+    _loaded: false,
   },
 
   onLoad() {
@@ -18,11 +19,13 @@ Page({
       var info = wx.getWindowInfo();
       this.setData({ safeTop: info.statusBarHeight || 44 });
     } catch (e) {}
+    this.data._loaded = true;
     this.loadCurrentBabyId();
     this.loadBabies();
   },
 
   onShow() {
+    if (!this.data._loaded) return;
     this.loadCurrentBabyId();
     this.loadBabies();
   },
