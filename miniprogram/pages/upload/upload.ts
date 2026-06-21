@@ -275,11 +275,14 @@ Page({
           return;
         }
 
+        // 根据文件扩展名设置 Content-Type，否则 MinIO 存为 application/octet-stream
+        var contentType = fileType === 'video' ? 'video/mp4' : 'image/jpeg';
+
         wx.request({
           url: uploadUrl,
           method: 'PUT',
           data: arrayBuf,
-          header: {},
+          header: { 'Content-Type': contentType },
           timeout: 30000,
           success: function (uploadRes) {
             if (uploadRes.statusCode < 200 || uploadRes.statusCode >= 300) {
