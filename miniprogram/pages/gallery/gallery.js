@@ -16,7 +16,7 @@ Page({
         selectMode: false,
         selectedIds: [],
         allSelected: false,
-        _loaded: false,
+        _firstShow: true,
     },
     onLoad: function () {
         try {
@@ -24,12 +24,13 @@ Page({
             this.setData({ safeTop: info.statusBarHeight || 44 });
         }
         catch (e) { }
-        this.data._loaded = true;
         this.loadMedia();
     },
     onShow: function () {
-        if (!this.data._loaded)
+        if (this.data._firstShow) {
+            this.data._firstShow = false;
             return;
+        }
         this.loadMedia();
     },
     getToken: function () {

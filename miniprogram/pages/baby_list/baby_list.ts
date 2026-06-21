@@ -11,7 +11,7 @@ Page({
     babies: [],
     isLoading: false,
     currentBabyId: '',
-    _loaded: false,
+    _firstShow: true,
   },
 
   onLoad() {
@@ -19,13 +19,12 @@ Page({
       var info = wx.getWindowInfo();
       this.setData({ safeTop: info.statusBarHeight || 44 });
     } catch (e) {}
-    this.data._loaded = true;
     this.loadCurrentBabyId();
     this.loadBabies();
   },
 
   onShow() {
-    if (!this.data._loaded) return;
+    if (this.data._firstShow) { this.data._firstShow = false; return; }
     this.loadCurrentBabyId();
     this.loadBabies();
   },

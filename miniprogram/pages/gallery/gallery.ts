@@ -16,17 +16,16 @@ Page({
     selectMode: false,
     selectedIds: [],
     allSelected: false,
-    _loaded: false,
+    _firstShow: true,
   },
 
   onLoad() {
     try { var info = wx.getWindowInfo(); this.setData({ safeTop: info.statusBarHeight || 44 }); } catch (e) {}
-    this.data._loaded = true;
     this.loadMedia();
   },
 
   onShow() {
-    if (!this.data._loaded) return;
+    if (this.data._firstShow) { this.data._firstShow = false; return; }
     this.loadMedia();
   },
 
