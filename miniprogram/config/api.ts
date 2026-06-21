@@ -76,7 +76,7 @@ function getCurrentEnv(): Env {
   }
 
   // 3. 回退默认值
-  return 'testing';
+  return 'production';
 }
 
 /**

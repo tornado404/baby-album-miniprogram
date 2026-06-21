@@ -55,7 +55,7 @@ function getCurrentEnv() {
         // storage 读取失败，忽略
     }
     // 3. 回退默认值
-    return 'testing';
+    return 'production';
 }
 /**
  * 判断当前构建是否允许运行时切换环境

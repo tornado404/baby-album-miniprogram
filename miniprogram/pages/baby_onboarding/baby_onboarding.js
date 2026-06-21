@@ -55,45 +55,8 @@ Page({
             this.fallbackToLocal(name);
             return;
         }
-        // 先检查服务端是否已有宝宝，防止重复创建
-        this.checkExistingBabies(token, name);
-    },
-    checkExistingBabies: function (token, name) {
-        var _this = this;
-        wx.request({
-            url: api_1.API_CONFIG.baseURL + '/babies/',
-            method: 'GET',
-            header: { 'Authorization': 'Bearer ' + token },
-            timeout: 8000,
-            success: function (res) {
-                if (res.statusCode === 200 && Array.isArray(res.data) && res.data.length > 0) {
-                    // 已有宝宝 → 不创建，刷新缓存并跳首页
-                    var babies = res.data;
-                    try {
-                        wx.setStorageSync('album_babies', babies);
-                    }
-                    catch (e) { }
-                    try {
-                        wx.setStorageSync(BABY_KEY, babies[0]);
-                    }
-                    catch (e) { }
-                    try {
-                        wx.setStorageSync(storage_keys_1.STORAGE_KEYS.currentBabyId, babies[0].id);
-                    }
-                    catch (e) { }
-                    wx.showToast({ title: '宝宝已存在', icon: 'none', duration: 1500 });
-                    setTimeout(function () { wx.redirectTo({ url: '/pages/album_home/album_home' }); }, 1500);
-                }
-                else {
-                    // 确实无宝宝 → 正常创建
-                    _this.createBaby(token, name);
-                }
-            },
-            fail: function () {
-                // 网络不可用 → 离线创建
-                _this.fallbackToLocal(name);
-            },
-        });
+        // 直接创建，由后端唯一索引保证不重复
+        this.createBaby(token, name);
     },
     createBaby: function (token, name) {
         this.setData({ isSaving: true });
@@ -134,8 +97,39 @@ Page({
                     wx.showToast({ title: '创建成功', icon: 'success', duration: 1000 });
                     setTimeout(function () { wx.redirectTo({ url: '/pages/album_home/album_home' }); }, 1000);
                 }
+                else if (res.statusCode === 409) {
+                    // 后端返回同名宝宝冲突
+                    _this.setData({ isSaving: false });
+                    wx.showToast({ title: '宝宝已存在', icon: 'none', duration: 1500 });
+                    // 刷新缓存并跳首页
+                    wx.request({
+                        url: api_1.API_CONFIG.baseURL + '/babies/',
+                        method: 'GET',
+                        header: { 'Authorization': 'Bearer ' + token },
+                        timeout: 8000,
+                        success: function (listRes) {
+                            if (listRes.statusCode === 200 && Array.isArray(listRes.data) && listRes.data.length > 0) {
+                                try {
+                                    wx.setStorageSync('album_babies', listRes.data);
+                                }
+                                catch (e) { }
+                                try {
+                                    wx.setStorageSync(BABY_KEY, listRes.data[0]);
+                                }
+                                catch (e) { }
+                                try {
+                                    wx.setStorageSync(storage_keys_1.STORAGE_KEYS.currentBabyId, listRes.data[0].id);
+                                }
+                                catch (e) { }
+                            }
+                        },
+                        complete: function () {
+                            setTimeout(function () { wx.redirectTo({ url: '/pages/album_home/album_home' }); }, 1500);
+                        },
+                    });
+                }
                 else {
-                    // API 返回非成功状态码，降级到本地存储
+                    // 其他错误降级到本地存储
                     _this.setData({ isSaving: false });
                     _this.fallbackToLocal(name);
                 }
