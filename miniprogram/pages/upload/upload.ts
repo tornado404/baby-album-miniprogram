@@ -105,6 +105,13 @@ Page({
     var files = res.tempFiles || [];
     if (files.length === 0) return;
 
+    // 补充 fileType：wx.chooseMedia 单个文件用 fileType，顶层用 res.type
+    for (var i = 0; i < files.length; i++) {
+      if (!files[i].fileType) {
+        files[i].fileType = res.type === 'video' ? 'video' : 'image';
+      }
+    }
+
     this.setData({
       selectedFiles: files,
       _pendingFiles: files,
@@ -234,7 +241,7 @@ Page({
   uploadFile: function (file, babyId, token, callback) {
     var _this = this;
     var fileName = (file.tempFilePath || 'photo.jpg').split('/').pop() || 'photo.jpg';
-    var fileType = file.mediaType === 'video' ? 'video' : 'image';
+    var fileType = file.fileType === 'video' ? 'video' : 'image';
     var captureDate = this.data.captureDate || new Date().toISOString().split('T')[0];
 
     if (!babyId) {
@@ -347,7 +354,7 @@ Page({
       url: file.tempFilePath || '',
       thumbnailUrl: file.tempFilePath || '',
       captureDate: this.data.captureDate || dateStr,
-      type: file.mediaType === 'video' ? 'video' : 'image',
+      type: file.fileType === 'video' ? 'video' : 'image',
       babyId: babyId,
       milestone: this.data.milestone || '',
       cardColor: ['#f1dce2', '#dceaf1', '#f4e6d6', '#e2f1e6'][Math.floor(Math.random() * 4)],
