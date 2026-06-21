@@ -108,6 +108,13 @@ if ! docker ps --format '{{.Names}}' | grep -q '^minio$'; then
     sleep 3
 fi
 
+# 确保 MinIO bucket 公开读（否则图片直接 URL 访问返回 403）
+log_info "检查 MinIO bucket 策略..."
+docker exec minio sh -c 'which mc >/dev/null 2>&1 || apk add --no-cache minio-client >/dev/null 2>&1'
+docker exec minio mc alias set local http://localhost:9000 Cs516@2026 Cs516@2026 2>/dev/null
+docker exec minio mc anonymous set download local/baby-album 2>/dev/null
+log_info "MinIO bucket 策略已确认"
+
 # ── 7. 重启 Docker 容器 ──────────────────────────────────────────────────────
 log_info "重启 API 容器..."
 cd "$REPO_DIR"
