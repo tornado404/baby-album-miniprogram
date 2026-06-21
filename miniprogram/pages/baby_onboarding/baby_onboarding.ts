@@ -88,26 +88,10 @@ Page({
           wx.showToast({ title: '创建成功', icon: 'success', duration: 1000 });
           setTimeout(function () { wx.redirectTo({ url: '/pages/album_home/album_home' }); }, 1000);
         } else if (res.statusCode === 409) {
-          // 后端返回同名宝宝冲突
+          // 后端返回同名宝宝冲突，直接跳首页（album_home 自己会加载列表）
           _this.setData({ isSaving: false });
           wx.showToast({ title: '宝宝已存在', icon: 'none', duration: 1500 });
-          // 刷新缓存并跳首页
-          wx.request({
-            url: API_CONFIG.baseURL + '/babies/',
-            method: 'GET',
-            header: { 'Authorization': 'Bearer ' + token },
-            timeout: 8000,
-            success: function (listRes) {
-              if (listRes.statusCode === 200 && Array.isArray(listRes.data) && listRes.data.length > 0) {
-                try { wx.setStorageSync('album_babies', listRes.data); } catch (e) {}
-                try { wx.setStorageSync(BABY_KEY, listRes.data[0]); } catch (e) {}
-                try { wx.setStorageSync(STORAGE_KEYS.currentBabyId, listRes.data[0].id); } catch (e) {}
-              }
-            },
-            complete: function () {
-              setTimeout(function () { wx.redirectTo({ url: '/pages/album_home/album_home' }); }, 1500);
-            },
-          });
+          setTimeout(function () { wx.redirectTo({ url: '/pages/album_home/album_home' }); }, 1500);
         } else {
           // 其他错误降级到本地存储
           _this.setData({ isSaving: false });
