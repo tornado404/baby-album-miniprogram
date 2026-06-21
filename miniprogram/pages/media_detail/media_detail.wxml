@@ -23,9 +23,10 @@
   <!-- Content Area -->
   <scroll-view wx:else class="content-area" scroll-y enable-flex>
 
-    <!-- Main Image -->
+    <!-- Main Media -->
     <view class="main-image-wrap">
-      <image wx:if="{{media && media.cosUrl}}" class="main-image" src="{{media.cosUrl}}" mode="aspectFit" show-menu-by-longpress></image>
+      <video wx:if="{{media && media.type === 'video' && media.cosUrl}}" class="main-video" src="{{media.cosUrl}}" controls autoplay="{{false}}" show-center-play-btn="{{true}}" object-fit="contain"></video>
+      <image wx:elif="{{media && media.cosUrl}}" class="main-image" src="{{media.cosUrl}}" mode="aspectFit" show-menu-by-longpress></image>
       <text wx:else class="main-image-placeholder">📷✨</text>
     </view>
 
