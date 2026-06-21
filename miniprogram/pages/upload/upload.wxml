@@ -82,9 +82,36 @@
           </view>
 
           <!-- 里程碑 -->
-          <view class="form-field" bindtap="onPickMilestone">
-            <text class="field-label">里程碑</text>
-            <text class="field-value field-placeholder">{{milestone || '选择里程碑（选填）'}}</text>
+          <view class="field-with-dropdown">
+            <view class="form-field" bindtap="onPickMilestone">
+              <text class="field-label">里程碑</text>
+              <text class="field-value {{milestone ? '' : 'field-placeholder'}}">{{milestone || '选择里程碑（选填）'}}</text>
+              <text class="dropdown-arrow">{{showMilestonePicker ? '▲' : '▼'}}</text>
+            </view>
+            <view wx:if="{{showMilestonePicker}}" class="milestone-dropdown">
+              <scroll-view scroll-y class="milestone-list">
+                <view
+                  wx:for="{{['第一次翻身','会笑出声','开始学坐','会爬行','长牙了','会走路','叫妈妈','叫爸爸','会拍手','自己吃饭','会站立','会跳舞','长第一颗牙','独立行走']}}"
+                  wx:key="index"
+                  class="milestone-item {{milestone === item ? 'milestone-item-active' : ''}}"
+                  bindtap="onSelectMilestone"
+                  data-name="{{item}}"
+                >
+                  <text>{{item}}</text>
+                </view>
+              </scroll-view>
+              <view class="milestone-custom">
+                <input
+                  class="milestone-input"
+                  placeholder="自定义里程碑..."
+                  value="{{milestoneInput}}"
+                  bindinput="onMilestoneInput"
+                />
+                <view class="milestone-confirm-btn" bindtap="onConfirmCustomMilestone">
+                  <text>确定</text>
+                </view>
+              </view>
+            </view>
           </view>
 
           <!-- 描述 -->

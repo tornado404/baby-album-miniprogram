@@ -24,6 +24,9 @@ Page({
         uploadProgress: 0,
         uploadCurrentFile: 0,
         uploadStatus: '',
+        // Milestone picker
+        showMilestonePicker: false,
+        milestoneInput: '',
         // For retry
         _pendingFiles: [],
     },
@@ -117,22 +120,26 @@ Page({
         });
     },
     onPickMilestone: function () {
-        var _this = this;
-        var milestones = [
-            '第一次翻身', '会笑出声', '开始学坐',
-            '会爬行', '长牙了', '会走路',
-            '叫妈妈', '叫爸爸', '会拍手',
-            '自己吃饭', '会站立', '会跳舞',
-            '长第一颗牙', '独立行走',
-        ];
-        wx.showActionSheet({
-            itemList: milestones,
-            success: function (res) {
-                if (res.tapIndex >= 0 && res.tapIndex < milestones.length) {
-                    _this.setData({ milestone: milestones[res.tapIndex] });
-                }
-            },
+        this.setData({
+            showMilestonePicker: !this.data.showMilestonePicker,
+            milestoneInput: '',
         });
+    },
+    onSelectMilestone: function (e) {
+        var name = e.currentTarget.dataset.name;
+        this.setData({ milestone: name, showMilestonePicker: false });
+    },
+    onMilestoneInput: function (e) {
+        this.setData({ milestoneInput: e.detail.value });
+    },
+    onConfirmCustomMilestone: function () {
+        var val = this.data.milestoneInput.trim();
+        if (val) {
+            this.setData({ milestone: val, showMilestonePicker: false, milestoneInput: '' });
+        }
+    },
+    onCloseMilestonePicker: function () {
+        this.setData({ showMilestonePicker: false });
     },
     onInputDescription: function () {
         var _this = this;
@@ -393,6 +400,8 @@ Page({
             uploadProgress: 0,
             uploadCurrentFile: 0,
             uploadStatus: '',
+            showMilestonePicker: false,
+            milestoneInput: '',
         });
     },
 });

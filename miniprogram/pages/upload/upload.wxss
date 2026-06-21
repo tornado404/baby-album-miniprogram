@@ -247,6 +247,94 @@
   height: 100px;  /* Figma: 100px */
 }
 
+/* Milestone Dropdown */
+.field-with-dropdown {
+  position: relative;
+}
+
+.dropdown-arrow {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 24rpx;
+  color: #999;
+}
+
+.milestone-dropdown {
+  background: #ffffff;
+  border-radius: 24rpx;
+  box-shadow: 0px 8rpx 32rpx 0px rgba(230, 198, 179, 0.35);
+  margin-top: 4px;
+  overflow: hidden;
+}
+
+.milestone-list {
+  max-height: 320rpx;
+  overflow-y: auto;
+}
+
+.milestone-item {
+  height: 80rpx;
+  display: flex;
+  align-items: center;
+  padding: 0 24rpx;
+  border-bottom: 1rpx solid #f5f0ec;
+}
+
+.milestone-item:last-child {
+  border-bottom: none;
+}
+
+.milestone-item text {
+  font-size: 28rpx;
+  color: #4a4a4a;
+}
+
+.milestone-item-active {
+  background: #fff5f0;
+}
+
+.milestone-item-active text {
+  color: #ffa87a;
+  font-weight: 600;
+}
+
+.milestone-custom {
+  display: flex;
+  align-items: center;
+  padding: 16rpx 24rpx;
+  border-top: 2rpx solid #ffa87a;
+  gap: 16rpx;
+}
+
+.milestone-input {
+  flex: 1;
+  height: 64rpx;
+  background: #f9f0e9;
+  border-radius: 16rpx;
+  padding: 0 20rpx;
+  font-size: 26rpx;
+  color: #4a4a4a;
+}
+
+.milestone-confirm-btn {
+  background: #ffa87a;
+  border-radius: 16rpx;
+  height: 64rpx;
+  padding: 0 24rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.milestone-confirm-btn text {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #ffffff;
+}
+
 /* Confirm Button */
 .confirm-btn {
   width: 335px;
