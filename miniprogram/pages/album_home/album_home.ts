@@ -246,6 +246,21 @@ Page({
           var babies = res.data;
           _this.setData({ babies: babies });
           if (babies.length > 0) {
+            // 合并本地缓存：如果 API 返回的 birthDate 为空，保留本地已有值
+            var cached = [];
+            try { cached = wx.getStorageSync('album_babies') || []; } catch (e) {}
+            if (Array.isArray(cached) && cached.length > 0) {
+              for (var bi = 0; bi < babies.length; bi++) {
+                if (!babies[bi].birthDate) {
+                  for (var ci = 0; ci < cached.length; ci++) {
+                    if (cached[ci].id === babies[bi].id && cached[ci].birthDate) {
+                      babies[bi].birthDate = cached[ci].birthDate;
+                      break;
+                    }
+                  }
+                }
+              }
+            }
             try { wx.setStorageSync('album_babies', babies); } catch (e) {}
             var currentId = _this.data.currentBabyId;
             var found = false;
