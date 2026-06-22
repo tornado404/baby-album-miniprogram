@@ -12,6 +12,7 @@ type Env = 'development' | 'testing' | 'production';
 Page({
   data: {
     safeTop: 44,
+    showDevPanel: false,  // 开发者面板默认隐藏
     userName: '星星妈妈',
     recordDays: 0,
     recordDaysText: '',

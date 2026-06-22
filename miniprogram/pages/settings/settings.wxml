@@ -143,11 +143,11 @@
         <text class="menu-arrow">›</text>
       </view>
 
-      <!-- Divider -->
-      <view class="dev-divider"></view>
+      <!-- Divider (开发者设置，默认隐藏) -->
+      <view class="dev-divider" wx:if="{{showDevPanel}}"></view>
 
       <!-- Developer Settings -->
-      <view class="menu-item dev-menu-item" bindtap="onEnvSwitchTap">
+      <view class="menu-item dev-menu-item" wx:if="{{showDevPanel}}" bindtap="onEnvSwitchTap">
         <view class="menu-icon dev-icon">
           <text>🛠</text>
         </view>
