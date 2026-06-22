@@ -118,7 +118,7 @@ describe('宝宝档案页 (Baby Profile) - 运行时逻辑', function () {
     expect(page.data.safeTop).toBe(44);
     expect(page.data.nickname).toBe('小星星');
     expect(page.data.gender).toBe('female');
-    expect(page.data.birthDate).toBe('2025-12-01');
+    expect(page.data.birthDate).toBe('');
     expect(page.data.dueDate).toBe('2025-11-24');
     expect(typeof page.data.weight).toBe('string');
     expect(typeof page.data.height).toBe('string');
@@ -592,7 +592,7 @@ describe('宝宝档案页 (Baby Profile) - 运行时逻辑', function () {
 
   describe('onBirthDateChange', function () {
     test('应更新 birthDate 和 birthDateArray', function () {
-      page.onBirthDateChange({ detail: { value: [2026, 6, 15] } });
+      page.onBirthDateChange({ detail: { value: '2026-06-15' } });
       expect(page.data.birthDate).toBe('2026-06-15');
       expect(page.data.birthDateArray).toEqual([2026, 6, 15]);
     });
