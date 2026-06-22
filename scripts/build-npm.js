@@ -94,7 +94,7 @@ function main() {
       const content = readFileSync(file, 'utf-8');
 
       // 跳过已使用 CommonJS 的文件（无 import/export）
-      if (!/^(import|export)\b/m.test(content)) {
+      if (!/\b(import|export)\b/.test(content)) {
         skipped++;
         continue;
       }
