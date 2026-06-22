@@ -5,16 +5,21 @@
  */
 
 interface TeardownGlobal {
-  __AUTOMATOR__?: { close?: () => Promise<void> };
+  __AUTOMATOR__?: { close?: () => Promise<void>; disconnect?: () => void };
 }
 
 const globalAny = globalThis as unknown as TeardownGlobal;
 
 export default async function globalTeardown(): Promise<void> {
   const automator = globalAny.__AUTOMATOR__;
-  if (automator && typeof automator.close === 'function') {
+  if (automator) {
     try {
-      await automator.close();
+      // 只断开连接，不发送 Tool.close（避免关闭整个 DevTools）
+      if (typeof automator.disconnect === 'function') {
+        automator.disconnect();
+      } else if (typeof automator.close === 'function') {
+        await automator.close();
+      }
     } catch (err) {
       // eslint-disable-next-line no-console
       console.warn(

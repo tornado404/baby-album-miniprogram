@@ -242,7 +242,10 @@ Page({
                     if (babies.length > 0) {
                         // 合并本地缓存：如果 API 返回的 birthDate 为空，保留本地已有值
                         var cached = [];
-                        try { cached = wx.getStorageSync('album_babies') || []; } catch (e) {}
+                        try {
+                            cached = wx.getStorageSync('album_babies') || [];
+                        }
+                        catch (e) { }
                         if (Array.isArray(cached) && cached.length > 0) {
                             for (var bi = 0; bi < babies.length; bi++) {
                                 if (!babies[bi].birthDate) {

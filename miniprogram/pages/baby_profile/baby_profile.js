@@ -27,6 +27,7 @@ Page({
     onLoad: function () {
         var sysInfo = wx.getWindowInfo();
         this.setData({ safeTop: sysInfo.statusBarHeight || 44 });
+        // 设置默认出生日期为当天日期
         if (!this.data.birthDate) {
             this.setData({ birthDate: getTodayStr() });
         }

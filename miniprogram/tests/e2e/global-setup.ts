@@ -256,10 +256,27 @@ export default async function globalSetup(): Promise<void> {
     }
 
     // 连接 miniprogram-automator
-    const automatorPkg: any = require('miniprogram-automator');
-    const automator = await automatorPkg.connect({
-      wsEndpoint: wsEndpoint
-    });
+    var automator: any = null;
+    try {
+      const automatorPkg: any = require('miniprogram-automator');
+      automator = await automatorPkg.connect({
+        wsEndpoint: wsEndpoint
+      });
+    } catch (err) {
+      // macOS DevTools 版本字段差异导致 checkVersion 崩溃, 回退直接连接
+      console.warn('[global-setup] 标准 connect 失败: ' + ((err as Error).message || String(err)));
+      console.log('[global-setup] 尝试绕过 checkVersion 直接连接...');
+      const WS = require('ws');
+      const ws = new WS(wsEndpoint);
+      const Connection = require('miniprogram-automator/out/Connection').default;
+      const MiniProgram = require('miniprogram-automator/out/MiniProgram').default;
+      const Transport = require('miniprogram-automator/out/Transport').default;
+      const conn = await new Promise(function(rs, rj) {
+        ws.addEventListener('open', function() { rs(new Connection(new Transport(ws))); });
+        ws.addEventListener('error', rj);
+      });
+      automator = new MiniProgram(conn);
+    }
     globalAny.__AUTOMATOR__ = automator;
     console.log('[global-setup] ✓ 已连接 miniprogram-automator @ ' + wsEndpoint);
   } catch (err) {
