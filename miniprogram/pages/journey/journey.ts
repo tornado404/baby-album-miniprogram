@@ -40,8 +40,48 @@ Page({
 
   loadData() {
     this.setData({ isLoading: true });
+    // 先从缓存即时显示
+    this.loadBabyFromCache();
+    this.loadMediaFromCache();
     this.loadBabyInfo();
     this.loadMedia();
+  },
+
+  loadBabyFromCache() {
+    var babyId = '';
+    try { babyId = wx.getStorageSync('baby_diary_current_baby_id') || ''; } catch (e) {}
+    if (!babyId) return;
+    try {
+      var stored = wx.getStorageSync('album_babies');
+      if (Array.isArray(stored)) {
+        for (var i = 0; i < stored.length; i++) {
+          if (stored[i].id === babyId) {
+            var b = stored[i];
+            var age = '';
+            if (b.birthDate) {
+              var p = b.birthDate.split('-');
+              var birth = new Date(p[0], p[1]-1, p[2]);
+              var now = new Date();
+              var m = (now.getFullYear() - birth.getFullYear()) * 12 + (now.getMonth() - birth.getMonth());
+              if (m >= 12) age = Math.floor(m/12) + '岁' + (m%12) + '个月';
+              else age = m + '个月';
+            }
+            this.setData({ currentBaby: b, babyAgeText: age });
+            break;
+          }
+        }
+      }
+    } catch (e) {}
+  },
+
+  loadMediaFromCache() {
+    try {
+      var stored = wx.getStorageSync('album_media');
+      if (Array.isArray(stored) && stored.length > 0) {
+        this.setData({ mediaList: stored, totalMedia: stored.length, isLoading: false });
+        this.groupByMonth(stored);
+      }
+    } catch (e) {}
   },
 
   loadBabyInfo() {
@@ -68,6 +108,17 @@ Page({
             else age = m + '个月';
           }
           _this.setData({ currentBaby: b, babyAgeText: age });
+          // API 成功时更新宝宝缓存（合并到 album_babies）
+          try {
+            var stored = wx.getStorageSync('album_babies') || [];
+            if (!Array.isArray(stored)) stored = [];
+            var found = false;
+            for (var si = 0; si < stored.length; si++) {
+              if (stored[si].id === babyId) { stored[si] = Object.assign(stored[si], b); found = true; break; }
+            }
+            if (!found) { b.id = babyId; stored.push(b); }
+            wx.setStorageSync('album_babies', stored);
+          } catch (e) {}
         } else { _this.fallbackBaby(); }
       },
       fail: function () { _this.fallbackBaby(); },
@@ -95,6 +146,8 @@ Page({
           var list = res.data;
           _this.setData({ mediaList: list, totalMedia: list.length, isLoading: false });
           _this.groupByMonth(list);
+          // API 成功时更新媒体缓存
+          try { wx.setStorageSync('album_media', list); } catch (e) {}
         } else { _this.loadFallback(); }
       },
       fail: function () { _this.loadFallback(); },

@@ -24,6 +24,8 @@ class BabyResponse(BaseModel):
     name: str
     gender: Optional[str] = None
     birthDate: Optional[str] = None
+    weight: Optional[str] = None
+    height: Optional[str] = None
     age: Optional[str] = None
     avatar: Optional[str] = None
     photoCount: int = 0

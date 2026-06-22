@@ -37,6 +37,8 @@ Page({
 
   loadBabies() {
     this.setData({ isLoading: true });
+    // 先读本地缓存即时显示，不等 API 返回
+    this.loadFromCache();
     var _this = this;
     var token = tokenManager.getAccessToken();
 
@@ -52,12 +54,27 @@ Page({
             return b;
           });
           _this.setData({ babies: items, isLoading: false });
+          // API 成功时更新本地缓存
+          try { wx.setStorageSync('album_babies', items); } catch (e) {}
         } else {
           _this.fallbackBabies();
         }
       },
       fail: function () { _this.fallbackBabies(); },
     });
+  },
+
+  loadFromCache() {
+    try {
+      var stored = wx.getStorageSync('album_babies');
+      if (Array.isArray(stored) && stored.length > 0) {
+        var items = stored.map(function (b) {
+          b.ageText = b.age || b.ageText || '';
+          return b;
+        });
+        this.setData({ babies: items, isLoading: false });
+      }
+    } catch (e) {}
   },
 
   fallbackBabies() {

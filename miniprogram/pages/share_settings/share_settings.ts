@@ -60,6 +60,14 @@ Page({
     var _this = this;
     var token = this.getToken();
 
+    // 先读本地缓存即时显示
+    try {
+      var cached = wx.getStorageSync('album_babies');
+      if (Array.isArray(cached) && cached.length > 0) {
+        _this.setData({ babies: cached });
+      }
+    } catch (e) {}
+
     wx.request({
       url: API_CONFIG.baseURL + '/babies/',
       method: 'GET',
@@ -68,6 +76,8 @@ Page({
       success: function (res) {
         if (res.statusCode === 200 && Array.isArray(res.data)) {
           _this.setData({ babies: res.data });
+          // API 成功时更新本地缓存
+          try { wx.setStorageSync('album_babies', res.data); } catch (e) {}
         }
       },
       fail: function () {},

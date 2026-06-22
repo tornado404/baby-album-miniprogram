@@ -30,22 +30,15 @@ Page({
     var sysInfo = wx.getWindowInfo();
     this.setData({ safeTop: sysInfo.statusBarHeight || 44 });
 
-    // 设置默认出生日期为当天日期
-    if (!this.data.birthDate) {
-      this.setData({ birthDate: getTodayStr() });
-    }
-
     var babyId = '';
     try {
       babyId = wx.getStorageSync(STORAGE_KEYS.currentBabyId) || '';
     } catch (e) {}
 
     if (babyId) {
+      // 先读本地缓存即时显示，再异步加载 API 最新数据
+      this.loadFromLocal(babyId);
       this.loadFromApi(babyId);
-    }
-
-    if (this.data.birthDate) {
-      this.setData({ birthDateArray: this.dateToArray(this.data.birthDate) });
     }
   },
 
@@ -66,6 +59,8 @@ Page({
             nickname: b.name || '小星星',
             gender: b.gender || 'female',
             birthDate: b.birthDate || getTodayStr(),
+            weight: b.weight || '7.2',
+            height: b.height || '65',
             avatarUrl: avatar.indexOf('http') === 0 ? avatar : '',
             avatarEmoji: avatar.indexOf('http') !== 0 && avatar ? avatar : '👶',
           });
@@ -91,6 +86,8 @@ Page({
             nickname: baby.name || '小星星',
             gender: baby.gender || 'female',
             birthDate: baby.birthDate || getTodayStr(),
+            weight: baby.weight || '7.2',
+            height: baby.height || '65',
             avatarUrl: avatar.indexOf('http') === 0 ? avatar : '',
             avatarEmoji: avatar.indexOf('http') !== 0 && avatar ? avatar : '👶',
           });

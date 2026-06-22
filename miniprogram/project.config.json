@@ -3,7 +3,8 @@
     "minifyWXML": true,
     "useCompilerPlugins": [
       "typescript"
-    ]
+    ],
+    "minified": true
   },
   "compileType": "miniprogram",
   "simulatorPluginLibVersion": {},

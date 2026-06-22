@@ -58,6 +58,8 @@ async def list_babies(
     return [
         BabyResponse(
             id=b.id, name=b.name, gender=b.gender, birthDate=b.birth_date,
+            weight=str(b.weight) if b.weight is not None else None,
+            height=str(b.height) if b.height is not None else None,
             age=_compute_age_text(b.birth_date),
             **stats_map.get(b.id, {"photoCount": 0, "videoCount": 0, "recordDays": 0}),
         ) for b in babies
@@ -74,6 +76,8 @@ async def create_baby(
         baby = await BabyService(db).create_baby(user_id, data)
         return BabyResponse(
             id=baby.id, name=baby.name, gender=baby.gender, birthDate=baby.birth_date,
+            weight=str(baby.weight) if baby.weight is not None else None,
+            height=str(baby.height) if baby.height is not None else None,
             age=_compute_age_text(baby.birth_date),
         )
     except DuplicateBabyNameError as e:
@@ -93,6 +97,8 @@ async def get_baby(
     stats = await svc.get_baby_stats(baby_id, user_id)
     return BabyResponse(
         id=baby.id, name=baby.name, gender=baby.gender, birthDate=baby.birth_date,
+        weight=str(baby.weight) if baby.weight is not None else None,
+        height=str(baby.height) if baby.height is not None else None,
         age=_compute_age_text(baby.birth_date),
         **stats,
     )
@@ -108,6 +114,8 @@ async def update_baby(
         baby = await BabyService(db).update_baby(baby_id, user_id, data)
         return BabyResponse(
             id=baby.id, name=baby.name, gender=baby.gender, birthDate=baby.birth_date,
+            weight=str(baby.weight) if baby.weight is not None else None,
+            height=str(baby.height) if baby.height is not None else None,
             age=_compute_age_text(baby.birth_date),
         )
     except DuplicateBabyNameError as e:

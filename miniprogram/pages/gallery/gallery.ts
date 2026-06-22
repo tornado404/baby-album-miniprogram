@@ -35,6 +35,8 @@ Page({
 
   loadMedia() {
     this.setData({ isLoading: true });
+    // 先读本地缓存即时显示，不等 API 返回
+    this.loadFromCache();
     var _this = this;
     var token = this.getToken();
     var filterIdx = this.data.filterIndex;
@@ -54,10 +56,21 @@ Page({
       success: function (res) {
         if (res.statusCode === 200 && Array.isArray(res.data)) {
           _this.setData({ mediaList: res.data, isLoading: false, hasMore: res.data.length >= 20 });
+          // API 成功时更新本地缓存
+          try { wx.setStorageSync('album_media', res.data); } catch (e) {}
         } else { _this.loadFallback(); }
       },
       fail: function () { _this.loadFallback(); },
     });
+  },
+
+  loadFromCache() {
+    try {
+      var stored = wx.getStorageSync('album_media');
+      if (Array.isArray(stored) && stored.length > 0) {
+        this.setData({ mediaList: stored, isLoading: false });
+      }
+    } catch (e) {}
   },
 
   loadFallback() {

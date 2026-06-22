@@ -55,7 +55,8 @@ Page({
       this.setData({ currentBabyId: babyId });
       this.loadBabies();
     } else if (babyId) {
-      this.loadData(babyId);
+      // 同宝宝：也需刷新宝宝数据（loadBabies 内含缓存更新 + loadData 加载媒体）
+      this.loadBabies();
     }
   },
 
