@@ -76,10 +76,12 @@
           </view>
 
           <!-- 日期 -->
-          <view class="form-field" bindtap="onPickDate">
-            <text class="field-label">日期</text>
-            <text class="field-value">{{captureDate || todayDate}}</text>
-          </view>
+          <picker mode="date" value="{{captureDate || todayDate}}" start="2020-01-01" end="2030-12-31" bindchange="onCaptureDateChange">
+            <view class="form-field">
+              <text class="field-label">日期</text>
+              <text class="field-value">{{captureDate || todayDate}}</text>
+            </view>
+          </picker>
 
           <!-- 里程碑 -->
           <view class="field-with-dropdown">
@@ -115,9 +117,16 @@
           </view>
 
           <!-- 描述 -->
-          <view class="form-field form-field-desc" bindtap="onInputDescription">
+          <view class="form-field form-field-desc">
             <text class="field-label">描述</text>
-            <text class="field-value field-placeholder">{{description || '这一天的故事...（选填）'}}</text>
+            <textarea
+              class="field-textarea"
+              value="{{description}}"
+              placeholder="这一天的故事...（选填）"
+              bindinput="onDescriptionInput"
+              maxlength="500"
+              auto-height
+            />
           </view>
 
         </view>

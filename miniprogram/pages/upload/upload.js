@@ -110,20 +110,8 @@ Page({
             navTitle: '添加记录',
         });
     },
-    onPickDate: function () {
-        var _this = this;
-        var currentDate = this.data.captureDate || this.data.todayDate;
-        wx.showModal({
-            title: '选择日期',
-            content: '请在下方输入日期 (YYYY-MM-DD)',
-            editable: true,
-            placeholderText: currentDate,
-            success: function (res) {
-                if (res.confirm && res.content) {
-                    _this.setData({ captureDate: res.content });
-                }
-            },
-        });
+    onCaptureDateChange: function (e) {
+        this.setData({ captureDate: e.detail.value });
     },
     onPickMilestone: function () {
         this.setData({
@@ -147,19 +135,8 @@ Page({
     onCloseMilestonePicker: function () {
         this.setData({ showMilestonePicker: false });
     },
-    onInputDescription: function () {
-        var _this = this;
-        wx.showModal({
-            title: '描述',
-            content: '这一天的故事...',
-            editable: true,
-            placeholderText: '这一天的故事...（选填）',
-            success: function (res) {
-                if (res.confirm && res.content) {
-                    _this.setData({ description: res.content });
-                }
-            },
-        });
+    onDescriptionInput: function (e) {
+        this.setData({ description: e.detail.value });
     },
     // ===== Upload Flow =====
     onConfirmUpload: function () {
