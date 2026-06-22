@@ -1,0 +1,135 @@
+/* privacy_agreement.wxss - 用户协议 / 隐私政策页面 */
+
+.page-agreement {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #fffbf8;
+}
+
+/* ---- Status Bar ---- */
+.status-bar {
+  flex-shrink: 0;
+  background: #fffbf8;
+}
+
+/* ---- Navigation Bar ---- */
+.agreement-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24rpx 16rpx;
+  background: #fffbf8;
+  flex-shrink: 0;
+}
+
+.nav-btn-circle {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 36rpx;
+  background: #ffffff;
+  box-shadow: 0px 2px 8px 0px rgba(230, 198, 179, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.nav-btn-circle text {
+  font-size: 32rpx;
+  color: #4a4a4a;
+  line-height: normal;
+}
+
+.nav-btn-circle:active {
+  opacity: 0.7;
+  transform: scale(0.95);
+}
+
+.nav-title {
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #4a4a4a;
+  text-align: center;
+  line-height: normal;
+}
+
+.nav-spacer-right {
+  width: 72rpx;
+  flex-shrink: 0;
+}
+
+/* ---- Content Area ---- */
+.content-area {
+  flex: 1;
+  padding: 0 40rpx;
+  box-sizing: border-box;
+}
+
+/* ---- Header ---- */
+.agreement-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40rpx 0;
+}
+
+.agreement-title {
+  font-size: 44rpx;
+  font-weight: 700;
+  color: #4a4a4a;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.agreement-updated {
+  font-size: 24rpx;
+  color: #999;
+  margin-top: 12rpx;
+  line-height: normal;
+}
+
+/* ---- Sections ---- */
+.agreement-section {
+  margin-bottom: 32rpx;
+  padding: 32rpx;
+  background: #ffffff;
+  border-radius: 24rpx;
+  box-shadow: 0px 4px 12px 0px rgba(230, 198, 179, 0.2);
+}
+
+.section-title {
+  display: block;
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #4a4a4a;
+  line-height: 1.5;
+  margin-bottom: 16rpx;
+}
+
+.section-body {
+  display: block;
+  font-size: 26rpx;
+  color: #666;
+  line-height: 1.8;
+  white-space: pre-line;
+}
+
+/* ---- Animations ---- */
+.anim-scale-in {
+  animation: scaleIn 0.3s ease-out both;
+}
+
+.anim-fade-in {
+  animation: fadeIn 0.4s ease-out both;
+}
+
+@keyframes scaleIn {
+  0% { opacity: 0; transform: scale(0.9); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes fadeIn {
+  0% { opacity: 0; transform: translateY(20rpx); }
+  100% { opacity: 1; transform: translateY(0); }
+}

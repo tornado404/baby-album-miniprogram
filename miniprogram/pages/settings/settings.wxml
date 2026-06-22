@@ -132,6 +132,17 @@
         <text class="menu-arrow">›</text>
       </view>
 
+      <view class="menu-item" bindtap="onMenuTap" data-key="privacy">
+        <view class="menu-icon">
+          <text>🔒</text>
+        </view>
+        <view class="menu-text-area">
+          <text class="menu-title">隐私政策</text>
+          <text class="menu-desc">用户协议与隐私政策</text>
+        </view>
+        <text class="menu-arrow">›</text>
+      </view>
+
       <!-- Divider -->
       <view class="dev-divider"></view>
 

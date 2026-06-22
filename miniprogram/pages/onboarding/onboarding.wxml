@@ -66,14 +66,14 @@
       </view>
 
       <!-- Privacy Agreement -->
-      <view class="privacy-row" bindtap="onPrivacyTap">
-        <view class="privacy-checkbox {{hasAgreed ? 'privacy-checkbox-checked' : ''}}">
+      <view class="privacy-row">
+        <view class="privacy-checkbox {{hasAgreed ? 'privacy-checkbox-checked' : ''}}" bindtap="onPrivacyTap">
           <text wx:if="{{hasAgreed}}" class="checkbox-icon">✓</text>
         </view>
-        <text class="privacy-text">登录即表示同意</text>
-        <text class="privacy-link">《用户协议》</text>
+        <text class="privacy-text">我已阅读并同意</text>
+        <text class="privacy-link" data-url="/pages/privacy_agreement/privacy_agreement?type=agreement" bindtap="onPolicyLinkTap">《用户服务协议》</text>
         <text class="privacy-text">和</text>
-        <text class="privacy-link">《隐私政策》</text>
+        <text class="privacy-link" data-url="/pages/privacy_agreement/privacy_agreement?type=privacy" bindtap="onPolicyLinkTap">《隐私政策》</text>
       </view>
     </view>
   </view>
