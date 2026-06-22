@@ -9,6 +9,7 @@ var TOKEN_KEY = 'baby_diary_access_token';
 var REFRESH_KEY = 'baby_diary_refresh_token';
 var USER_ID_KEY = 'baby_diary_user_id';
 var BABY_KEY = 'baby_diary_baby_profile';
+var PRIVACY_CONSENT_KEY = 'privacy_consent_at';
 
 Page({
   data: {
@@ -113,6 +114,13 @@ Page({
     this.setData({ hasAgreed: !current });
   },
 
+  onPolicyLinkTap: function (e) {
+    var url = e.currentTarget.dataset.url;
+    if (url) {
+      wx.navigateTo({ url: url });
+    }
+  },
+
   onLoginTap: function () {
     if (!this.data.hasAgreed) {
       wx.showToast({ title: '请先同意用户协议和隐私政策', icon: 'none', duration: 2000 });
@@ -135,6 +143,7 @@ Page({
                 try { wx.setStorageSync(TOKEN_KEY, res.data.accessToken); } catch (e) {}
                 try { wx.setStorageSync(REFRESH_KEY, res.data.refreshToken); } catch (e) {}
                 try { wx.setStorageSync(USER_ID_KEY, res.data.userId); } catch (e) {}
+                try { wx.setStorageSync(PRIVACY_CONSENT_KEY, Date.now()); } catch (e) {}
                 _this.setData({ authState: 'success' });
                 if (res.data.isNewUser) {
                   _this.redirectTo('baby_onboarding');

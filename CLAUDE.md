@@ -4,380 +4,398 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a WeChat Mini Program (微信小程序) for tracking baby growth and development — the **宝宝成长相册 (Baby Album)**.
+WeChat Mini Program (微信小程序) for tracking baby growth — **宝宝成长相册 (Baby Album)**.
+
+- **GitHub**: https://github.com/tornado404/baby-album-miniprogram
+- **Figma Design**: [宝宝成长日记 - Claymorphism UI](https://www.figma.com/design/KcqY6GUSvdn24Ur1qKkcim/%E5%AE%9D%E5%AE%9D%E6%88%90%E9%95%BF%E6%97%A5%E8%AE%B0---Claymorphism-UI)
+- **AppID**: `wx5d0e66dc0e6fb16d`（在 `project.config.json` 中，不可移除）
+- **Base Library**: `3.16.1`
+- **Component Framework**: `glass-easel`
 
 ### 设计目标
-- 记录宝宝成长的照片/视频，带有**年龄里程碑**标注
-- **Claymorphism UI** 主题：暖色调（米白底 #fffbf8）、柔和阴影、大圆角
-- 设计稿来源：Figma — [宝宝成长日记 - Claymorphism UI](https://www.figma.com/design/KcqY6GUSvdn24Ur1qKkcim/%E5%AE%9D%E5%AE%9D%E6%88%90%E9%95%BF%E6%97%A5%E8%AE%B0---Claymorphism-UI)
+- 记录宝宝成长照片/视频，带有**年龄里程碑**标注
+- **Claymorphism UI**：暖色调（米白底 `#fffbf8`）、柔和阴影、大圆角
 - 组件库：TDesign（全局注册）
 - 渲染策略：**album_home 使用 Skyline**，其他页面使用默认 WebView
 
-### 当前状态
-- 6个页面的 Figma Claymorphism UI 已实现
-- App 有空白屏幕 + timeout 问题（需在 DevTools 中重新构建 npm、清除缓存）
-- GitHub 仓库：https://github.com/tornado404/baby-album-miniprogram
+---
+
+## Architecture
+
+```
+┌─────────────────────┐     ┌──────────────────────────────────┐
+│  WeChat MiniProgram  │────▶│  FastAPI Backend (server/)       │
+│  (TypeScript + WXML) │     │  Python 3.11 + SQLAlchemy 2.0   │
+│  TDesign Components  │     │  Celery + Redis                 │
+└─────────────────────┘     └───────┬──────────────────────────┘
+                                    │
+                          ┌─────────┴──────────┐
+                          │  PostgreSQL (15)    │
+                          │  MinIO (S3)         │
+                          │  Redis (7)          │
+                          └────────────────────┘
+```
+
+### 三端代码结构
+
+| Directory | Technology | Purpose |
+|-----------|-----------|---------|
+| `miniprogram/` | TypeScript + WXML/WXSS | WeChat Mini Program frontend |
+| `server/` | Python FastAPI + SQLAlchemy | Backend API |
+| `tests/` | Jest + ts-jest | Unit tests (frontend) |
+| `scripts/` | Node.js + Python | Build, deploy, CI, screenshot utilities |
+
+### 部署环境
+
+| Environment | Server | Method |
+|-------------|--------|--------|
+| **Production** | `101.126.41.146` (Tencent Cloud, root) | `deploy-to-server.sh` |
+| **Testing** | `192.168.50.126` (ARM dev board, linaro) | `deploy-arm.sh` |
+| **Local Dev** | `localhost:8000` (Docker) | `docker-compose up` |
+
+---
 
 ## Development Environment
 
-- **WeChat DevTools**: Required for running and debugging the miniprogram
-- AppID: `wx3db22b5d6da5d38a` (in `project.config.json`，不可移除)
-- 微信小程序基础库版本：`3.16.1`
+- **WeChat DevTools**: Required for running/debugging the miniprogram
+- **ARM Test Server**: `ssh linaro@192.168.50.126`（局域网免密，后端+数据库+MinIO+Redis）
+- **Node.js**: 20+ (project uses 24 LTS)
+- **Python**: 3.11+ (backend, managed via Poetry)
 
-### 后端测试环境
-- **ARM 测试服务器**: `ssh linaro@192.168.50.126`（局域网免密开发环境）
-- 后端代码（`server/`）和依赖服务（如数据库、MinIO）均部署在该服务器上
-- 如果后端代码或依赖服务需要更新，直接进入该服务器操作即可（`git pull` 后重启服务）
-
-### 后端开发环境（ARM 测试服务器）
-- **本地免密开发环境**：`ssh linaro@192.168.50.126`
-- 如果后端代码或依赖服务（如数据库、MinIO、Redis 等）需要更新，直接 SSH 进入服务器操作即可，无需额外配置
+---
 
 ## Common Commands
 
+### Testing
 ```bash
-# Run all tests
-npm test
-
-# Run unit tests only
-npm run test:unit
-
-# Run E2E tests only (requires WeChat DevTools already running)
-npm run test:e2e
-
-# Run E2E tests with auto-launch DevTools (Windows native, recommended)
-npm run test:e2e:auto
-
-# Run first-screen access test (requires DevTools running)
-npm run test:first-screen
-
-# Run first-screen access test with auto-launch DevTools (Windows native, recommended)
-npm run test:first-screen:auto
-
-# Standalone first-screen access script (no Jest, auto-launch DevTools)
-npm run start:first-screen
-
-# Capture screenshots only (requires DevTools already running with visible window)
-npm run capture:first-screen
-
-# Run tests in watch mode
-npm run test:watch
-
-# Run tests with coverage
-npm run test:coverage
-
-# Compile TypeScript to JavaScript (after editing .ts files)
-cd miniprogram && npx tsc -p tsconfig.json
+npm test                    # Run all tests (unit + e2e)
+npm run test:unit           # Unit tests only (Jest `--selectProjects unit`)
+npm run test:e2e            # E2E tests (requires DevTools running, `--runInBand`)
+npm run test:first-screen   # First-screen E2E test only
+npm run test:first-screen:auto  # First-screen + auto-launch DevTools (Windows)
+npm run test:watch          # Watch mode
+npm run test:coverage       # With coverage report
 ```
 
-**Important Notes:**
-- After installing or updating npm packages in `miniprogram/`, you must rebuild npm in WeChat DevTools: **工具** -> **构建 npm**
-- TypeScript source files (`.ts`) must be compiled to JavaScript (`.js`) before running in the simulator. The IDE does not auto-compile on save.
-- 如果修改了 `app.json` 的组件路径，需要重新构建 npm
-
-## Project Structure
-
-```
-miniprogram/              # Main miniprogram code
-├── app.ts               # App entry point
-├── app.json            # App configuration (pages, window, TDesign components)
-├── app.wxss            # App global styles
-├── tsconfig.json       # TypeScript config for compilation
-├── pages/              # Page components
-│   ├── album_home/     # Album home（首页 - Skyline renderer）
-│   ├── upload/         # Upload（上传页 - WebView）
-│   ├── settings/       # Settings/我的（设置页 - WebView）
-│   ├── baby_profile/   # Baby Profile（宝宝档案 - WebView）
-│   ├── media_detail/   # Media detail（内容详情 - WebView）
-│   ├── 3d_viewer/      # 3D Model viewer（3D查看 - WebView）
-│   ├── index/          # Legacy home page
-│   ├── logs/           # Logs page
-│   └── tech_validate/  # Tech validation page
-├── components/         # Reusable components
-│   ├── bottom-nav/      # 底部导航（4个Tab: 首页/相册/上传/我的）
-│   ├── age_filter/      # Age filter component
-│   ├── masonry_layout/  # Masonry layout component
-│   ├── media_card/      # Media card component
-│   ├── media_uploader/  # Media uploader component
-│   └── navigation-bar/  # Custom navigation bar
-├── services/           # API service layer
-│   ├── media_service.ts # Media operations
-│   └── storage_service.ts # Storage operations
-├── utils/              # Utility functions
-│   ├── age_calculator.ts
-│   ├── date_utils.ts
-│   ├── image_utils.ts
-│   └── util.ts
-├── constants/          # Constants
-│   ├── album_constants.ts
-│   └── storage_keys.ts
-├── tests/              # E2E tests
-│   ├── e2e/            # E2E infrastructure (global setup/teardown)
-│   ├── specs/          # E2E test specs (.spec.ts)
-│   └── reports/        # Test reports (auto-created)
-├── miniprogram_npm/    # Built TDesign components
-└── node_modules/       # Dependencies
-
-tests/                   # Unit tests (.test.ts)
-typings/                 # TypeScript type definitions
-├── index.d.ts          # Global type declarations, exports models
-└── models/             # Data models
-    ├── baby.ts         # Baby model
-    ├── baby_age.ts     # Baby age model
-    └── media.ts        # Media model
+### Miniprogram Development
+```bash
+npm run start:first-screen  # Standalone first-screen test (no Jest)
+npm run capture:first-screen # Screenshot capture (DevTools must be visible)
+cd miniprogram && npx tsc -p tsconfig.json  # TypeScript compilation
 ```
 
-## 目录结构规范 (Directory Structure Convention)
-
-新增代码或目录时必须遵循以下规范：
-
-### 标准目录结构
-每个页面/组件包含 4 个文件：
-- **.ts**: 逻辑、数据、事件处理
-- **.wxml**: 视图结构
-- **.wxss**: 组件样式（使用类名选择器，避免 ID 和元素选择器）
-- **.json**: 配置
-
-### 命名规范
-- **页面文件夹**: 小写下划线命名法 (如 `user_profile/`)
-- **组件文件夹**: 小写下划线命名法 (如 `article_card/`)
-- **js/ts 文件**: 与文件夹名保持一致
-- **图片资源**: 小写 + 下划线 或 小写 + 连字符
-
-## Key Technologies
-
-### 渲染策略
-- **album_home（首页）**: 使用 **Skyline Renderer**（在 `album_home.json` 中按页面配置）
-- **其他所有页面**: 使用默认 **WebView** 渲染器
-- **componentFramework**: `glass-easel`（全局配置）
-- **Custom Navigation Bar**: `navigationStyle: custom` in app.json
-
-### Claymorphism 主题
-位于 `miniprogram/styles/variables.wxss`，所有页面通过 `app.wxss` 导入：
-
-```css
-/* 关键设计 Token */
---clay-bg: #fffbf8              /* 米白背景 */
---clay-primary: #ffa87a          /* 橙色主色调 */
---clay-card-pink: #f1dce2        /* 粉色卡片 */
---clay-card-blue: #dceaf1        /* 蓝色卡片 */
---clay-card-beige: #f4e6d6       /* 米色卡片 */
---clay-card-mint: #e2f1e6        /* 绿色卡片 */
---clay-icon-bg: #f9f0e9          /* 图标背景 */  */
-
-/* 阴影体系（柔和暖色调） */
---clay-shadow-card: 0px 6px 16px 0px rgba(230, 198, 179, 0.35)
+### npm Build (after installing/updating miniprogram dependencies)
+```bash
+# 1. Install in miniprogram/:
+npm i tdesign-miniprogram -S --production
+# 2. Rebuild npm in WeChat DevTools: 工具 → 构建 npm
+# 3. Or run the fix script:
+npm run build:npm    # Converts ES modules → CommonJS for miniprogram runtime
 ```
 
-### 底部导航组件 (`bottom-nav`)
-- 4个Tab: 首页 🏠 / 相册 📖 / 上传 ➕ / 我的 👤
-- 活跃态橙色 `#ffa87a`，非活跃态灰色 `#999`
-- 在 `app.json` 全局注册为 `bottom-nav`
-- 在各页面 wxml 中通过 `<bottom-nav current="home|upload|profile">` 使用
+### Backend / Server
+```bash
+# Deploy to ARM test server
+cd server && docker compose -f docker-compose.yml -f docker-compose.arm.yml up -d --build
 
-### UI 布局铁律：右上角禁止放置业务按钮
-微信小程序的**系统胶囊按钮（关闭/转发）** 位于页面右上角，因此所有页面的 **右上角区域禁止放置任何业务按钮或交互元素**，包括：
-- ❌ 保存按钮
-- ❌ 设置入口
-- ❌ 更多操作（•••）
-- ❌ 分享按钮
+# Deploy to production cloud
+bash scripts/deploy-to-server.sh
 
-替代方案：
-- 导航栏左侧放置返回按钮（←）
-- 按钮应放置在页面内容区底部居中（如保存、提交）
-- 菜单/设置入口通过底部导航Tab或列表项提供
+# Run backend tests (via pytest on server)
+# SSH in first, then: cd server && pytest
+```
 
-这条规则适用于 **Figma 设计稿** 和 **小程序代码实现** 两端。
-- 设计时：确保右上角无交互元素
-- 编码时：检查导航栏右侧只应有装饰性 spacer，无绑定事件的按钮
+### CI/CD
+```bash
+npm run ci:build      # miniprogram-ci build
+npm run ci:preview    # miniprogram-ci preview
+npm run ci:upload     # miniprogram-ci upload
+```
 
-### Figma 设计稿对照
-所有页面 UI 基于 Figma 设计稿精确实现。在设计->代码转换时，应：
-
-1. 使用 Figma MCP 获取设计稿代码（React+Tailwind）
-2. 转换为微信小程序 wxml/wxss
-3. 使用**精确的十六进制颜色值**（而非 CSS 变量引用）以确保像素级还原
-4. 375px 设计稿宽度，按 1rpx = 0.5px 转换
+---
 
 ## Important Limitations
 
-### JavaScript Syntax Compatibility
-请使用微信小程序原生语法：
-- 使用 Page / Component
-- 所有数据通过 setData 更新
-- 不使用 Vue/React 语法
-- 使用 TDesign 组件（已全局注册）
-- 给出 .wxml / .js / .json / .wxss 完整结构
+### JavaScript Syntax (Must Follow)
+WeChat Mini Program runtime does NOT support ES2020+. **Forbidden syntax:**
 
-微信小程序不支持 ES2020+ 语法，**禁止使用**以下语法：
+| Syntax | Alternative |
+|--------|-------------|
+| `?.` (optional chaining) | `obj && obj.prop` |
+| `??` (nullish coalescing) | `val !== null ? val : default` |
+| `??=` | `if (val === null) val = default` |
+| `?.()` (optional call) | `fn && fn()` |
 
-| 语法 | 说明 | 替代方案 |
-|------|------|----------|
-| `?.` | 可选链 (Optional Chaining) | `obj && obj.prop` |
-| `??` | 空值合并 (Nullish Coalescing) | `val !== null ? val : default` |
-| `??=` | 空值赋值 | `if (val === null) val = default` |
-| `?.()` | 可选调用 | `fn && fn()` |
+TypeScript compiles without error, but runtime throws `SyntaxError: Unexpected token .`
 
-**注意**: TypeScript 编译时不报错，但微信小程序 runtime 会报 `SyntaxError: Unexpected token .`
+### TypeScript Target: ES5
+- `tsconfig.json` has `strict: true`, `target: ES5`, `module: CommonJS`
+- Custom type declarations in `typings/` directory
+- WeChat API types from `miniprogram-api-typings`
 
-### Component Configuration
+---
 
-- TDesign 组件只在 `app.json` 全局注册（路径需加 `miniprogram_npm/` 前缀）
-- 页面/组件的 `usingComponents` 中**不要**重复配置 `miniprogram_npm/...` 路径
-- 自定义组件（如 `bottom-nav`）也在 `app.json` 全局注册，路径用 `/` 开头
+## Skyline Renderer Rules (album_home only)
 
-## TypeScript Configuration
+The `album_home` page uses Skyline renderer. Behavior differs from WebView pages.
 
-- Strict mode enabled (`strict: true`)
-- **Target: ES5** - 必须使用 ES5，微信小程序不支持 ES6+ 语法
-- Type definitions in `./typings` directory
-- WeChat API types from `miniprogram-api-typings` package
-- Jest for testing, configured via `jest.config.js`
+### Forbidden WXML Patterns in Skyline
+| Pattern | Problem | Fix |
+|---------|---------|-----|
+| `<block wx:for>` | `Element iterators can only be used in elements or text nodes` | Iterate on `<view wx:for>` directly |
+| `scroll-view` + `enable-flex` | White screen | Remove `enable-flex` |
+| `overflow-y: auto/scroll` on scroll-view | Skyline uses its own scrolling | Remove these CSS properties |
+| `wx:else` containing `wx:for` | Compile-time iterator error on non-element node | Use `wx:elif="{{!cond1 && !cond2}}"` |
 
-## E2E Testing
+### Masonry Layout in Skyline
+- `<block wx:for>` + `<view wx:if>` for column splitting does NOT work
+- **Must** pre-split data into `leftItems`/`rightItems` arrays in JS
+- Use two separate `<view wx:for>` in WXML
+- Reference: `album_home.ts:groupByMilestone()`
 
-E2E tests use `miniprogram-automator` to control WeChat DevTools programmatically.
+### Component Registration Strategy
+- **TDesign** components: register globally in `app.json` (with `miniprogram_npm/` prefix)
+- **Custom business components** (`bottom-nav`, etc.): register in each page's `.json` file, NOT in `app.json`
+  - Reason: global registration triggers `Cannot read property '__subscribe_webviewId' of undefined` in Skyline pages
+- Pages using `bottom-nav`: `album_home`, `upload`, `settings`, `gallery`, `journey`
 
-### Windows 原生全自动模式（推荐）
+---
 
-在 Windows 原生环境下一键运行，脚本自动启动开发者工具、连接、测试：
+## Project Structure
 
-```bash
-# 方式 A：通过 Jest 框架（有断言、HTML 报告）
-npm run test:first-screen:auto
+### Miniprogram Frontend (`miniprogram/`)
 
-# 方式 B：独立脚本（纯探查输出，无 Jest 依赖）
-npm run start:first-screen
+```
+miniprogram/
+├── app.ts / app.json / app.wxss    # Entry, config (18 pages), global styles
+├── tsconfig.json                   # ES5 target, strict off (for miniprogram runtime)
+│
+├── pages/                          # ═══════════════════ 18 pages
+│   ├── album_home/                 #   Home - Skyline renderer
+│   ├── upload/                     #   Upload media
+│   ├── settings/                   #   Settings / profile
+│   ├── baby_profile/               #   Baby profile editing
+│   ├── baby_onboarding/            #   First-time baby setup
+│   ├── baby_list/                  #   Baby list / switcher
+│   ├── gallery/                    #   Photo gallery
+│   ├── journey/                    #   Growth journey timeline
+│   ├── media_detail/               #   Media detail view
+│   ├── 3d_viewer/                  #   3D model viewer
+│   ├── achievements/               #   Achievement badges
+│   ├── growth_compare/             #   Growth comparison
+│   ├── share_settings/             #   Family sharing settings
+│   ├── about/                      #   About page
+│   ├── index/                      #   Legacy entry
+│   ├── onboarding/                 #   App onboarding
+│   ├── logs/                       #   Debug logs
+│   └── tech_validate/              #   Tech validation
+│
+├── components/                     # ═══════════════════ 7 components
+│   ├── bottom-nav/                 #   4-tab navigation (home/album/upload/profile)
+│   ├── age_filter/                 #   Age filter
+│   ├── masonry_layout/             #   Masonry layout
+│   ├── media_card/                 #   Media card
+│   ├── media_uploader/             #   Media uploader
+│   ├── navigation-bar/             #   Custom nav bar
+│   └── edit-overlay/               #   Edit overlay
+│
+├── services/                       # ═══════════════════ 9 services
+│   ├── api.ts                      #   API client wrapper
+│   ├── request.ts                  #   HTTP request (token mgmt, auto-refresh, offline fallback)
+│   ├── auth_api.ts                 #   Auth API calls
+│   ├── baby_api.ts                 #   Baby profile API
+│   ├── media_api.ts                #   Media API
+│   ├── media_service.ts            #   Media service layer
+│   ├── storage_service.ts          #   Local storage
+│   ├── config_service.ts           #   Environment config
+│   └── mock_cloud_service.ts       #   Mock cloud for testing
+│
+├── utils/                          # ═══════════ age_calculator, date_utils, image_utils, i18n, util
+├── constants/                      # ═══════════ album_constants, storage_keys
+├── config/                         # ═══════════ api.ts (environment config center)
+├── styles/                         # ═══════════ variables.wxss (Claymorphism tokens), common.wxss
+│
+├── tests/                          # E2E tests
+│   ├── e2e/                        #   global-setup/teardown, screenshot, reporter, ai-validator
+│   ├── specs/                      #   Test specs (.spec.ts)
+│   └── reports/                    #   Auto-generated reports
+│
+├── miniprogram_npm/                # Built TDesign components (generated, not committed)
+└── node_modules/
 ```
 
-脚本会自动完成：
-1. 检测微信开发者工具是否已运行
-2. 如未运行，自动通过 cli.bat 启动（自动化模式）
-3. 等待端口 9420 就绪
-4. 连接 miniprogram-automator
-5. 跳转到首屏，读取页面数据和 DOM 元素
-6. 截图保存
-7. 生成结构化 JSON 报告
+### Backend Server (`server/`)
 
-### Prerequisites
-
-1. WeChat DevTools must be installed (typically at `E:\ProgramData\Tencent\微信web开发者工具\`)
-2. Enable automation port in DevTools: **设置 → 安全设置 → 服务端口 → 开启**
-
-### Windows 纯环境测试（推荐）
-
-在 Windows 环境下直接运行，无需 WSL：
-
-**方法一：一键运行（批处理）**
-```bash
-# 在 Windows CMD/PowerShell 中执行
-scripts\test-automation.bat
+```
+server/
+├── app/
+│   ├── main.py                     # FastAPI entry (v1.1.0, 8 routers, RateLimit/Exception/CORS middleware)
+│   ├── config.py                   # Pydantic Settings (DB, Redis, JWT, WeChat, MinIO, upload limits)
+│   ├── database.py                 # Async SQLAlchemy engine + session
+│   ├── models/                     # 6 ORM models: User, Baby, Media, Share, SyncLog, Achievement
+│   ├── routers/                    # 9 routers: auth, baby, media, upload, sync, share, analytics, export, storage
+│   ├── services/                   # 9 services: auth, baby, media, file, thumbnail, export, share, sync, achievement
+│   ├── schemas/                    # Pydantic schemas: auth, baby, media, common
+│   ├── middleware/                 # auth (JWT), error_handler, permission, rate_limiter
+│   └── tasks/                      # Celery: thumbnail generation (Redis broker)
+├── tests/                          # 25+ pytest files (conftest, test_auth, test_baby, test_media, etc.)
+├── migrations/                     # Alembic migrations (init + sync_logs fix)
+├── nginx/                          # default.conf (production) + default.conf.arm (testing)
+├── docker-compose.yml              # 5 services: postgres, redis, api, celery_worker, nginx
+├── docker-compose.arm.yml          # ARM override
+├── docker-compose-minio.yml        # Standalone MinIO
+├── Dockerfile                      # Python 3.11-slim, uvicorn :8000
+└── pyproject.toml                  # Poetry: Python 3.11+, FastAPI, SQLAlchemy 2.0, asyncpg, Celery
 ```
 
-**方法二：手动启动并测试**
-```bash
-# 1. 启动开发者工具（自动化模式）
-"E:\ProgramData\Tencent\微信web开发者工具\cli.bat" auto --port 9421 --auto-port 9420 --project "D:\code\yuanBabyGrowthDiary\miniprogram"
-
-# 2. 运行测试
-node scripts\windows-test.js
+### Root
+```
+tests/          # 40+ unit test files (.test.ts) covering components, pages, services, utils
+typings/        # TypeScript type definitions: Baby, BabyAge, Media models
+scripts/        # Build, deploy, screenshot, CI utilities
+docs/           # Requirements, design, architecture, testing, plans, deployment docs
 ```
 
-**方法三：使用 PowerShell 脚本**
-```powershell
-# 启动开发者工具
-.\scripts\start-automation.ps1 -StartDevTools
+---
 
-# 运行测试
-.\scripts\start-automation.ps1 -RunTest
+## API Configuration & Environments
 
-# 一键启动并测试
-.\scripts\start-automation.ps1 -StartDevTools -RunTest
+```typescript
+// miniprogram/config/api.ts
+development: 'http://localhost:8000/api/v1'        // Docker local
+testing:     'http://192.168.50.126:8000/api/v1'   // ARM LAN
+production:  'http://101.126.41.146:8000/api/v1'   // Cloud server
 ```
+
+Switching between environments is handled by `config_service.ts` with compile-time + runtime switching. Tests use `mock_cloud_service.ts` to mock API responses.
+
+### Backend API Routers
+
+| Router | Endpoints | Purpose |
+|--------|-----------|---------|
+| `auth` | login, refresh, me | WeChat OAuth + JWT |
+| `baby` | CRUD | Baby profiles |
+| `media` | CRUD + query | Photos/videos |
+| `upload` | POST | File upload to MinIO |
+| `sync` | sync, pull | Offline data sync |
+| `share` | invite, manage | Family sharing |
+| `analytics` | stats, charts | Growth statistics |
+| `export` | download | Data export |
+| `storage` | manage | Storage management |
+
+---
+
+## UI / Design Rules
+
+### Claymorphism Design Tokens
+Defined in `miniprogram/styles/variables.wxss`:
+```css
+--clay-bg: #fffbf8             /* 米白背景 */
+--clay-primary: #ffa87a        /* 橙色主色调 */
+--clay-card-pink: #f1dce2      /* 粉色卡片 */
+--clay-card-blue: #dceaf1      /* 蓝色卡片 */
+--clay-card-beige: #f4e6d6     /* 米色卡片 */
+--clay-card-mint: #e2f1e6      /* 绿色卡片 */
+--clay-shadow-card: 0px 6px 16px 0px rgba(230, 198, 179, 0.35)
+```
+
+### UI Layout Iron Rule: No Buttons in Top-Right
+System capsule (close/share) occupies the top-right. **Never** place business buttons there:
+- ❌ Save button, settings, more actions (•••), share button
+- ✅ Back button on left (←), action buttons at bottom center
+- ✅ Menu/entries via bottom-nav tab or list items
+
+### Bottom Navigation (`bottom-nav`)
+- 4 tabs: Home 🏠 / Gallery 📖 / Upload ➕ / Profile 👤
+- Active: `#ffa87a`, Inactive: `#999`
+- Tab switching: `wx.redirectTo()` (no `tabBar` configured, no `wx.switchTab()`)
+- Home entry: `wx.reLaunch()`
+
+### Figma Design-to-Code Workflow
+1. Use Figma MCP (`/figma-use`) to get design context
+2. Export as React+Tailwind code
+3. Convert to wxml/wxss using **exact hex color values** (not CSS variables)
+4. Design width: 375px, conversion: `1px = 2rpx`
+
+---
+
+## Testing
 
 ### Test Organization
+| Type | Pattern | Config | Timeout |
+|------|---------|--------|---------|
+| Unit | `tests/**/*.test.ts` + `miniprogram/tests/**/*.test.ts` | Jest `unit` project | Default |
+| E2E | `miniprogram/tests/specs/**/*.spec.ts` | Jest `e2e` project | 120s |
 
-- **Unit tests**: `tests/**/*.test.ts` and `miniprogram/tests/**/*.test.ts` (excluding e2e)
-- **E2E tests**: `miniprogram/tests/specs/**/*.spec.ts`
-- E2E timeout: 120 seconds per test
+### Jest Configuration (jest.config.js)
+- Two-project mode: `unit` + `e2e`
+- E2E: `--runInBand` (serial execution), custom global setup/teardown
+- Coverage collects from `typings/**/*.ts` and `miniprogram/**/*.ts`
 
-### Known Issues
+### E2E Testing (miniprogram-automator)
+- Requires WeChat DevTools running with automation port enabled (9420)
+- **Known issues**:
+  - `miniprogram-automator` 0.12.1 has `reLaunch` serialization bug (use `App.callWxMethod` directly)
+  - `App.captureScreenshot` hangs if DevTools window is not visible
+  - Import `connect` directly (not destructured) to avoid `this.launcher` binding issues
 
-- `miniprogram-automator` 0.12.1 has a `reLaunch` serialization bug; use `App.callWxMethod` directly
-- `App.captureScreenshot` may hang if DevTools window is not visible; keep window minimized rather than headless
-- WSL 2 users should use `localhost` instead of `127.0.0.1` for WebSocket connections
+### Mock Strategy
+- `mock_cloud_service.ts` for API mocking in unit tests
+- `storage_service.ts` tested with local storage mocks
+- Backend tests: pytest with test database
 
-## Data Models
+---
 
-The project uses these main models (exported from `typings/models/`):
-- **Baby**: Baby profile model
-- **BabyAge**: Age calculation model
-- **Media**: Media (photo/video) model
+## CI/CD Pipeline
 
-## TDesign 组件库
+### GitHub Actions (3 workflows)
+1. **backend-ci.yml** — Push/PR to master with `server/**` changes: lint (ruff) → test (pytest, 30s)
+2. **backend.yml** — Same as above but `continue-on-error` on tests
+3. **miniprogram-ci.yml** — Push/PR to master/feat/* with `miniprogram/` changes: Node 20 → npm ci → unit tests → build → verify
 
-使用 `tdesign-miniprogram`（腾讯官方维护版本，兼容微信小程序），配置在 `app.json` 的 `usingComponents`：
+### WebHook Auto-Deploy (server/scripts/webhook/)
+- Python stdlib HTTP listener on port 9002
+- HMAC-SHA256 signature verification (GitHub WebHook secret)
+- Triggers `deploy.sh` on push events affecting `server/` directory
+- systemd-managed (independent of API container to avoid self-amputation)
+- Full setup guide: `server/scripts/webhook/SETUP.md`
 
-```json
-{
-  "t-action-sheet": "miniprogram_npm/tdesign-miniprogram/action-sheet/action-sheet",
-  "t-button": "miniprogram_npm/tdesign-miniprogram/button/button",
-  "t-cell": "miniprogram_npm/tdesign-miniprogram/cell/cell",
-  "t-cell-group": "miniprogram_npm/tdesign-miniprogram/cell-group/cell-group",
-  "t-empty": "miniprogram_npm/tdesign-miniprogram/empty/empty",
-  "t-icon": "miniprogram_npm/tdesign-miniprogram/icon/icon",
-  "t-image": "miniprogram_npm/tdesign-miniprogram/image/image",
-  "t-input": "miniprogram_npm/tdesign-miniprogram/input/input",
-  "t-loading": "miniprogram_npm/tdesign-miniprogram/loading/loading",
-  "t-navbar": "miniprogram_npm/tdesign-miniprogram/navbar/navbar",
-  "t-popup": "miniprogram_npm/tdesign-miniprogram/popup/popup",
-  "t-stepper": "miniprogram_npm/tdesign-miniprogram/stepper/stepper"
-}
-```
-
-**安装步骤**：
-1. 在 `miniprogram/` 目录下执行：`npm i tdesign-miniprogram -S --production`
-2. 在微信开发者工具中：**工具** -> **构建 npm**
-
-**重要：组件路径必须加 `miniprogram_npm/` 前缀**，否则微信小程序无法解析。
-
-完整组件列表请参考 [TDesign 微信小程序组件库官方文档](https://tdesign.tencent.com/miniprogram/overview)
+---
 
 ## Common Tasks
 
 ### Adding a New Page
-1. Create a new folder under `miniprogram/pages/` with 4 files
-2. Add the page path to `pages` array in `miniprogram/app.json`
-3. 如果是 Skyline 渲染，在页面 `.json` 中配置 `"renderer": "skyline"`
-4. 如果使用底部导航，在 wxml 中添加 `<bottom-nav current="tab-key"></bottom-nav>`
+1. Create folder `miniprogram/pages/<page_name>/` with 4 files (`.ts`, `.wxml`, `.wxss`, `.json`)
+2. Add to `pages` array in `miniprogram/app.json`
+3. For Skyline: set `"renderer": "skyline"` in page `.json`
+4. If using bottom-nav, register component in page `.json`: `"bottom-nav": "/components/bottom-nav/bottom-nav"`
+5. Add `<bottom-nav current="tab-key"></bottom-nav>` in wxml
 
 ### Adding a Component
-1. Create a new folder under `miniprogram/components/`
-2. Component requires: `.ts`, `.wxml`, `.json`, `.wxss` files
-3. 组件需在 `.json` 中声明 `"component": true`
-4. 全局使用的组件在 `app.json` 中注册，路径用 `/components/xxx/xxx`
+1. Create `miniprogram/components/<name>/` with 4 files
+2. Set `"component": true` in `.json`
+3. Register in consuming page's `.json` (NOT in `app.json` for business components)
 
 ### Adding Global Types
-- Custom type declarations go in `typings/`
-- WeChat API types are in `typings/types/wx/`
-- Global types should be exported from `typings/index.d.ts`
+- Types go in `typings/` directory
+- WeChat API types: `typings/types/wx/`
+- Export from `typings/index.d.ts`
 
-### 适配 Figma 设计稿
-1. 用 Figma MCP 获取设计信息（`get_design_context` / `get_metadata`）
-2. 输出为 React+Tailwind 代码
-3. 转换为 wxml/wxss，使用精确的颜色/圆角/阴影值
-4. 设计稿宽度 375px，对应 rpx：`1px = 2rpx`
+### Deploying Backend Changes
+1. SSH to target server: `ssh linaro@192.168.50.126` (testing) or `ssh root@101.126.41.146` (production)
+2. `git pull` inside the deployment directory
+3. Restart services: `docker compose up -d --build`
+4. Or use deploy scripts: `bash scripts/deploy-arm.sh` / `bash scripts/deploy-to-server.sh`
 
-## Known Issues & Warnings
+---
 
-These warnings from third-party libraries can be safely ignored:
+## Known Issues
 
-| Warning | Source | Resolution |
-|---------|--------|------------|
-| `Failed to load font at.alicdn.com` | iconfont CDN | Network issue, temporary |
-
-### 当前已知问题
-1. **App 空白屏幕 + timeout** — 需在 DevTools 中执行"工具 → 构建 npm"和"清除缓存"
-2. **BOM 头** — JSON 文件可能包含 BOM 头，微信开发者工具会报错。用 `sed -i '1s/^\xEF\xBB\xBF//' file.json` 修复
-3. **AppID** — 必须保留在 `project.config.json` 中，迁移到 `project.private.config.json` 会导致开发者工具无法读取
-4. **TypeScript 编译** — 使用 `useCompilerPlugins: ["typescript"]` 自动编译，但手动编译也可用 `npx tsc`
+| Issue | Workaround |
+|-------|------------|
+| App blank screen + timeout | DevTools: 工具 → 构建 npm, then 清除缓存 → 全部清除 |
+| JSON files with BOM header | `sed -i '1s/^\xEF\xBB\xBF//' file.json` |
+| AppID moved to `project.private.config.json` | Must stay in `project.config.json` |
+| Screenshot hangs in headless | Keep DevTools window visible (minimized OK), 20s timeout guard |
+| `Failed to load font at.alicdn.com` | Safe to ignore (iconfont CDN) |
+| Babel transpilation for npm | Run `scripts/build-npm.js` after npm install |

@@ -18,7 +18,8 @@
     "pages/achievements/achievements",
     "pages/about/about",
     "pages/share_settings/share_settings",
-    "pages/growth_compare/growth_compare"
+    "pages/growth_compare/growth_compare",
+    "pages/privacy_agreement/privacy_agreement"
   ],
   "window": {
     "navigationBarTextStyle": "black",

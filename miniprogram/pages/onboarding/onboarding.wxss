@@ -265,6 +265,11 @@
   font-size: 22rpx;
   color: #ffa87a;
   line-height: 1.6;
+  text-decoration: underline;
+}
+
+.privacy-link:active {
+  opacity: 0.6;
 }
 
 /* ---- Safe Area Bottom ---- */

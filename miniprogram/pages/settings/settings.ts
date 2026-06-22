@@ -157,6 +157,7 @@ Page({
       growth_compare: '/pages/growth_compare/growth_compare',
       achievements: '/pages/achievements/achievements',
       share: '/pages/share_settings/share_settings',
+      privacy: '/pages/privacy_agreement/privacy_agreement?type=agreement',
       about: '/pages/about/about',
       export_data: '',
       export_report: '',
