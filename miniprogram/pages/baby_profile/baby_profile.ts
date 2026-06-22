@@ -5,12 +5,21 @@ import { STORAGE_KEYS } from '../../constants/storage_keys';
 import { API_CONFIG } from '../../config/api';
 var tokenManager = require('../../services/request').tokenManager;
 
+/** 生成当天日期字符串 YYYY-MM-DD */
+function getTodayStr() {
+  var now = new Date();
+  var y = now.getFullYear();
+  var m = ('0' + (now.getMonth() + 1)).slice(-2);
+  var d = ('0' + now.getDate()).slice(-2);
+  return y + '-' + m + '-' + d;
+}
+
 Page({
   data: {
     safeTop: 44,
     nickname: '小星星',
     gender: 'female',
-    birthDate: '2025-12-01',
+    birthDate: '',
     weight: '7.2',
     height: '65',
     avatarUrl: '',
@@ -20,6 +29,11 @@ Page({
   onLoad: function () {
     var sysInfo = wx.getWindowInfo();
     this.setData({ safeTop: sysInfo.statusBarHeight || 44 });
+
+    // 设置默认出生日期为当天日期
+    if (!this.data.birthDate) {
+      this.setData({ birthDate: getTodayStr() });
+    }
 
     var babyId = '';
     try {
@@ -51,7 +65,7 @@ Page({
           _this.setData({
             nickname: b.name || '小星星',
             gender: b.gender || 'female',
-            birthDate: b.birthDate || '2025-12-01',
+            birthDate: b.birthDate || getTodayStr(),
             avatarUrl: avatar.indexOf('http') === 0 ? avatar : '',
             avatarEmoji: avatar.indexOf('http') !== 0 && avatar ? avatar : '👶',
           });
@@ -76,7 +90,7 @@ Page({
           this.setData({
             nickname: baby.name || '小星星',
             gender: baby.gender || 'female',
-            birthDate: baby.birthDate || '2025-12-01',
+            birthDate: baby.birthDate || getTodayStr(),
             avatarUrl: avatar.indexOf('http') === 0 ? avatar : '',
             avatarEmoji: avatar.indexOf('http') !== 0 && avatar ? avatar : '👶',
           });
@@ -283,7 +297,11 @@ Page({
   },
 
   onBirthDateChange: function (e) {
-    this.setData({ birthDate: e.detail.value });
+    var val = e.detail.value;
+    this.setData({ birthDate: val });
+    if (val) {
+      this.setData({ birthDateArray: this.dateToArray(val) });
+    }
   },
 
   onWeightMinus: function () {

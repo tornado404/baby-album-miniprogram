@@ -1,4 +1,5 @@
 """宝宝服务"""
+from decimal import Decimal
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from app.models.baby import Baby
@@ -122,11 +123,18 @@ class BabyService:
             if existing.first() is not None:
                 raise DuplicateBabyNameError(f"Baby with name '{new_name}' already exists")
 
-        # camelCase → snake_case 字段映射
+        # camelCase → snake_case 字段映射 + 类型安全转换
         field_map = {"birthDate": "birth_date"}
+        decimal_fields = {"weight", "height"}
         for k, v in data.model_dump(exclude_unset=True).items():
             if v is not None:
                 col = field_map.get(k, k)
+                # 将 weight/height 转为 Decimal，避免 asyncpg 绑定参数类型不匹配
+                if k in decimal_fields:
+                    try:
+                        v = Decimal(str(v))
+                    except Exception:
+                        continue  # 转换失败则跳过该字段
                 setattr(baby, col, v)
         await record_sync_log(self.db, user_id, "baby", baby_id, SyncAction.update)
         await self.db.commit()
