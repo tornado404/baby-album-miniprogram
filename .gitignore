@@ -20,3 +20,6 @@ server/test.db
 *.egg-info/
 .venv/
 uv.lock
+
+# macOS
+.DS_Store
