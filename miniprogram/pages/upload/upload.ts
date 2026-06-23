@@ -38,14 +38,6 @@ Page({
   },
 
   onLoad: function () {
-    // 入口登录守卫：无 token 时引导登录
-    var token = this.getToken();
-    if (!token) {
-      try { wx.setStorageSync('login_redirect', '/pages/upload/upload'); } catch (e) {}
-      wx.redirectTo({ url: '/pages/onboarding/onboarding' });
-      return;
-    }
-
     try {
       var info = wx.getWindowInfo();
       this.setData({ safeTop: info.statusBarHeight || 44 });
@@ -93,7 +85,15 @@ Page({
 
   // ===== Step Transitions =====
 
+  requireLogin: function () {
+    if (this.getToken()) return true;
+    try { wx.setStorageSync('login_redirect', '/pages/upload/upload'); } catch (e) {}
+    wx.redirectTo({ url: '/pages/onboarding/onboarding' });
+    return false;
+  },
+
   onTakePhoto: function () {
+    if (!this.requireLogin()) return;
     var _this = this;
     wx.chooseMedia({
       count: 1, mediaType: ['image'], sourceType: ['camera'],
@@ -102,6 +102,7 @@ Page({
   },
 
   onChooseFromAlbum: function () {
+    if (!this.requireLogin()) return;
     var _this = this;
     wx.chooseMedia({
       count: 9, mediaType: ['image', 'video'], sourceType: ['album'],
@@ -166,6 +167,7 @@ Page({
   // ===== Upload Flow =====
 
   onConfirmUpload: function () {
+    if (!this.requireLogin()) return;
     var files = this.data.selectedFiles;
     if (files.length === 0) {
       wx.showToast({ title: '请选择文件', icon: 'none' });

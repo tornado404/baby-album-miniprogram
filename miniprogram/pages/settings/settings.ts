@@ -37,13 +37,6 @@ Page({
   },
 
   onLoad() {
-    // 入口登录守卫：无 token 时引导登录
-    if (!tokenManager.getAccessToken()) {
-      try { wx.setStorageSync('login_redirect', '/pages/settings/settings'); } catch (e) {}
-      wx.redirectTo({ url: '/pages/onboarding/onboarding' });
-      return;
-    }
-
     try {
       var info = wx.getWindowInfo();
       this.setData({ safeTop: info.statusBarHeight || 44 });
@@ -156,6 +149,13 @@ Page({
     this.setData({ recordDaysText: template.replace('{days}', days || 0) });
   },
 
+  requireLogin: function () {
+    if (tokenManager.getAccessToken()) return true;
+    try { wx.setStorageSync('login_redirect', '/pages/settings/settings'); } catch (e) {}
+    wx.redirectTo({ url: '/pages/onboarding/onboarding' });
+    return false;
+  },
+
   // ========== 菜单导航 ==========
 
   onMenuTap(e) {
@@ -170,6 +170,11 @@ Page({
       export_data: '',
       export_report: '',
     };
+
+    // 隐私政策和关于页面不需要登录，其他操作需要登录校验
+    if (key !== 'privacy' && key !== 'about') {
+      if (!this.requireLogin()) return;
+    }
 
     var url = routes[key];
     if (url) {
