@@ -283,3 +283,24 @@
   color: #ffffff;
   line-height: normal;
 }
+
+/* ===== Skip Link ===== */
+.skip-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24rpx 0;
+  width: 100%;
+}
+
+.skip-link-text {
+  font-size: 26rpx;
+  font-weight: 400;
+  color: #b2a699;
+  line-height: normal;
+  letter-spacing: 1rpx;
+}
+
+.skip-link-hover {
+  opacity: 0.5;
+}

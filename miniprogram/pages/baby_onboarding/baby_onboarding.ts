@@ -62,6 +62,28 @@ Page({
     this.createBaby(token, name);
   },
 
+  onSkip() {
+    // 创建默认访客占位宝宝，仅存本地，不调用 API
+    var profile = {
+      id: 'baby_' + Date.now(),
+      name: '访客',
+      avatar: '👤',
+      createdAt: new Date().toISOString()
+    };
+
+    try { wx.setStorageSync(BABY_KEY, profile); } catch (e) {}
+    try { wx.setStorageSync(STORAGE_KEYS.currentBabyId, profile.id); } catch (e) {}
+
+    var babies = [];
+    try { babies = wx.getStorageSync('album_babies') || []; } catch (e) {}
+    if (!Array.isArray(babies)) { babies = []; }
+    babies.push(profile);
+    try { wx.setStorageSync('album_babies', babies); } catch (e) {}
+
+    wx.showToast({ title: '已跳过，先去看看', icon: 'none', duration: 1000 });
+    setTimeout(function () { wx.redirectTo({ url: '/pages/album_home/album_home' }); }, 1000);
+  },
+
   createBaby: function (token, name) {
     this.setData({ isSaving: true });
     var _this = this;
