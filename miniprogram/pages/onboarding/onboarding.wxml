@@ -54,6 +54,24 @@
         <text class="loading-text">正在获取你的信息...</text>
       </view>
 
+      <!-- Profile Setup (after login, before entering app) -->
+      <view wx:elif="{{authState === 'profile'}}" class="profile-setup">
+        <view class="profile-avatar-area">
+          <button class="avatar-btn" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
+            <image wx:if="{{avatarUrl}}" class="profile-avatar" src="{{avatarUrl}}" mode="aspectFill"></image>
+            <text wx:else class="avatar-placeholder">👤</text>
+          </button>
+          <text class="avatar-hint">点击设置头像</text>
+        </view>
+        <view class="profile-name-area">
+          <text class="profile-label">昵称</text>
+          <input class="profile-input" type="nickname" placeholder="你的微信昵称" bindinput="onNicknameInput" bindblur="onNicknameBlur" />
+        </view>
+        <view class="profile-confirm-btn" bindtap="onConfirmProfile" hover-class="login-btn-hover">
+          <text class="profile-confirm-text">进入宝宝成长相册</text>
+        </view>
+      </view>
+
       <!-- Login Button / Retry -->
       <view wx:if="{{authState === 'idle' || authState === 'error'}}" class="login-btn-wrapper">
         <view class="login-btn {{hasAgreed ? '' : 'login-btn-disabled'}}" bindtap="onLoginTap" hover-class="{{hasAgreed ? 'login-btn-hover' : ''}}">

@@ -16,8 +16,10 @@ Page({
     safeTop: 44,
     isLoading: false,
     hasAgreed: false,
-    authState: 'idle',   // idle | loading | error | success
-    errorMsg: ''
+    authState: 'idle',   // idle | loading | error | success | profile
+    errorMsg: '',
+    nickName: '',
+    avatarUrl: '',
   },
 
   onLoad: function () {
@@ -130,28 +132,6 @@ Page({
     this.setData({ authState: 'loading', errorMsg: '' });
     var _this = this;
 
-    // 先获取微信用户信息（按钮点击是用户手势，wx.getUserProfile 需要此上下文）
-    wx.getUserProfile({
-      desc: '用于展示用户名和头像',
-      success: function (profileRes) {
-        var nickName = '';
-        var avatarUrl = '';
-        if (profileRes.userInfo) {
-          nickName = profileRes.userInfo.nickName || '';
-          avatarUrl = profileRes.userInfo.avatarUrl || '';
-        }
-        _this.doLogin(nickName, avatarUrl);
-      },
-      fail: function () {
-        // 用户拒绝授权或不支持 → 仍可继续登录，用默认值
-        _this.doLogin('', '');
-      },
-    });
-  },
-
-  doLogin: function (nickName, avatarUrl) {
-    var _this = this;
-
     wx.login({
       success: function (loginRes) {
         if (loginRes.code) {
@@ -166,22 +146,14 @@ Page({
                 try { wx.setStorageSync(REFRESH_KEY, res.data.refreshToken); } catch (e) {}
                 try { wx.setStorageSync(USER_ID_KEY, res.data.userId); } catch (e) {}
                 try { wx.setStorageSync(PRIVACY_CONSENT_KEY, Date.now()); } catch (e) {}
-                _this.setData({ authState: 'success' });
-                // 将微信用户名和头像保存到后端
-                if (nickName) {
-                  wx.request({
-                    url: API_CONFIG.baseURL + '/auth/me',
-                    method: 'PUT',
-                    data: { nickName: nickName, avatarUrl: avatarUrl },
-                    header: { 'Authorization': 'Bearer ' + res.data.accessToken, 'Content-Type': 'application/json' },
-                    timeout: 8000,
-                  });
-                }
-                if (res.data.isNewUser) {
-                  _this.redirectTo('baby_onboarding');
-                } else {
-                  _this.redirectTo('home');
-                }
+                // 登录成功 → 展示昵称/头像设置界面（authState: profile）
+                // 微信原生 input[type=nickname] 会自动填充微信昵称
+                // button[open-type=chooseAvatar] 可选择头像
+                _this.setData({
+                  authState: 'profile',
+                  nickName: '',
+                  avatarUrl: '',
+                });
               } else {
                 _this.handleAuthError('登录失败，请重试');
               }
@@ -198,6 +170,54 @@ Page({
         _this.handleAuthError('网络错误，请检查网络');
       },
     });
+  },
+
+  onNicknameInput: function (e) {
+    // input[type=nickname] 的 bindinput：微信原生选择后的回调
+    if (e.detail.value) {
+      this.setData({ nickName: e.detail.value });
+    }
+  },
+
+  onNicknameBlur: function (e) {
+    // bindblur：用户手动输入或离开时获取最终值
+    if (e.detail.value) {
+      this.setData({ nickName: e.detail.value });
+    }
+  },
+
+  onChooseAvatar: function (e) {
+    this.setData({ avatarUrl: e.detail.avatarUrl });
+  },
+
+  onConfirmProfile: function () {
+    var nickName = this.data.nickName;
+    var avatarUrl = this.data.avatarUrl;
+    var token = '';
+    try { token = wx.getStorageSync(TOKEN_KEY) || ''; } catch (e) {}
+
+    // 保存到后端（昵称或头像任一存在就保存）
+    if (token) {
+      var putData = {};
+      if (nickName) putData['nickName'] = nickName;
+      if (avatarUrl) putData['avatarUrl'] = avatarUrl;
+      wx.request({
+        url: API_CONFIG.baseURL + '/auth/me',
+        method: 'PUT',
+        data: putData,
+        header: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+        timeout: 8000,
+      });
+    }
+
+    this.setData({ authState: 'success' });
+    // 新用户跳宝宝创建，老用户跳首页
+    var isNewUser = false;
+    try {
+      var babyProfile = wx.getStorageSync(BABY_KEY);
+      isNewUser = !babyProfile;
+    } catch (e) {}
+    this.redirectTo(isNewUser ? 'baby_onboarding' : 'home');
   },
 
   handleOfflineFallback: function () {
