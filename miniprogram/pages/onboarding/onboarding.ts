@@ -183,6 +183,14 @@ Page({
   },
 
   redirectTo: function (target) {
+    // 优先回跳：登录前用户想去的页面（如 upload、settings）
+    var redirectUrl = '';
+    try { redirectUrl = wx.getStorageSync('login_redirect') || ''; } catch (e) {}
+    if (redirectUrl) {
+      try { wx.removeStorageSync('login_redirect'); } catch (e) {}
+      wx.redirectTo({ url: redirectUrl });
+      return;
+    }
     var url = target === 'home'
       ? '/pages/album_home/album_home'
       : '/pages/baby_onboarding/baby_onboarding';

@@ -84,14 +84,28 @@ npm run capture:first-screen # Screenshot capture (DevTools must be visible)
 cd miniprogram && npx tsc -p tsconfig.json  # TypeScript compilation
 ```
 
-### npm Build (after installing/updating miniprogram dependencies)
-```bash
-# 1. Install in miniprogram/:
-npm i tdesign-miniprogram -S --production
-# 2. Rebuild npm in WeChat DevTools: 工具 → 构建 npm
-# 3. Or run the fix script:
-npm run build:npm    # Converts ES modules → CommonJS for miniprogram runtime
+### npm Build — ⚠️ 关键操作：每次 miniprogram 依赖变更后必须执行
+
+`tdesign-miniprogram 1.15.0` 的 `miniprogram_dist/` 使用 ES module 语法（`import`/`export`），
+但微信小程序 runtime **只支持 CommonJS**（`require`/`module.exports`）。
+直接运行 DevTools 的「工具 → 构建 npm」仅复制文件，不进行语法转换，会导致：
 ```
+Error: module 'miniprogram_npm/tdesign-miniprogram/stepper/stepper.js' is not defined
+Component is not found in path "miniprogram_npm/tdesign-miniprogram/button/button"
+```
+
+**执行顺序（重要）：**
+```bash
+# 1. 安装依赖（在 miniprogram/ 目录下）
+cd miniprogram && npm i tdesign-miniprogram -S --production
+
+# 2. ⚠️ 必须运行 Babel 转换脚本（ES module → CommonJS）
+#    否则 TDesign 组件全部报错 not defined
+npm run build:npm    # node scripts/build-npm.js
+```
+
+> 如果忘记执行 `build:npm`，报错现象是 TDesign 各组件 `not defined`。
+> 解决：运行 `npm run build:npm`，然后 DevTools 中「清除缓存 → 全部清除」重新打开。
 
 ### Backend / Server
 ```bash

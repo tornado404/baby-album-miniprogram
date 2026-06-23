@@ -514,10 +514,22 @@ Page({
   },
 
   goToRecord: function () {
+    // 无 token 时先引导登录
+    if (!this.getToken()) {
+      try { wx.setStorageSync('login_redirect', '/pages/upload/upload'); } catch (e) {}
+      wx.redirectTo({ url: '/pages/onboarding/onboarding' });
+      return;
+    }
     wx.redirectTo({ url: '/pages/upload/upload' });
   },
 
   goToProfile: function () {
+    // 无 token 时先引导登录
+    if (!this.getToken()) {
+      try { wx.setStorageSync('login_redirect', '/pages/settings/settings'); } catch (e) {}
+      wx.redirectTo({ url: '/pages/onboarding/onboarding' });
+      return;
+    }
     wx.redirectTo({ url: '/pages/settings/settings' });
   },
 

@@ -37,6 +37,13 @@ Page({
   },
 
   onLoad() {
+    // 入口登录守卫：无 token 时引导登录
+    if (!tokenManager.getAccessToken()) {
+      try { wx.setStorageSync('login_redirect', '/pages/settings/settings'); } catch (e) {}
+      wx.redirectTo({ url: '/pages/onboarding/onboarding' });
+      return;
+    }
+
     try {
       var info = wx.getWindowInfo();
       this.setData({ safeTop: info.statusBarHeight || 44 });
