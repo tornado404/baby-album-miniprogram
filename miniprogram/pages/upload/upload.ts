@@ -223,7 +223,7 @@ Page({
   },
 
   /**
-   * 单文件上传（sign → put ArrayBuffer → create media）
+   * 单文件上传（sign → 判断大小 → simpleUpload 或 chunkedUpload → create media）
    */
   uploadFile: function (file, babyId, token, callback) {
     var _this = this;
@@ -254,71 +254,191 @@ Page({
         var uploadUrl = signRes.data.uploadUrl;
         var cosKey = signRes.data.cosKey;
 
-        // Replace internal MinIO URL with external
+        // Replace internal MinIO URL with external (兼容旧 MinIO 模式)
         if (uploadUrl && uploadUrl.indexOf('minio:9000') !== -1) {
           uploadUrl = uploadUrl.replace('http://minio:9000', API_CONFIG.minioURL);
           uploadUrl = uploadUrl.replace('https://minio:9000', API_CONFIG.minioURL);
         }
 
-        // Read file as ArrayBuffer and PUT to MinIO
+        // 获取文件大小，决定上传方式
         var fs = wx.getFileSystemManager();
         try {
-          var arrayBuf = fs.readFileSync(file.tempFilePath);
+          var stat = fs.statSync(file.tempFilePath);
+          var fileSize = stat.size;
         } catch (e) {
-          _this.fallbackMockUpload(file, babyId, callback);
+          // stat 失败则回退简单上传
+          _this.simpleUpload(file, uploadUrl, cosKey, fileType, babyId, token, captureDate, callback);
           return;
         }
 
-        // 根据文件扩展名设置 Content-Type，否则 MinIO 存为 application/octet-stream
-        var contentType = fileType === 'video' ? 'video/mp4' : 'image/jpeg';
-
-        wx.request({
-          url: uploadUrl,
-          method: 'PUT',
-          data: arrayBuf,
-          header: { 'Content-Type': contentType },
-          timeout: 30000,
-          success: function (uploadRes) {
-            if (uploadRes.statusCode < 200 || uploadRes.statusCode >= 300) {
-              _this.handleUploadError(callback);
-              return;
-            }
-
-            // Create media record
-            wx.request({
-              url: API_CONFIG.baseURL + '/media/',
-              method: 'POST',
-              data: {
-                babyId: babyId,
-                title: _this.data.description || '',
-                type: fileType,
-                cosKey: cosKey,
-                captureDate: captureDate,
-                milestone: _this.data.milestone || '',
-              },
-              header: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
-              timeout: 10000,
-              success: function (mediaRes) {
-                if (mediaRes.statusCode === 200 || mediaRes.statusCode === 201) {
-                  _this.syncToLocal(file, babyId, fileType, captureDate, cosKey);
-                } else {
-                  console.warn('[upload] 创建媒体记录失败:', mediaRes.statusCode, mediaRes.data);
-                }
-                if (callback) callback();
-              },
-              fail: function (err) {
-                console.warn('[upload] 创建媒体请求失败:', err);
-                if (callback) callback();
-              },
-            });
-          },
-          fail: function () {
-            _this.fallbackMockUpload(file, babyId, callback);
-          },
-        });
+        // 5MB 阈值：小于 5MB 直接上传，否则分片
+        var CHUNK_THRESHOLD = 5 * 1024 * 1024;
+        if (fileSize < CHUNK_THRESHOLD) {
+          _this.simpleUpload(file, uploadUrl, cosKey, fileType, babyId, token, captureDate, callback);
+        } else {
+          _this.chunkedUpload(file, uploadUrl, cosKey, fileType, babyId, token, captureDate, callback);
+        }
       },
       fail: function () {
         _this.fallbackMockUpload(file, babyId, callback);
+      },
+    });
+  },
+
+  /**
+   * 简单上传（小文件，< 5MB）— 单次 PUT
+   */
+  simpleUpload: function (file, uploadUrl, cosKey, fileType, babyId, token, captureDate, callback) {
+    var _this = this;
+    var fs = wx.getFileSystemManager();
+    try {
+      var arrayBuf = fs.readFileSync(file.tempFilePath);
+    } catch (e) {
+      _this.fallbackMockUpload(file, babyId, callback);
+      return;
+    }
+
+    var contentType = fileType === 'video' ? 'video/mp4' : 'image/jpeg';
+
+    wx.request({
+      url: uploadUrl,
+      method: 'PUT',
+      data: arrayBuf,
+      header: { 'Content-Type': contentType },
+      timeout: 60000,
+      success: function (uploadRes) {
+        if (uploadRes.statusCode < 200 || uploadRes.statusCode >= 300) {
+          _this.handleUploadError(callback);
+          return;
+        }
+        _this.createMediaRecord(cosKey, fileType, babyId, token, captureDate, file, callback);
+      },
+      fail: function () {
+        _this.fallbackMockUpload(file, babyId, callback);
+      },
+    });
+  },
+
+  /**
+   * 分片上传（大文件，>= 5MB）— 按 1MB 分片，带重试
+   */
+  chunkedUpload: function (file, uploadUrl, cosKey, fileType, babyId, token, captureDate, callback) {
+    var _this = this;
+    var fs = wx.getFileSystemManager();
+    var filePath = file.tempFilePath;
+
+    // 1MB 分片
+    var CHUNK_SIZE = 1024 * 1024;
+
+    var stat = fs.statSync(filePath);
+    var fileSize = stat.size;
+    var totalChunks = Math.ceil(fileSize / CHUNK_SIZE);
+    var currentChunk = 0;
+    var maxRetries = 3;
+
+    var uploadChunk = function () {
+      if (currentChunk >= totalChunks) {
+        // 所有分片上传完成，创建媒体记录
+        _this.createMediaRecord(cosKey, fileType, babyId, token, captureDate, file, callback);
+        return;
+      }
+
+      var start = currentChunk * CHUNK_SIZE;
+      var end = Math.min(start + CHUNK_SIZE, fileSize);
+      var chunkSize = end - start;
+
+      _this.setData({
+        uploadStatus: '上传中 ' + (currentChunk + 1) + '/' + totalChunks + ' 分片',
+      });
+
+      // 读取分片（微信 readFileSync 支持 object 参数模式）
+      try {
+        var chunkData = fs.readFileSync({
+          filePath: filePath,
+          position: start,
+          length: chunkSize,
+        });
+      } catch (e) {
+        console.warn('[upload] 分片读取失败，重试:', e);
+        setTimeout(uploadChunk, 1000);
+        return;
+      }
+
+      var contentRange = 'bytes ' + start + '-' + (end - 1) + '/' + fileSize;
+      var retryCount = 0;
+
+      var doUpload = function () {
+        wx.request({
+          url: uploadUrl,
+          method: 'PUT',
+          data: chunkData,
+          header: {
+            'Content-Type': fileType === 'video' ? 'video/mp4' : 'image/jpeg',
+            'Content-Range': contentRange,
+          },
+          timeout: 60000,
+          success: function (uploadRes) {
+            if (uploadRes.statusCode >= 200 && uploadRes.statusCode < 300) {
+              currentChunk++;
+              var pct = Math.min(Math.floor(currentChunk / totalChunks * 100), 99);
+              _this.setData({ uploadProgress: pct });
+              setTimeout(uploadChunk, 50);
+            } else {
+              handleError();
+            }
+          },
+          fail: function () {
+            handleError();
+          },
+        });
+      };
+
+      var handleError = function () {
+        retryCount++;
+        if (retryCount < maxRetries) {
+          console.warn('[upload] 分片上传失败，第 ' + retryCount + ' 次重试');
+          setTimeout(doUpload, 1000 * retryCount);
+        } else {
+          console.error('[upload] 分片上传超过最大重试次数');
+          _this.handleUploadError(callback);
+        }
+      };
+
+      doUpload();
+    };
+
+    uploadChunk();
+  },
+
+  /**
+   * 创建媒体记录（上传文件到 OSS 后调用）
+   */
+  createMediaRecord: function (cosKey, fileType, babyId, token, captureDate, file, callback) {
+    var _this = this;
+    wx.request({
+      url: API_CONFIG.baseURL + '/media/',
+      method: 'POST',
+      data: {
+        babyId: babyId,
+        title: _this.data.description || '',
+        type: fileType,
+        cosKey: cosKey,
+        captureDate: captureDate,
+        milestone: _this.data.milestone || '',
+      },
+      header: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+      timeout: 10000,
+      success: function (mediaRes) {
+        if (mediaRes.statusCode === 200 || mediaRes.statusCode === 201) {
+          _this.syncToLocal(file, babyId, fileType, captureDate, cosKey);
+        } else {
+          console.warn('[upload] 创建媒体记录失败:', mediaRes.statusCode, mediaRes.data);
+        }
+        if (callback) callback();
+      },
+      fail: function (err) {
+        console.warn('[upload] 创建媒体请求失败:', err);
+        if (callback) callback();
       },
     });
   },

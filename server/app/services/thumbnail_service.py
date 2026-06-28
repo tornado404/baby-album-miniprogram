@@ -4,6 +4,8 @@
 1. process_thumbnail(media_id, cos_key, user_id) — 完整流程（下载 → 缩放 → 上传 → 更新 DB）
    由 Celery task 调用，也可直接调用（方便测试）
 2. resize_image(image_data, width, height, quality) — 纯 Pillow 缩放，无 IO 依赖，可独立测试
+
+底层存储自动适配 TOS / MinIO（通过 tos_service 统一接口）。
 """
 
 import uuid
@@ -12,21 +14,14 @@ from io import BytesIO
 from typing import Optional
 
 from PIL import Image
-from minio import Minio
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
+from app.services.tos_service import is_tos_enabled, download_file, upload_file
+from app.services.tos_service import get_file_url as tos_get_file_url
 
 logger = logging.getLogger(__name__)
-
-minio_client = Minio(
-    settings.MINIO_ENDPOINT,
-    access_key=settings.MINIO_ACCESS_KEY,
-    secret_key=settings.MINIO_SECRET_KEY,
-    secure=False,
-)
-
 
 # ── 纯 Pillow 缩放（无 IO，方便单测） ─────────────────────
 
@@ -66,8 +61,59 @@ def build_thumbnail_key(user_id: str) -> str:
 
 
 def build_thumbnail_url(thumb_key: str) -> str:
-    """拼接缩略图公开访问 URL"""
+    """拼接缩略图公开访问 URL
+
+    优先使用 TOS CDN URL（如有配置），否则用 TOS 公网 URL 或 MinIO URL 回退。
+    """
+    if is_tos_enabled():
+        return tos_get_file_url(thumb_key)
     return f"{settings.MINIO_PUBLIC_URL}/{settings.MINIO_BUCKET}/{thumb_key}"
+
+
+# ── 存储读写适配层 ──────────────────────────────────────
+# 自动选择 TOS 或 MinIO 后端
+
+def _download_from_store(bucket: str, key: str) -> Optional[bytes]:
+    """从对象存储下载文件（自动适配 TOS / MinIO）"""
+    if is_tos_enabled():
+        return download_file(bucket, key)
+    # MinIO 回退
+    try:
+        from minio import Minio
+        client = Minio(
+            settings.MINIO_ENDPOINT,
+            access_key=settings.MINIO_ACCESS_KEY,
+            secret_key=settings.MINIO_SECRET_KEY,
+            secure=False,
+        )
+        response = client.get_object(bucket, key)
+        data = response.read()
+        response.close()
+        response.release_conn()
+        return data
+    except Exception:
+        logger.exception("MinIO download failed: bucket=%s key=%s", bucket, key)
+        return None
+
+
+def _upload_to_store(bucket: str, key: str, data: bytes, content_type: str) -> bool:
+    """上传文件到对象存储（自动适配 TOS / MinIO）"""
+    if is_tos_enabled():
+        return upload_file(bucket, key, data, content_type)
+    # MinIO 回退
+    try:
+        from minio import Minio
+        client = Minio(
+            settings.MINIO_ENDPOINT,
+            access_key=settings.MINIO_ACCESS_KEY,
+            secret_key=settings.MINIO_SECRET_KEY,
+            secure=False,
+        )
+        client.put_object(bucket, key, BytesIO(data), len(data), content_type=content_type)
+        return True
+    except Exception:
+        logger.exception("MinIO upload failed: bucket=%s key=%s", bucket, key)
+        return False
 
 
 # ── 完整流程（下载 → 缩放 → 上传 → 更新 DB） ─────────────
@@ -82,19 +128,19 @@ async def process_thumbnail(
 
     Args:
         media_id: 媒体记录 ID
-        cos_key: 原图在 MinIO 中的 key
+        cos_key: 原图在存储中的 key
         user_id: 用户 ID
         db: 异步数据库会话
 
     Returns:
         缩略图 URL，失败返回 None
     """
+    bucket = settings.TOS_BUCKET if is_tos_enabled() else settings.MINIO_BUCKET
     try:
-        # 1. 从 MinIO 下载原图
-        response = minio_client.get_object(settings.MINIO_BUCKET, cos_key)
-        image_data = response.read()
-        response.close()
-        response.release_conn()
+        # 1. 从存储下载原图
+        image_data = _download_from_store(bucket, cos_key)
+        if image_data is None:
+            raise RuntimeError(f"Failed to download: {cos_key}")
 
         # 2. 提取原图尺寸
         img = Image.open(BytesIO(image_data))
@@ -108,16 +154,11 @@ async def process_thumbnail(
             quality=settings.THUMBNAIL_QUALITY,
         )
 
-        # 4. 上传缩略图到 MinIO
+        # 4. 上传缩略图到存储
         thumb_key = build_thumbnail_key(user_id)
-        thumb_buffer = BytesIO(thumb_bytes)
-        minio_client.put_object(
-            settings.MINIO_BUCKET,
-            thumb_key,
-            thumb_buffer,
-            len(thumb_bytes),
-            content_type="image/webp",
-        )
+        success = _upload_to_store(bucket, thumb_key, thumb_bytes, content_type="image/webp")
+        if not success:
+            raise RuntimeError(f"Failed to upload thumbnail: {thumb_key}")
 
         # 5. 更新 Media 记录（含缩略图 + 原图尺寸 + 文件大小）
         thumb_url = build_thumbnail_url(thumb_key)
@@ -168,10 +209,11 @@ def generate_thumbnail(cos_key: str, user_id: str) -> tuple[str, str]:
 
     保留原有接口兼容性。新代码应使用 process_thumbnail。
     """
-    response = minio_client.get_object(settings.MINIO_BUCKET, cos_key)
-    image_data = response.read()
-    response.close()
-    response.release_conn()
+    bucket = settings.TOS_BUCKET if is_tos_enabled() else settings.MINIO_BUCKET
+
+    image_data = _download_from_store(bucket, cos_key)
+    if image_data is None:
+        raise RuntimeError(f"Failed to download: {cos_key}")
 
     thumb_bytes = resize_image(
         image_data,
@@ -181,14 +223,7 @@ def generate_thumbnail(cos_key: str, user_id: str) -> tuple[str, str]:
     )
 
     thumb_key = build_thumbnail_key(user_id)
-    thumb_buffer = BytesIO(thumb_bytes)
-    minio_client.put_object(
-        settings.MINIO_BUCKET,
-        thumb_key,
-        thumb_buffer,
-        len(thumb_bytes),
-        content_type="image/webp",
-    )
+    _upload_to_store(bucket, thumb_key, thumb_bytes, content_type="image/webp")
 
     thumb_url = build_thumbnail_url(thumb_key)
     return thumb_key, thumb_url
@@ -196,10 +231,11 @@ def generate_thumbnail(cos_key: str, user_id: str) -> tuple[str, str]:
 
 def generate_avatar_thumbnail(cos_key: str, user_id: str) -> tuple[str, str]:
     """生成头像缩略图（200×200 正方形裁剪）"""
-    response = minio_client.get_object(settings.MINIO_BUCKET, cos_key)
-    image_data = response.read()
-    response.close()
-    response.release_conn()
+    bucket = settings.TOS_BUCKET if is_tos_enabled() else settings.MINIO_BUCKET
+
+    image_data = _download_from_store(bucket, cos_key)
+    if image_data is None:
+        raise RuntimeError(f"Failed to download: {cos_key}")
 
     img = Image.open(BytesIO(image_data))
 
@@ -217,14 +253,8 @@ def generate_avatar_thumbnail(cos_key: str, user_id: str) -> tuple[str, str]:
     )
     buffer = BytesIO()
     img.save(buffer, format="WEBP", quality=85)
-    buffer.seek(0)
 
-    minio_client.put_object(
-        settings.MINIO_BUCKET,
-        thumb_key,
-        buffer,
-        buffer.getbuffer().nbytes,
-        content_type="image/webp",
-    )
-    thumb_url = f"{settings.MINIO_PUBLIC_URL}/{settings.MINIO_BUCKET}/{thumb_key}"
+    public_url_base = settings.TOS_PUBLIC_URL if is_tos_enabled() else settings.MINIO_PUBLIC_URL
+    _upload_to_store(bucket, thumb_key, buffer.getvalue(), content_type="image/webp")
+    thumb_url = f"{public_url_base}/{bucket}/{thumb_key}"
     return thumb_key, thumb_url

@@ -1,4 +1,7 @@
-"""上传路由 — 对接 MinIO 预签名 URL + 上传回调"""
+"""上传路由 — 对接 TOS 预签名 URL + 上传回调
+
+根据配置自动选择 TOS 或 MinIO（通过 TOS_ACCESS_KEY 是否为空判断）。
+"""
 import logging
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
@@ -6,7 +9,9 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_db
 from app.middleware.auth import get_current_user_id
-from app.services.file_service import get_upload_url
+from app.services.tos_service import get_upload_url as tos_get_upload_url
+from app.services.tos_service import is_tos_enabled
+from app.services.file_service import get_upload_url as minio_get_upload_url
 
 logger = logging.getLogger(__name__)
 
@@ -23,6 +28,7 @@ class UploadSignResponse(BaseModel):
     uploadUrl: str = ""
     cosKey: str = ""
     method: str = "PUT"
+    uploadType: str = "presigned"
 
 
 class UploadCallbackRequest(BaseModel):
@@ -39,8 +45,14 @@ async def upload_sign(
     req: UploadSignRequest,
     user_id: str = Depends(get_current_user_id),
 ):
-    """获取 MinIO 预签名上传 URL（15 分钟有效）"""
-    result = get_upload_url(user_id, req.fileName, req.fileType)
+    """获取预签名上传 URL（15 分钟有效）
+
+    根据配置自动选择 TOS 或 MinIO 后端。
+    """
+    if is_tos_enabled():
+        result = tos_get_upload_url(user_id, req.fileName, req.fileType)
+    else:
+        result = minio_get_upload_url(user_id, req.fileName, req.fileType)
     return UploadSignResponse(**result)
 
 

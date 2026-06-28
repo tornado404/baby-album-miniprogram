@@ -44,6 +44,17 @@ class Settings(BaseSettings):
     # MinIO 公网访问地址（用于拼接公开文件 URL；与 MINIO_EXTERNAL_ENDPOINT 同源，含协议）
     MINIO_PUBLIC_URL: str = "https://oss.qzjlyouhua.fun"
 
+    # 火山引擎 TOS 对象存储（替代 MinIO，S3 兼容 API）
+    # 通过 TOS_ACCESS_KEY 是否为空来判断使用 TOS 还是 MinIO
+    TOS_ACCESS_KEY: str = ""
+    TOS_SECRET_KEY: str = ""
+    TOS_BUCKET: str = "baby-album"
+    TOS_REGION: str = "cn-beijing"
+    TOS_ENDPOINT: str = "tos-cn-beijing.volces.com"
+    TOS_INTERNAL_ENDPOINT: str = "tos-cn-beijing.internal.volces.com"
+    TOS_PUBLIC_URL: str = "https://baby-album.tos-cn-beijing.volces.com"
+    TOS_CDN_URL: str = ""
+
     # 上传限制
     UPLOAD_MAX_SIZE: int = 20 * 1024 * 1024  # 20MB
 

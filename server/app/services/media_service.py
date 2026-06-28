@@ -7,23 +7,28 @@ from sqlalchemy import select, desc
 from app.models.media import Media
 from app.models.sync_log import SyncAction
 from app.services.sync_service import record_sync_log
-from app.services.file_service import get_file_url, delete_file
+from app.services.tos_service import get_file_url, delete_file, is_tos_enabled
+from app.services.file_service import get_file_url as minio_get_file_url, delete_file as minio_delete_file
 
 logger = logging.getLogger(__name__)
 
 
-async def _cleanup_minio_files_async(cos_key: Optional[str], thumbnail_key: Optional[str]):
-    """后台任务：清理 MinIO 中的原图和缩略图文件，失败仅记录日志"""
+async def _cleanup_store_files_async(cos_key: Optional[str], thumbnail_key: Optional[str]):
+    """后台任务：清理对象存储中的原图和缩略图文件，自动选择 TOS 或 MinIO"""
+    if is_tos_enabled():
+        _del = delete_file
+    else:
+        _del = minio_delete_file
     if cos_key:
         try:
-            await asyncio.to_thread(delete_file, cos_key)
+            await asyncio.to_thread(_del, cos_key)
         except Exception:
-            logger.exception("Failed to delete original file from MinIO: %s", cos_key)
+            logger.exception("Failed to delete original file from storage: %s", cos_key)
     if thumbnail_key:
         try:
-            await asyncio.to_thread(delete_file, thumbnail_key)
+            await asyncio.to_thread(_del, thumbnail_key)
         except Exception:
-            logger.exception("Failed to delete thumbnail from MinIO: %s", thumbnail_key)
+            logger.exception("Failed to delete thumbnail from storage: %s", thumbnail_key)
 
 
 class MediaService:
@@ -47,7 +52,11 @@ class MediaService:
 
     async def create_media(self, user_id: str, data: dict):
         cos_key = data.get("cos_key", "")
-        cos_url = get_file_url(cos_key) if cos_key else ""
+        # 根据配置自动选择 TOS 或 MinIO URL
+        if is_tos_enabled():
+            cos_url = get_file_url(cos_key) if cos_key else ""
+        else:
+            cos_url = minio_get_file_url(cos_key) if cos_key else ""
         m = Media(user_id=user_id, cos_url=cos_url, **data)
         self.db.add(m)
         await self.db.flush()
@@ -82,6 +91,6 @@ class MediaService:
         await record_sync_log(self.db, user_id, "media", media_id, SyncAction.delete)
         await self.db.commit()
 
-        # 异步清理 MinIO 文件（不阻塞 API 响应），失败仅记录日志
+        # 异步清理存储文件（不阻塞 API 响应），失败仅记录日志
         if cos_key or thumbnail_key:
-            asyncio.create_task(_cleanup_minio_files_async(cos_key, thumbnail_key))
+            asyncio.create_task(_cleanup_store_files_async(cos_key, thumbnail_key))

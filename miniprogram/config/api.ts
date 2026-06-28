@@ -5,6 +5,7 @@
 interface ApiConfig {
   baseURL: string;
   minioURL: string;
+  tosURL: string;
   timeout: number;
   name: string;
   desc: string;
@@ -21,6 +22,7 @@ const CONFIGS: Record<Env, ApiConfig> = {
   development: {
     baseURL: 'http://localhost:8000/api/v1',
     minioURL: 'http://localhost:9000',
+    tosURL: 'http://localhost:8000',
     timeout: 15000,
     name: '本地开发',
     desc: '本地 Docker Compose 环境',
@@ -28,6 +30,7 @@ const CONFIGS: Record<Env, ApiConfig> = {
   testing: {
     baseURL: 'http://192.168.50.126:8000/api/v1',
     minioURL: 'http://192.168.50.126:9000',
+    tosURL: 'http://192.168.50.126:9000',
     timeout: 15000,
     name: '测试服务器',
     desc: 'ARM 局域网测试环境',
@@ -35,6 +38,7 @@ const CONFIGS: Record<Env, ApiConfig> = {
   production: {
     baseURL: 'https://api.qzjlyouhua.fun/api/v1',
     minioURL: 'https://oss.qzjlyouhua.fun',
+    tosURL: 'https://baby-album.tos-cn-beijing.volces.com',
     timeout: 20000,
     name: '生产环境',
     desc: '云服务器正式环境（Cloudflare HTTPS）',
