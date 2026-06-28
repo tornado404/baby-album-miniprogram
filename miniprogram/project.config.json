@@ -4,7 +4,9 @@
     "useCompilerPlugins": [
       "typescript"
     ],
-    "minified": true
+    "minified": true,
+    "enhance": true,
+    "es6": true
   },
   "compileType": "miniprogram",
   "simulatorPluginLibVersion": {},
