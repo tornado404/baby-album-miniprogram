@@ -26,11 +26,14 @@ class AuthService:
         return {"userId": user.id, "accessToken": at, "refreshToken": rt, "expiresIn": 7200, "isNewUser": is_new}
 
     async def _get_wechat_openid(self, code: str) -> str | None:
-        """调用微信 jscode2session 获取 openid"""
+        """调用微信 jscode2session 获取 openid
+
+        开发/测试模式（DEBUG=True）下，如果微信接口调用失败，自动降级为 mock openid，
+        方便本地开发和 ARM 局域网测试。
+        """
         appid = settings.WECHAT_APP_ID
         secret = settings.WECHAT_APP_SECRET
         if not appid or not secret:
-            # 未配置时回退到 mock（开发调试可用）
             return f"mock_openid_{uuid.uuid4().hex[:12]}"
         url = (
             "https://api.weixin.qq.com/sns/jscode2session"
@@ -46,6 +49,12 @@ class AuthService:
                     print(f"[wechat] jscode2session error: {data}")
         except Exception as e:
             print(f"[wechat] jscode2session request failed: {e}")
+
+        # 开发/测试模式下降级为 mock openid
+        if settings.DEBUG:
+            print("[wechat] DEBUG mode — falling back to mock openid")
+            return f"mock_openid_{uuid.uuid4().hex[:12]}"
+
         return None
 
     async def refresh(self, refresh_token: str) -> dict:
