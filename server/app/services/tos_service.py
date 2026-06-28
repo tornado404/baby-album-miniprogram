@@ -25,6 +25,11 @@ def _is_dev_mode() -> bool:
     return settings.DEBUG
 
 
+def _get_bucket_host() -> str:
+    """获取 virtual-hosted-style 域名（bucket.tos-endpoint）"""
+    return f"{settings.TOS_BUCKET}.{settings.TOS_ENDPOINT}"
+
+
 def check_tos_available() -> bool:
     """检查 TOS 是否可达，结果会缓存"""
     global _tos_available
@@ -32,7 +37,7 @@ def check_tos_available() -> bool:
         return _tos_available
     try:
         resp = httpx.head(
-            f"https://{settings.TOS_ENDPOINT}/{settings.TOS_BUCKET}",
+            f"https://{_get_bucket_host()}/",
             timeout=5.0,
         )
         # TOS 返回 403（私有桶）说明服务可达，404（桶不存在）说明不可达
@@ -97,7 +102,7 @@ def _sign_presigned_url(
     key: str,
     expires: int = 3600,
 ) -> str:
-    """生成预签名 URL（AWS Sig V4）
+    """生成预签名 URL（AWS Sig V4），使用 virtual-hosted-style（bucket 域名）
 
     返回完整的预签名 URL，客户端可直接使用。
     """
@@ -105,8 +110,9 @@ def _sign_presigned_url(
     date_stamp = now.strftime("%Y%m%d")
     amz_date = now.strftime("%Y%m%dT%H%M%SZ")
 
-    host = settings.TOS_ENDPOINT
-    object_path = f"/{bucket}/{key}"
+    # TOS 要求使用 virtual-hosted-style URL（bucket.tos-endpoint/key）
+    host = _get_bucket_host()
+    object_path = f"/{key}"
 
     credential = f"{settings.TOS_ACCESS_KEY}/{date_stamp}/{_REGION}/{_SERVICE}/aws4_request"
 
@@ -148,7 +154,7 @@ def _sign_presigned_url(
         signing_key, string_to_sign.encode("utf-8"), hashlib.sha256
     ).hexdigest()
 
-    # 构建最终 URL
+    # 构建最终 URL（virtual-hosted-style）
     params["X-Amz-Signature"] = signature
     query_string = "&".join(
         f"{quote(k, safe='')}={quote(v, safe='')}" for k, v in sorted(params.items())
@@ -162,13 +168,17 @@ def _sign_request_headers(
     key: str,
     headers: dict | None = None,
 ) -> dict:
-    """生成带签名的请求头（用于服务端直接调用 TOS REST API）"""
+    """生成带签名的请求头（用于服务端直接调用 TOS REST API）
+
+    使用 virtual-hosted-style（bucket 域名），TOS 不支持 path-style 写入。
+    """
     now = datetime.now(timezone.utc)
     date_stamp = now.strftime("%Y%m%d")
     amz_date = now.strftime("%Y%m%dT%H%M%SZ")
 
-    host = settings.TOS_INTERNAL_ENDPOINT
-    object_path = f"/{bucket}/{key}"
+    # 服务器部署在腾讯云，不在火山引擎内网，统一使用公网 bucket 域名
+    host = _get_bucket_host()
+    object_path = f"/{key}"
 
     payload_hash = "UNSIGNED-PAYLOAD"
 
@@ -233,7 +243,7 @@ def generate_presigned_upload_url(bucket: str, key: str, expires: int = 3600) ->
         return ""
     if not check_tos_available() and _is_dev_mode():
         logger.debug("TOS unavailable — returning mock upload URL for key=%s", key)
-        return f"https://{settings.TOS_ENDPOINT}/{bucket}/{key}?mock=upload&key={key}"
+        return f"https://{_get_bucket_host()}/{key}?mock=upload&key={key}"
     return _sign_presigned_url("PUT", bucket, key, expires)
 
 
@@ -259,12 +269,15 @@ def get_upload_url(user_id: str, file_name: str, file_type: str) -> dict:
 def get_file_url(cos_key: str) -> str:
     """获取文件公开访问 URL
 
+    TOS_PUBLIC_URL 是 bucket 域名格式（如 https://baby-album.tos-cn-beijing.volces.com），
+    直接拼接对象路径即可（不需要再带 bucket 名）。
     如果配置了 CDN，走 CDN URL 以加速播放。
     """
     if not cos_key:
         return ""
     if settings.TOS_CDN_URL:
         return f"{settings.TOS_CDN_URL}/{cos_key}"
+    # TOS_PUBLIC_URL 已经是 bucket 级域名，不需要 /bucket/ 前缀
     return f"{settings.TOS_PUBLIC_URL}/{cos_key}"
 
 
@@ -282,12 +295,8 @@ def delete_file(cos_key: str) -> bool:
         return False
 
     try:
-        headers = _sign_request_headers("DELETE", settings.TOS_BUCKET, cos_key)
-        resp = httpx.delete(
-            f"https://{settings.TOS_INTERNAL_ENDPOINT}/{settings.TOS_BUCKET}/{cos_key}",
-            headers=headers,
-            timeout=10.0,
-        )
+        url = _sign_presigned_url("DELETE", settings.TOS_BUCKET, cos_key, expires=300)
+        resp = httpx.delete(url, timeout=10.0)
         if resp.status_code in (204, 200):
             return True
         logger.error("TOS DELETE failed: status=%d key=%s", resp.status_code, cos_key)
@@ -301,16 +310,12 @@ def delete_file(cos_key: str) -> bool:
 
 
 def download_file(bucket: str, key: str) -> bytes | None:
-    """从 TOS 下载文件（服务端使用，走内网 endpoint）"""
+    """从 TOS 下载文件（服务端使用，通过预签名 GET URL）"""
     if not is_tos_enabled():
         return None
     try:
-        headers = _sign_request_headers("GET", bucket, key)
-        resp = httpx.get(
-            f"https://{settings.TOS_INTERNAL_ENDPOINT}/{bucket}/{key}",
-            headers=headers,
-            timeout=30.0,
-        )
+        url = _sign_presigned_url("GET", bucket, key, expires=300)
+        resp = httpx.get(url, timeout=30.0)
         if resp.status_code == 200:
             return resp.content
         logger.error("TOS download failed: status=%d key=%s", resp.status_code, key)
@@ -321,17 +326,14 @@ def download_file(bucket: str, key: str) -> bytes | None:
 
 
 def upload_file(bucket: str, key: str, data: bytes, content_type: str = "application/octet-stream") -> bool:
-    """上传文件到 TOS（服务端使用，走内网 endpoint）"""
+    """上传文件到 TOS（服务端使用，通过预签名 PUT URL）"""
     if not is_tos_enabled():
         return False
     try:
-        headers = _sign_request_headers("PUT", bucket, key, {
-            "Content-Type": content_type,
-            "Content-Length": str(len(data)),
-        })
+        url = _sign_presigned_url("PUT", bucket, key, expires=300)
         resp = httpx.put(
-            f"https://{settings.TOS_INTERNAL_ENDPOINT}/{bucket}/{key}",
-            headers=headers,
+            url,
+            headers={"Content-Type": content_type},
             content=data,
             timeout=60.0,
         )
