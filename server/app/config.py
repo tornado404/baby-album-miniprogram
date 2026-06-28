@@ -46,6 +46,7 @@ class Settings(BaseSettings):
 
     # 火山引擎 TOS 对象存储（替代 MinIO，S3 兼容 API）
     # 通过 TOS_ACCESS_KEY 是否为空来判断使用 TOS 还是 MinIO
+    # ⚠️ 敏感凭证（AK/SK）通过 .env 加载，不硬编码在代码中
     TOS_ACCESS_KEY: str = ""
     TOS_SECRET_KEY: str = ""
     TOS_BUCKET: str = "baby-album"

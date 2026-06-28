@@ -256,5 +256,9 @@ def generate_avatar_thumbnail(cos_key: str, user_id: str) -> tuple[str, str]:
 
     public_url_base = settings.TOS_PUBLIC_URL if is_tos_enabled() else settings.MINIO_PUBLIC_URL
     _upload_to_store(bucket, thumb_key, buffer.getvalue(), content_type="image/webp")
-    thumb_url = f"{public_url_base}/{bucket}/{thumb_key}"
+    # TOS_PUBLIC_URL 是 bucket 级域名，MinIO_PUBLIC_URL 是服务器级域名
+    if is_tos_enabled():
+        thumb_url = f"{public_url_base}/{thumb_key}"
+    else:
+        thumb_url = f"{public_url_base}/{bucket}/{thumb_key}"
     return thumb_key, thumb_url
